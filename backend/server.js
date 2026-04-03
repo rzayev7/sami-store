@@ -10,7 +10,39 @@ connectDB();
 
 const app = express();
 
-app.use(cors());
+const defaultOrigins = [
+  "https://sami-store.vercel.app",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+];
+
+const envOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+if (process.env.FRONTEND_URL) {
+  envOrigins.push(process.env.FRONTEND_URL.trim());
+}
+
+const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) {
+        return callback(null, true);
+      }
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json());
 
 app.get("/", (req, res) => {

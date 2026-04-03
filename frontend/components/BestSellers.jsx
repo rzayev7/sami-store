@@ -96,7 +96,7 @@ function BestSellerCard({ item, formatPrice }) {
             </span>
           </p>
         ) : (
-          <p className="mt-1 text-[12px] tracking-[0.02em] text-[var(--color-muted)]">
+          <p className="mt-1 text-[12px] font-medium tracking-[0.02em] text-[var(--color-black)]">
             {formatPrice(item.priceUSD)}
           </p>
         )}
