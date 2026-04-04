@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cinzel, Inter } from "next/font/google";
 import AnnouncementBars from "../components/AnnouncementBars";
 import Footer from "../components/Footer";
+import WhatsAppFloat from "../components/WhatsAppFloat";
 import Navbar from "../components/Navbar";
 import CartDrawer from "../components/CartDrawer";
 import AuthModal from "../components/AuthModal";
@@ -23,8 +24,8 @@ const cinzel = Cinzel({
 });
 
 export const metadata: Metadata = {
-  title: "Sami",
-  description: "Sami international fashion store",
+  title: "SAMÍ",
+  description: "Womenswear from Baku. Worn everywhere.",
 };
 
 export default function RootLayout({
@@ -52,6 +53,7 @@ export default function RootLayout({
                   </div>
                 </main>
                 <Footer />
+                <WhatsAppFloat />
               </div>
             </CartProvider>
           </CurrencyProvider>

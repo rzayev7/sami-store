@@ -253,3 +253,24 @@ select {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+@keyframes whatsapp-float-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.whatsapp-float-enter {
+  animation: whatsapp-float-in 0.45s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .whatsapp-float-enter {
+    animation: none;
+  }
+}

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 
-const TARGET_CURRENCIES = ["EUR", "GBP", "RUB", "TRY", "AED", "SAR", "KWD", "AZN"];
+/** Display currencies (USD is derived; rates from open.er-api are per 1 USD). */
+const TARGET_CURRENCIES = ["EUR", "AED", "AZN"];
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
-const DEFAULT_AZN_PER_USD = 1.70;
+const DEFAULT_AZN_PER_USD = 1.7;
 
 let cached: { rates: Record<string, number>; aznPerUsd: number; ts: number } | null = null;
 

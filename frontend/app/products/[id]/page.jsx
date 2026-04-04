@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import {
   ChevronLeft,
+  ChevronDown,
   Truck,
   RotateCcw,
   ShieldCheck,
@@ -17,7 +18,8 @@ import {
   Play,
   Pause,
 } from "lucide-react";
-import api from "../../../lib/api";
+import api, { getApiBaseURL } from "../../../lib/api";
+import SizeGuide from "../../../components/SizeGuide";
 import { useCart } from "../../../context/CartContext";
 import { useCurrency } from "../../../context/CurrencyContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../../../lib/image";
@@ -45,20 +47,31 @@ export default function ProductDetailPage() {
   const thumbnailContainerRef = useRef(null);
   const videoRefs = useRef({});
   const [playingVideoIndex, setPlayingVideoIndex] = useState(null);
+  const [fabricOpen, setFabricOpen] = useState(false);
+  const [relatedProducts, setRelatedProducts] = useState([]);
 
   useEffect(() => {
     if (!resolvedProductId) return;
 
     const fetchProduct = async () => {
+      const base = getApiBaseURL();
       try {
         const { data } = await api.get(`/api/products/${resolvedProductId}`);
+        console.log("[ProductDetail] product OK", { baseUrl: base, id: resolvedProductId });
         setProduct(data);
         setSelectedSize("");
         setSelectedTopSize("");
         setSelectedBottomSize("");
         setSelectedColor("");
         setSelectedBundle("full_set");
-      } catch {
+      } catch (err) {
+        console.error("[ProductDetail] product fetch failed", {
+          baseUrl: base,
+          requestUrl: `${base}/api/products/${resolvedProductId}`,
+          message: err?.message,
+          status: err?.response?.status,
+          responseData: err?.response?.data,
+        });
         setProduct(null);
       } finally {
         setLoading(false);
@@ -67,6 +80,30 @@ export default function ProductDetailPage() {
 
     fetchProduct();
   }, [resolvedProductId]);
+
+  useEffect(() => {
+    if (!product?._id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await api.get("/api/products");
+        const list = Array.isArray(data) ? data : [];
+        const cat = product.category;
+        const sameCat = list.filter(
+          (p) => p._id !== product._id && (!cat || p.category === cat),
+        );
+        const fallback = list.filter((p) => p._id !== product._id);
+        const pick = sameCat.length >= 3 ? sameCat : fallback;
+        if (!cancelled) setRelatedProducts(pick.slice(0, 3));
+      } catch (err) {
+        console.error("[ProductDetail] related products failed", err);
+        if (!cancelled) setRelatedProducts([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [product?._id, product?.category]);
 
   /** Images plus optional product video (after first photo) for the same strip as admin "card" video. */
   const galleryItems = useMemo(() => {
@@ -150,13 +187,13 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     if (!product) return;
-    document.title = `${product.name} | Sami`;
+    document.title = `${product.name} | SAMÍ`;
 
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
       metaDescription.setAttribute(
         "content",
-        product.description || "Sami fashion product"
+        product.description || "SAMÍ womenswear"
       );
     }
   }, [product]);
@@ -493,7 +530,7 @@ export default function ProductDetailPage() {
               {/* Brand + Title */}
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[var(--color-gold)]">
-                  Samí Collection
+                  SAMÍ
                 </p>
                 <h1 className="mt-2 font-serif text-[22px] font-light leading-snug tracking-[0.02em] text-[var(--color-black)] sm:text-[26px]">
                   {product.name}
@@ -516,11 +553,43 @@ export default function ProductDetailPage() {
               <div className="h-px bg-[var(--color-line)]" />
 
               {/* Description */}
-              {product.description && (
+              <div className="space-y-3">
                 <p className="text-[13px] leading-[1.9] tracking-[0.01em] text-[var(--color-muted)]">
-                  {product.description}
+                  {product.description?.trim()
+                    ? product.description
+                    : "Crafted for how you actually live. One piece, every occasion."}
                 </p>
-              )}
+              </div>
+
+              {/* Fabric & care */}
+              <div className="rounded-xl border border-[var(--color-line)] bg-white">
+                <button
+                  type="button"
+                  onClick={() => setFabricOpen((v) => !v)}
+                  className="flex w-full items-center justify-between px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-black/55 transition-colors hover:bg-[var(--color-sand)]/30"
+                >
+                  Fabric & care
+                  <ChevronDown
+                    size={16}
+                    strokeWidth={1.8}
+                    className={`shrink-0 text-black/40 transition-transform duration-200 ${
+                      fabricOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {fabricOpen && (
+                  <div className="border-t border-[var(--color-line)] px-4 pb-4 pt-3 text-[13px] leading-[1.85] text-[var(--color-muted)]">
+                    <p>
+                      Fabrics are chosen for drape and longevity. Exact composition is noted on the
+                      care label of each piece.
+                    </p>
+                    <p className="mt-3">
+                      Dry clean or gentle hand wash. Cool iron on the reverse. Store folded away
+                      from direct sunlight.
+                    </p>
+                  </div>
+                )}
+              </div>
 
               {/* Color selector */}
               {Array.isArray(product.colors) && product.colors.length > 0 && (
@@ -622,7 +691,7 @@ export default function ProductDetailPage() {
               {/* Size selector */}
               {Array.isArray(product.sizes) && product.sizes.length > 0 && (
                 <div data-testid="size-selector">
-                  <div className="mb-2.5 flex items-center justify-between">
+                  <div className="mb-2.5 flex items-center justify-between gap-3">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-black/55">
                       {isBundleProduct && selectedBundle === "full_set"
                         ? "Top & Bottom Size"
@@ -632,6 +701,7 @@ export default function ProductDetailPage() {
                             ? "Bottom Size"
                             : "Size"}
                     </p>
+                    <SizeGuide />
                   </div>
                   {(selectedBundle !== "bottom_only" || !isBundleProduct) && (
                     <div className="mb-3">
@@ -844,6 +914,50 @@ export default function ProductDetailPage() {
 
             </div>
           </div>
+
+          {relatedProducts.length > 0 && (
+            <div className="mt-16 border-t border-[var(--color-line)] pt-14">
+              <h2 className="font-serif text-xl font-light tracking-[0.02em] text-[var(--color-black)] sm:text-2xl">
+                You may also like
+              </h2>
+              <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                {relatedProducts.map((p) => {
+                  const img =
+                    Array.isArray(p.images) && p.images[0]
+                      ? p.images[0]
+                      : "https://placehold.co/600x800?text=SAM%C3%8D";
+                  const price =
+                    p.discountPriceUSD != null &&
+                    Number(p.discountPriceUSD) > 0 &&
+                    Number(p.discountPriceUSD) < Number(p.priceUSD)
+                      ? p.discountPriceUSD
+                      : p.priceUSD;
+                  return (
+                    <Link
+                      key={p._id}
+                      href={`/products/${p._id}`}
+                      className="group block"
+                    >
+                      <div className="relative aspect-[3/4] w-full overflow-hidden bg-[var(--color-sand)]/30">
+                        <Image
+                          src={cloudinaryOptimizedUrl(img, { preset: "product" })}
+                          alt={p.name || "Product"}
+                          fill
+                          sizes="(max-width: 640px) 50vw, 33vw"
+                          className="object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]"
+                          unoptimized={isCloudinaryUrl(img)}
+                        />
+                      </div>
+                      <p className="mt-3 text-[12px] font-medium tracking-[0.02em] text-[var(--color-black)] line-clamp-2 group-hover:opacity-80">
+                        {p.name}
+                      </p>
+                      <p className="mt-1 text-[12px] tabular-nums text-black/60">{formatPrice(price)}</p>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>

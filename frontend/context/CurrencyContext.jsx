@@ -20,13 +20,16 @@ export function CurrencyProvider({ children }) {
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved && CURRENCIES.some((c) => c.code === saved)) {
+    const valid = saved && CURRENCIES.some((c) => c.code === saved);
+    if (valid) {
       setCurrencyState(saved);
-    } else {
-      const detected = detectCurrency();
-      setCurrencyState(detected);
-      localStorage.setItem(STORAGE_KEY, detected);
+      return;
     }
+    if (saved) localStorage.removeItem(STORAGE_KEY);
+    const raw = detectCurrency();
+    const detected = CURRENCIES.some((c) => c.code === raw) ? raw : "USD";
+    setCurrencyState(detected);
+    localStorage.setItem(STORAGE_KEY, detected);
   }, []);
 
   useEffect(() => {

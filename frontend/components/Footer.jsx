@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SUPPORT_EMAIL } from "../lib/sitePublic";
 
 export default function Footer() {
   return (
@@ -9,8 +10,7 @@ export default function Footer() {
             <h3 className="sami-brand text-4xl leading-none">SAMÍ</h3>
           </Link>
           <p className="mt-4 max-w-sm text-sm leading-7 text-[#1a1a1a]/75">
-            Minimal womenswear from Baku for modern wardrobes worldwide. Refined
-            essentials, premium tailoring, and effortless silhouettes.
+            Womenswear from Baku. Worn everywhere.
           </p>
           <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[#1a1a1a]/55">
             Worldwide shipping
@@ -51,39 +51,45 @@ export default function Footer() {
           <h4 className="text-xs font-semibold uppercase tracking-[0.16em]">Support</h4>
           <ul className="mt-4 space-y-2 text-sm text-[#1a1a1a]/75">
             <li>
+              <Link href="/shipping" className="transition-opacity hover:opacity-70">
+                Shipping &amp; Returns
+              </Link>
+            </li>
+            <li>
               <Link href="/track-order" className="transition-opacity hover:opacity-70">Track Order</Link>
             </li>
             <li>
-              <a href="mailto:support@sami.com" className="transition-opacity hover:opacity-70">
-                Contact: support@sami.com
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="transition-opacity hover:opacity-70">
+                Contact: {SUPPORT_EMAIL}
               </a>
             </li>
           </ul>
         </div>
 
         <div>
-          <h4 className="text-xs font-semibold uppercase tracking-[0.16em]">Social</h4>
+          <h4 className="text-xs font-semibold uppercase tracking-[0.16em]">Brand</h4>
           <ul className="mt-4 space-y-2 text-sm text-[#1a1a1a]/75">
             <li>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-70">
+              <Link href="/about" className="transition-opacity hover:opacity-70">About</Link>
+            </li>
+          </ul>
+          <h4 className="mt-8 text-xs font-semibold uppercase tracking-[0.16em]">Social</h4>
+          <ul className="mt-4 space-y-2 text-sm text-[#1a1a1a]/75">
+            <li>
+              <a
+                href="https://www.instagram.com/sami_boutique_baku/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-opacity hover:opacity-70"
+              >
                 Instagram
-              </a>
-            </li>
-            <li>
-              <a href="https://pinterest.com" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-70">
-                Pinterest
-              </a>
-            </li>
-            <li>
-              <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-70">
-                TikTok
               </a>
             </li>
           </ul>
         </div>
       </div>
       <div className="border-t border-black/10 px-4 py-4 text-center text-[11px] uppercase tracking-[0.14em] text-[#1a1a1a]/55 sm:px-6 lg:px-12">
-        © {new Date().getFullYear()} Sami. All rights reserved.
+        © {new Date().getFullYear()} SAMÍ. All rights reserved.
       </div>
     </footer>
   );

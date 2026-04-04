@@ -10,7 +10,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import api from "../lib/api";
+import api, { getApiBaseURL } from "../lib/api";
 import { useCart } from "../context/CartContext";
 import { useCurrency } from "../context/CurrencyContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
@@ -246,10 +246,24 @@ export default function ProductListing({
 
   useEffect(() => {
     const fetchProducts = async () => {
+      const base = getApiBaseURL();
       try {
         const { data } = await api.get("/api/products");
-        setProducts(Array.isArray(data) ? data : []);
-      } catch {
+        const list = Array.isArray(data) ? data : [];
+        console.log("[ProductListing] /api/products OK", {
+          baseUrl: base,
+          count: list.length,
+          sampleId: list[0]?._id,
+        });
+        setProducts(list);
+      } catch (err) {
+        console.error("[ProductListing] /api/products failed", {
+          baseUrl: base,
+          requestUrl: `${base}/api/products`,
+          message: err?.message,
+          status: err?.response?.status,
+          responseData: err?.response?.data,
+        });
         setProducts([]);
       } finally {
         setLoading(false);

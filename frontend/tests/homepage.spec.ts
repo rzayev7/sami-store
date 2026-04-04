@@ -76,7 +76,7 @@ test.describe("Homepage", () => {
     const footer = page.locator("footer");
     await expect(footer).toBeVisible();
     await expect(footer).toContainText(year);
-    await expect(footer).toContainText("Sami");
+    await expect(footer).toContainText("SAMÍ");
   });
 
   test("footer contains essential links", async ({ page }) => {
