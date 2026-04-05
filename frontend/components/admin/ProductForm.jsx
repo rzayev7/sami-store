@@ -12,9 +12,6 @@ import {
   Check,
   Crop,
   Star,
-  GripVertical,
-  ChevronLeft,
-  ChevronRight,
   Video,
 } from "lucide-react";
 import api from "../../lib/api";
@@ -32,8 +29,76 @@ const PRODUCT_CATEGORIES = [
   "Blazers",
   "Sale",
 ];
-const MIN_UPLOAD_WIDTH = 1200;
-const MIN_UPLOAD_HEIGHT = 1200;
+const ACCENT_GOLD = "#C8A96E";
+const MAX_IMAGE_LONG_EDGE = 1200;
+const MAX_IMAGE_FILE_BYTES = 10 * 1024 * 1024;
+
+function formatBytes(n) {
+  if (n == null || !Number.isFinite(n)) return "—";
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+/**
+ * Scales image so the longest side is at most maxLongEdge (Canvas API).
+ */
+async function compressImageToMaxDimension(file, maxLongEdge = MAX_IMAGE_LONG_EDGE) {
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error("Image load failed"));
+      image.src = objectUrl;
+    });
+    const w = img.naturalWidth || 1;
+    const h = img.naturalHeight || 1;
+    const maxSide = Math.max(w, h);
+    let outW = w;
+    let outH = h;
+    if (maxSide > maxLongEdge) {
+      const scale = maxLongEdge / maxSide;
+      outW = Math.round(w * scale);
+      outH = Math.round(h * scale);
+    }
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("No canvas context");
+    canvas.width = outW;
+    canvas.height = outH;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(img, 0, 0, outW, outH);
+
+    const mime = file.type === "image/png" ? "image/png" : "image/jpeg";
+    const quality = mime === "image/png" ? undefined : 0.88;
+
+    return await new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("Compression failed"));
+            return;
+          }
+          const base = file.name.replace(/\.[^.]+$/, "") || "photo";
+          const ext = mime === "image/png" ? "png" : "jpg";
+          const outFile = new File([blob], `${base}.${ext}`, { type: mime });
+          resolve({
+            file: outFile,
+            width: outW,
+            height: outH,
+            bytes: blob.size,
+          });
+        },
+        mime,
+        quality
+      );
+    });
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
 
 function arrayMove(arr, from, to) {
   if (from === to) return arr;
@@ -84,15 +149,8 @@ async function fileFromCroppedCanvas(imageSrc, pixelCrop, adjustments = {}) {
   ctx.imageSmoothingQuality = "high";
 
   const { width: cw, height: ch, x, y } = pixelCrop;
-  let outW = cw;
-  let outH = ch;
-  const minSide = Math.min(cw, ch);
-  const minRequired = Math.min(MIN_UPLOAD_WIDTH, MIN_UPLOAD_HEIGHT);
-  if (minSide < minRequired) {
-    const scale = minRequired / minSide;
-    outW = Math.round(cw * scale);
-    outH = Math.round(ch * scale);
-  }
+  const outW = cw;
+  const outH = ch;
 
   canvas.width = outW;
   canvas.height = outH;
@@ -160,7 +218,7 @@ function ImageCropModal({ imageSrc, onClose, onApply }) {
         contrast,
         saturation,
       });
-      onApply(file);
+      await onApply(file);
     } finally {
       setBusy(false);
     }
@@ -491,113 +549,251 @@ function TagInput({ tags, setTags, placeholder, suggestions }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Image item – represents one existing or newly-added image          */
+/*  Full-screen image preview                                          */
 /* ------------------------------------------------------------------ */
 
-function ImageThumb({
+function ImageLightbox({ src, onClose }) {
+  useEffect(() => {
+    if (!src) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [src, onClose]);
+
+  if (!src) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/88 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t.imagePreviewDialog}
+      onClick={onClose}
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute right-3 top-3 z-[201] flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white transition hover:bg-black/60"
+        aria-label={t.closePreview}
+      >
+        <X size={22} strokeWidth={2} />
+      </button>
+      <img
+        src={src}
+        alt=""
+        className="max-h-[min(92vh,1400px)] max-w-[min(96vw,1400px)] select-none object-contain shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+        draggable={false}
+      />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Image cards – large previews, drag reorder, cover badge            */
+/* ------------------------------------------------------------------ */
+
+function RemoteImageMetaLine({ url }) {
+  const [dims, setDims] = useState(null);
+  const [bytes, setBytes] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      if (!cancelled) {
+        setDims({ w: img.naturalWidth, h: img.naturalHeight });
+      }
+    };
+    img.onerror = () => {
+      if (!cancelled) setDims(null);
+    };
+    img.src = url;
+
+    fetch(url)
+      .then((r) => r.blob())
+      .then((b) => {
+        if (!cancelled) setBytes(b.size);
+      })
+      .catch(() => {
+        if (!cancelled) setBytes(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [url]);
+
+  const line =
+    dims != null
+      ? `${dims.w} × ${dims.h}${bytes != null ? ` · ${formatBytes(bytes)}` : ""}`
+      : "…";
+
+  return (
+    <p className="truncate text-[11px] tabular-nums text-black/50" title={line}>
+      {line}
+    </p>
+  );
+}
+
+function ProductImageCard({
   src,
+  itemId,
+  isCover,
+  showCoverAction,
+  progress,
   onRemove,
   onCrop,
   onSetCover,
-  onMoveLeft,
-  onMoveRight,
-  canMoveLeft,
-  canMoveRight,
-  showCoverAction,
-  progress,
-  isCover,
   onDragStart,
   onDragOver,
   onDrop,
-  itemId,
+  onPhotoClick,
+  metaNew,
 }) {
+  const dragPointerRef = useRef(null);
+  const suppressClickAfterDragRef = useRef(false);
+
+  const handlePhotoMouseDownCapture = (e) => {
+    dragPointerRef.current = e.target instanceof Element && e.target.closest("button") ? "ui" : "photo";
+  };
+
+  const handlePhotoDragStart = (e) => {
+    if (dragPointerRef.current === "ui") {
+      e.preventDefault();
+      dragPointerRef.current = null;
+      return;
+    }
+    dragPointerRef.current = null;
+    onDragStart(e, itemId);
+  };
+
+  const handlePhotoDragEnd = () => {
+    suppressClickAfterDragRef.current = true;
+    window.setTimeout(() => {
+      suppressClickAfterDragRef.current = false;
+    }, 150);
+  };
+
+  const handlePhotoClick = (e) => {
+    if (e.target instanceof Element && e.target.closest("[data-image-toolbar]")) return;
+    if (suppressClickAfterDragRef.current) return;
+    onPhotoClick?.(src);
+  };
+
   return (
     <div
-      className="group relative aspect-[3/4] w-full overflow-hidden rounded-lg border border-[var(--color-line)] bg-[var(--color-cream)]"
+      className="group relative mx-auto flex w-full max-w-[220px] flex-col overflow-hidden rounded-xl border border-black/[0.08] bg-neutral-100 shadow-sm transition-shadow hover:shadow-md sm:max-w-[240px]"
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
-      <img src={src} alt="" className="h-full w-full object-cover" draggable={false} />
-
-      {typeof progress === "number" && progress < 100 && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40">
-          <Loader2 size={20} className="animate-spin text-white" />
-          <span className="mt-1 text-[11px] font-medium text-white">{progress}%</span>
-        </div>
-      )}
-
-      {typeof progress === "number" && progress === 100 && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500">
-            <Check size={16} strokeWidth={3} className="text-white" />
-          </div>
-        </div>
-      )}
-
-      {isCover && (
-        <span className="absolute left-1.5 top-1.5 z-[1] rounded bg-[var(--color-green)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">
-          {t.cover}
-        </span>
-      )}
-
       <div
-        role="button"
-        tabIndex={0}
-        title={t.dragToReorder}
+        title={t.photoPreviewHint}
         draggable
-        onDragStart={(e) => onDragStart(e, itemId)}
-        className="absolute left-1 top-8 z-[1] flex h-7 w-7 cursor-grab items-center justify-center rounded-md bg-black/55 text-white opacity-0 backdrop-blur-sm transition-opacity active:cursor-grabbing group-hover:opacity-100"
+        onMouseDownCapture={handlePhotoMouseDownCapture}
+        onDragStart={handlePhotoDragStart}
+        onDragEnd={handlePhotoDragEnd}
+        onClick={handlePhotoClick}
+        className="relative aspect-[3/4] w-full cursor-zoom-in select-none overflow-hidden bg-neutral-200 active:cursor-grabbing"
       >
-        <GripVertical size={14} strokeWidth={2} />
-      </div>
+        <img
+          src={src}
+          alt=""
+          className="pointer-events-none h-full w-full object-cover"
+          draggable={false}
+        />
 
-      <button
-        type="button"
-        onClick={onRemove}
-        className="absolute right-1.5 top-1.5 z-[1] flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 hover:bg-red-600"
-      >
-        <X size={12} strokeWidth={2.5} />
-      </button>
+        {typeof progress === "number" && progress < 100 && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/45">
+            <Loader2 size={22} className="animate-spin text-white" />
+            <span className="mt-2 text-[12px] font-medium text-white">{progress}%</span>
+          </div>
+        )}
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-black/70 to-transparent p-1.5 pt-8 opacity-0 transition-opacity group-hover:opacity-100">
-        <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-1">
-          <button
-            type="button"
-            title={t.cropImage}
-            onClick={onCrop}
-            className="flex h-7 w-7 items-center justify-center rounded-md bg-white/95 text-black/70 shadow-sm transition hover:bg-white"
+        {typeof progress === "number" && progress === 100 && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg"
+              style={{ backgroundColor: ACCENT_GOLD }}
+            >
+              <Check size={18} strokeWidth={3} />
+            </div>
+          </div>
+        )}
+
+        {isCover && (
+          <span
+            className="pointer-events-none absolute left-2 top-2 z-[2] rounded px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-white shadow-md"
+            style={{ backgroundColor: ACCENT_GOLD }}
           >
-            <Crop size={14} strokeWidth={2} />
-          </button>
-          {showCoverAction && (
+            {t.cover}
+          </span>
+        )}
+
+        <div className="pointer-events-none absolute inset-0 z-[1] bg-black/0 opacity-0 transition-all duration-200 group-hover:bg-black/20 group-hover:opacity-100" />
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] flex justify-center px-1.5 pb-1.5 pt-8 opacity-0 transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+          <div
+            data-image-toolbar
+            className="pointer-events-auto flex items-center gap-0.5 rounded-lg border border-white/15 bg-black/55 p-0.5 shadow-lg backdrop-blur-md"
+            onMouseDownCapture={() => {
+              dragPointerRef.current = "ui";
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               type="button"
-              title={t.setAsCover}
-              onClick={onSetCover}
-              className="flex h-7 w-7 items-center justify-center rounded-md bg-white/95 text-amber-600 shadow-sm transition hover:bg-white"
+              draggable={false}
+              title={t.cropImage}
+              aria-label={t.cropImage}
+              onClick={onCrop}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-white/95 transition hover:bg-white/15 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/60"
             >
-              <Star size={14} strokeWidth={2} />
+              <Crop size={14} strokeWidth={2} className="shrink-0" />
             </button>
-          )}
-          <button
-            type="button"
-            title={t.moveImageLeft}
-            disabled={!canMoveLeft}
-            onClick={onMoveLeft}
-            className="flex h-7 w-7 items-center justify-center rounded-md bg-white/95 text-black/70 shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-35"
-          >
-            <ChevronLeft size={14} strokeWidth={2} />
-          </button>
-          <button
-            type="button"
-            title={t.moveImageRight}
-            disabled={!canMoveRight}
-            onClick={onMoveRight}
-            className="flex h-7 w-7 items-center justify-center rounded-md bg-white/95 text-black/70 shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-35"
-          >
-            <ChevronRight size={14} strokeWidth={2} />
-          </button>
+            {showCoverAction && (
+              <button
+                type="button"
+                draggable={false}
+                title={t.setAsCover}
+                aria-label={t.setAsCover}
+                onClick={onSetCover}
+                className="flex h-7 w-7 items-center justify-center rounded-md transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/60"
+                style={{ color: ACCENT_GOLD }}
+              >
+                <Star size={14} strokeWidth={2} className="shrink-0" />
+              </button>
+            )}
+            <button
+              type="button"
+              draggable={false}
+              title={t.delete}
+              aria-label={t.delete}
+              onClick={onRemove}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-red-200 transition hover:bg-red-600/90 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-red-300/80"
+            >
+              <X size={14} strokeWidth={2.5} className="shrink-0" />
+            </button>
+          </div>
         </div>
+      </div>
+
+      <div className="border-t border-black/[0.06] bg-white px-2.5 py-2">
+        {metaNew ? (
+          <p className="truncate text-[11px] tabular-nums text-black/50" title={`${metaNew.w} × ${metaNew.h} · ${formatBytes(metaNew.bytes)}`}>
+            {metaNew.w} × {metaNew.h} · {formatBytes(metaNew.bytes)}
+          </p>
+        ) : (
+          <RemoteImageMetaLine url={src} />
+        )}
       </div>
     </div>
   );
@@ -637,6 +833,7 @@ export default function ProductForm({
   const [imageItems, setImageItems] = useState([]);
   const [uploadProgress, setUploadProgress] = useState({});
   const [cropModal, setCropModal] = useState(null);
+  const [lightboxSrc, setLightboxSrc] = useState(null);
 
   const [cardVideoUrl, setCardVideoUrl] = useState("");
   const [videoBrightness, setVideoBrightness] = useState(100);
@@ -660,28 +857,6 @@ export default function ProductForm({
   const submitLabel = mode === "edit" ? t.saveChanges : t.saveProduct;
 
   const hasHydrated = useRef(false);
-
-  const getImageDimensions = useCallback(
-    (file) =>
-      new Promise((resolve, reject) => {
-        const objectUrl = URL.createObjectURL(file);
-        const img = new Image();
-        img.onload = () => {
-          const dims = {
-            width: Number(img.naturalWidth || 0),
-            height: Number(img.naturalHeight || 0),
-          };
-          URL.revokeObjectURL(objectUrl);
-          resolve(dims);
-        };
-        img.onerror = () => {
-          URL.revokeObjectURL(objectUrl);
-          reject(new Error("Could not read image dimensions"));
-        };
-        img.src = objectUrl;
-      }),
-    []
-  );
 
   useEffect(() => {
     api
@@ -786,63 +961,52 @@ export default function ProductForm({
 
   /* ---------- Image handling ---------- */
 
-  const addFiles = useCallback(
-    async (fileList) => {
-      const files = Array.from(fileList).filter((f) => f.type.startsWith("image/"));
-      if (files.length === 0) return;
+  const addFiles = useCallback(async (fileList) => {
+    const files = Array.from(fileList).filter((f) => f.type.startsWith("image/"));
+    if (files.length === 0) return;
 
-      const accepted = [];
-      const rejected = [];
+    const rejected = [];
+    const compressedItems = [];
 
-      for (const file of files) {
-        try {
-          const { width, height } = await getImageDimensions(file);
-          if (width < MIN_UPLOAD_WIDTH || height < MIN_UPLOAD_HEIGHT) {
-            rejected.push(`${file.name} (${width}x${height}px)`);
-            continue;
-          }
-          accepted.push(file);
-        } catch {
-          rejected.push(file.name);
-        }
+    for (const file of files) {
+      if (file.size > MAX_IMAGE_FILE_BYTES) {
+        rejected.push(`${file.name} (>10 MB)`);
+        continue;
       }
-
-      if (rejected.length > 0) {
-        setErrorMessage(
-          `Some images were rejected. Minimum required size is ${MIN_UPLOAD_WIDTH}x${MIN_UPLOAD_HEIGHT}px. Rejected: ${rejected.join(", ")}`
-        );
-      } else {
-        setErrorMessage("");
+      try {
+        const { file: out, width, height, bytes } =
+          await compressImageToMaxDimension(file);
+        compressedItems.push({
+          kind: "new",
+          id: newImageId(),
+          file: out,
+          preview: URL.createObjectURL(out),
+          width,
+          height,
+          bytes,
+        });
+      } catch {
+        rejected.push(file.name);
       }
+    }
 
-      if (accepted.length === 0) return;
+    if (rejected.length > 0) {
+      setErrorMessage(
+        `Some images could not be added: ${rejected.join(", ")}`
+      );
+    } else {
+      setErrorMessage("");
+    }
 
-      const withPreviews = accepted.map((file) => ({
-        kind: "new",
-        id: newImageId(),
-        file,
-        preview: URL.createObjectURL(file),
-      }));
-      setImageItems((prev) => [...prev, ...withPreviews]);
-    },
-    [getImageDimensions]
-  );
+    if (compressedItems.length === 0) return;
+    setImageItems((prev) => [...prev, ...compressedItems]);
+  }, []);
 
   const removeImage = useCallback((id) => {
     setImageItems((prev) => {
       const item = prev.find((x) => x.id === id);
       if (item?.kind === "new") URL.revokeObjectURL(item.preview);
       return prev.filter((x) => x.id !== id);
-    });
-  }, []);
-
-  const moveImage = useCallback((id, delta) => {
-    setImageItems((prev) => {
-      const idx = prev.findIndex((x) => x.id === id);
-      if (idx < 0) return prev;
-      const next = idx + delta;
-      if (next < 0 || next >= prev.length) return prev;
-      return arrayMove(prev, idx, next);
     });
   }, []);
 
@@ -871,28 +1035,29 @@ export default function ProductForm({
     });
   }, []);
 
-  const applyCropResult = useCallback((itemId, file) => {
-    setImageItems((prev) =>
-      prev.map((item) => {
-        if (item.id !== itemId) return item;
-        if (item.kind === "new") {
-          URL.revokeObjectURL(item.preview);
+  const applyCropResult = useCallback(async (itemId, file) => {
+    try {
+      const { file: out, width, height, bytes } =
+        await compressImageToMaxDimension(file);
+      setImageItems((prev) =>
+        prev.map((item) => {
+          if (item.id !== itemId) return item;
+          if (item.kind === "new") URL.revokeObjectURL(item.preview);
           return {
             kind: "new",
             id: newImageId(),
-            file,
-            preview: URL.createObjectURL(file),
+            file: out,
+            preview: URL.createObjectURL(out),
+            width,
+            height,
+            bytes,
           };
-        }
-        return {
-          kind: "new",
-          id: newImageId(),
-          file,
-          preview: URL.createObjectURL(file),
-        };
-      })
-    );
-    setCropModal(null);
+        })
+      );
+      setCropModal(null);
+    } catch (err) {
+      setErrorMessage(err?.message || "Could not process image");
+    }
   }, []);
 
   const imageItemsRef = useRef(imageItems);
@@ -1150,6 +1315,9 @@ export default function ProductForm({
         key: item.id,
         kind: item.kind,
         src: item.kind === "existing" ? item.url : item.preview,
+        width: item.kind === "new" ? item.width : undefined,
+        height: item.kind === "new" ? item.height : undefined,
+        bytes: item.kind === "new" ? item.bytes : undefined,
       })),
     [imageItems]
   );
@@ -1494,59 +1662,53 @@ export default function ProductForm({
           </div>
         </CollapsibleCard>
 
-        {/* ---- Images (collapsed by default + compact dropzone) ---- */}
+        {/* ---- Images: drag-drop manager ---- */}
         <CollapsibleCard
           title={t.productImages}
-          defaultOpen={false}
+          defaultOpen
           summaryRight={
             galleryItems.length > 0
               ? `${t.nImages(galleryItems.length)} · ${t.firstImageIsCover}`
               : ""
           }
         >
+          <p className="mb-4 text-[12px] leading-relaxed text-black/45">
+            {t.imageCompressHint}
+          </p>
+
           {galleryItems.length > 0 && (
-            <div className="mb-4 grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-6">
+            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {galleryItems.map((img, idx) => (
-                <ImageThumb
+                <ProductImageCard
                   key={img.key}
                   itemId={img.key}
                   src={img.src}
+                  metaNew={
+                    img.kind === "new" &&
+                    img.width != null &&
+                    img.height != null &&
+                    img.bytes != null
+                      ? { w: img.width, h: img.height, bytes: img.bytes }
+                      : null
+                  }
                   isCover={idx === 0}
                   showCoverAction={idx !== 0}
-                  canMoveLeft={idx > 0}
-                  canMoveRight={idx < galleryItems.length - 1}
-                  onMoveLeft={() => moveImage(img.key, -1)}
-                  onMoveRight={() => moveImage(img.key, 1)}
-                  onSetCover={() => setAsCover(img.key)}
-                  onCrop={() => setCropModal({ id: img.key, src: img.src })}
-                  onDragStart={handleThumbDragStart}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => handleThumbDrop(e, img.key)}
                   progress={
                     img.kind === "new" && isSubmitting
                       ? uploadProgress[img.key] ?? 0
                       : undefined
                   }
                   onRemove={() => removeImage(img.key)}
+                  onCrop={() => setCropModal({ id: img.key, src: img.src })}
+                  onSetCover={() => setAsCover(img.key)}
+                  onDragStart={handleThumbDragStart}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => handleThumbDrop(e, img.key)}
+                  onPhotoClick={setLightboxSrc}
                 />
               ))}
             </div>
           )}
-
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--color-line)] bg-[var(--color-cream)]/35 px-3 py-2">
-            <p className="text-[11px] tracking-[0.05em] text-black/55">
-              {galleryItems.length > 0
-                ? `${galleryItems.length} image(s) added. First image is cover.`
-                : "No images yet. Add at least one image."}
-            </p>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="rounded-md bg-[var(--color-green)] px-3 py-1.5 text-[11px] font-semibold tracking-[0.08em] text-white transition hover:opacity-90"
-            >
-              Select Images
-            </button>
-          </div>
 
           <div
             ref={dropZoneRef}
@@ -1554,33 +1716,47 @@ export default function ProductForm({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`flex cursor-pointer items-center justify-between gap-4 rounded-xl border-2 border-dashed px-4 py-4 transition-colors ${
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors sm:flex-row sm:justify-between sm:text-left ${
               isDragging
-                ? "border-[var(--color-gold)] bg-[var(--color-gold)]/5"
-                : "border-[var(--color-line)] bg-[var(--color-cream)]/50 hover:border-[var(--color-gold)]/50"
+                ? "border-[#C8A96E] bg-[#C8A96E]/10"
+                : "border-black/[0.12] bg-neutral-50 hover:border-[#C8A96E]/60 hover:bg-[#C8A96E]/[0.04]"
             }`}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
               <div
-                className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
-                  isDragging
-                    ? "bg-[var(--color-gold)]/15 text-[var(--color-gold)]"
-                    : "bg-[var(--color-sand)]/60 text-black/30"
-                }`}
+                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-black/[0.06] bg-white shadow-sm"
+                style={{
+                  color: isDragging ? ACCENT_GOLD : "rgba(0,0,0,0.35)",
+                }}
               >
-                {isDragging ? <Upload size={20} strokeWidth={1.8} /> : <ImageIcon size={20} strokeWidth={1.8} />}
+                {isDragging ? (
+                  <Upload size={26} strokeWidth={1.8} />
+                ) : (
+                  <ImageIcon size={26} strokeWidth={1.8} />
+                )}
               </div>
               <div>
-                <p className="text-[13px] font-medium text-black/60">
-                  {isDragging ? t.dragImagesHere : t.dragOrClick}
+                <p className="text-[15px] font-semibold text-black/70">
+                  {isDragging ? t.dragImagesHere : t.bulkUploadHint}
                 </p>
+                <p className="mt-1 text-[12px] text-black/40">{t.dragOrClick}</p>
                 <p className="mt-0.5 text-[11px] text-black/35">{t.imageFormats}</p>
-                <p className="mt-0.5 text-[11px] text-black/35">
-                  Minimum {MIN_UPLOAD_WIDTH}x{MIN_UPLOAD_HEIGHT}px. Drag to reorder after upload.
-                </p>
               </div>
             </div>
-            <span className="text-[12px] font-medium text-black/45">{t.add}</span>
+            <span
+              className="shrink-0 rounded-lg px-4 py-2 text-[12px] font-semibold uppercase tracking-wider text-white shadow-sm"
+              style={{ backgroundColor: ACCENT_GOLD }}
+            >
+              {t.add}
+            </span>
           </div>
 
           <input
@@ -1824,11 +2000,17 @@ export default function ProductForm({
         </button>
       </div>
 
+      {lightboxSrc ? (
+        <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+      ) : null}
+
       {cropModal ? (
         <ImageCropModal
           imageSrc={cropModal.src}
           onClose={() => setCropModal(null)}
-          onApply={(file) => applyCropResult(cropModal.id, file)}
+          onApply={async (file) => {
+            await applyCropResult(cropModal.id, file);
+          }}
         />
       ) : null}
     </form>
