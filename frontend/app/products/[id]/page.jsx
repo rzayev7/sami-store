@@ -7,18 +7,18 @@ import { useParams } from "next/navigation";
 import {
   ChevronLeft,
   ChevronDown,
-  Truck,
-  RotateCcw,
-  ShieldCheck,
   Minus,
   Plus,
   Check,
-  Heart,
   Share2,
   Play,
   Pause,
+  Heart,
 } from "lucide-react";
 import api, { getApiBaseURL } from "../../../lib/api";
+import { SUPPORT_EMAIL } from "../../../lib/sitePublic";
+import { getCustomerAuthHeaders } from "../../../lib/customerAuth";
+import { useAuth } from "../../../context/AuthContext";
 import SizeGuide from "../../../components/SizeGuide";
 import { useCart } from "../../../context/CartContext";
 import { useCurrency } from "../../../context/CurrencyContext";
@@ -31,6 +31,7 @@ export default function ProductDetailPage() {
   const productId = params?.id;
   const { addToCart, cartItems } = useCart();
   const { formatPrice } = useCurrency();
+  const { user, requireAuth } = useAuth();
   const resolvedProductId = Array.isArray(productId) ? productId[0] : productId;
 
   const [product, setProduct] = useState(null);
@@ -47,7 +48,10 @@ export default function ProductDetailPage() {
   const thumbnailContainerRef = useRef(null);
   const videoRefs = useRef({});
   const [playingVideoIndex, setPlayingVideoIndex] = useState(null);
-  const [fabricOpen, setFabricOpen] = useState(false);
+  const [descriptionOpen, setDescriptionOpen] = useState(false);
+  const [fabricCareOpen, setFabricCareOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [wishlisted, setWishlisted] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
 
   useEffect(() => {
@@ -130,7 +134,33 @@ export default function ProductDetailPage() {
     setQuantity(1);
     setActiveMediaIndex(0);
     setPlayingVideoIndex(null);
+    setDescriptionOpen(false);
+    setFabricCareOpen(false);
+    setSupportOpen(false);
   }, [product]);
+
+  useEffect(() => {
+    if (!user || !product?._id) {
+      setWishlisted(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await api.get("/api/customers/wishlist", {
+          headers: getCustomerAuthHeaders(),
+        });
+        const list = Array.isArray(data) ? data : [];
+        const on = list.some((p) => String(p?._id || p) === String(product._id));
+        if (!cancelled) setWishlisted(on);
+      } catch {
+        if (!cancelled) setWishlisted(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, product?._id]);
 
   useEffect(() => {
     if (!galleryItems.length) return;
@@ -251,6 +281,22 @@ export default function ProductDetailPage() {
     setTimeout(() => setAddedFeedback(false), 2200);
   };
 
+  const handleWishlistToggle = async () => {
+    if (!requireAuth()) return;
+    if (!product?._id) return;
+    try {
+      const { data } = await api.post(
+        "/api/customers/wishlist",
+        { productId: product._id },
+        { headers: getCustomerAuthHeaders() },
+      );
+      const list = Array.isArray(data) ? data : [];
+      setWishlisted(list.some((p) => String(p?._id) === String(product._id)));
+    } catch {
+      /* keep state */
+    }
+  };
+
   const totalInCart = useMemo(() => {
     if (!product?._id || !Array.isArray(cartItems)) return 0;
     return cartItems
@@ -258,12 +304,13 @@ export default function ProductDetailPage() {
       .reduce((sum, item) => sum + Number(item.quantity || 0), 0);
   }, [cartItems, product?._id]);
 
-  const remainingStock = Math.max(
-    0,
-    Number(product?.stock || 0) - Number(totalInCart || 0),
-  );
+  /** Units left to sell in catalog (not reduced by this session’s cart). */
+  const productStock = Number(product?.stock || 0);
+  /** How many more units the shopper can add (respects cart). */
+  const remainingStock = Math.max(0, productStock - Number(totalInCart || 0));
 
-  const isOutOfStock = remainingStock <= 0;
+  const isOutOfStock = productStock <= 0;
+  const isAtCartLimit = productStock > 0 && remainingStock <= 0;
   const hasDiscount =
     product?.discountPriceUSD != null &&
     Number(product.discountPriceUSD) > 0 &&
@@ -297,9 +344,21 @@ export default function ProductDetailPage() {
   const selectedBundlePrice = isBundleProduct
     ? bundlePrices[selectedBundle] ?? displayPrice
     : displayPrice;
-  const discountPercent = hasDiscount
-    ? Math.round((1 - product.discountPriceUSD / product.priceUSD) * 100)
-    : 0;
+
+  const descriptionText = useMemo(() => {
+    const raw = product?.description?.trim();
+    return raw || "";
+  }, [product?.description]);
+
+  const deliveryEstimateLabel = useMemo(() => {
+    const from = new Date();
+    from.setDate(from.getDate() + 7);
+    const to = new Date();
+    to.setDate(to.getDate() + 14);
+    const fmt = (d) =>
+      d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    return `${fmt(from)} – ${fmt(to)}`;
+  }, []);
 
   if (loading) {
     return (
@@ -523,86 +582,75 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* ─── Product info ─── */}
+          {/* ─── Product info — left-aligned, tight rhythm ─── */}
           <div className="lg:sticky lg:top-24 lg:self-start">
-            <div className="space-y-5">
+            <div className="w-full max-w-[400px] space-y-4 text-left">
 
-              {/* Brand + Title */}
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[var(--color-gold)]">
-                  SAMÍ
-                </p>
-                <h1 className="mt-2 font-serif text-[22px] font-light leading-snug tracking-[0.02em] text-[var(--color-black)] sm:text-[26px]">
-                  {product.name}
-                </h1>
-              </div>
-
-              {/* Price */}
-              <div className="flex items-baseline gap-3" data-testid="product-price">
-                <span className="text-[20px] font-semibold tracking-[0.01em] text-[var(--color-black)]">
-                  {formatPrice(selectedBundlePrice)}
-                </span>
-                {(!isBundleProduct || selectedBundle === "full_set") && hasDiscount && (
-                  <span className="text-[14px] tracking-[0.02em] text-black/30 line-through">
-                    {formatPrice(product.priceUSD)}
-                  </span>
-                )}
-              </div>
-
-              {/* Divider */}
-              <div className="h-px bg-[var(--color-line)]" />
-
-              {/* Description */}
-              <div className="space-y-3">
-                <p className="text-[13px] leading-[1.9] tracking-[0.01em] text-[var(--color-muted)]">
-                  {product.description?.trim()
-                    ? product.description
-                    : "Crafted for how you actually live. One piece, every occasion."}
-                </p>
-              </div>
-
-              {/* Fabric & care */}
-              <div className="rounded-xl border border-[var(--color-line)] bg-white">
-                <button
-                  type="button"
-                  onClick={() => setFabricOpen((v) => !v)}
-                  className="flex w-full items-center justify-between px-4 py-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-black/55 transition-colors hover:bg-[var(--color-sand)]/30"
-                >
-                  Fabric & care
-                  <ChevronDown
-                    size={16}
-                    strokeWidth={1.8}
-                    className={`shrink-0 text-black/40 transition-transform duration-200 ${
-                      fabricOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-                {fabricOpen && (
-                  <div className="border-t border-[var(--color-line)] px-4 pb-4 pt-3 text-[13px] leading-[1.85] text-[var(--color-muted)]">
-                    <p>
-                      Fabrics are chosen for drape and longevity. Exact composition is noted on the
-                      care label of each piece.
-                    </p>
-                    <p className="mt-3">
-                      Dry clean or gentle hand wash. Cool iron on the reverse. Store folded away
-                      from direct sunlight.
-                    </p>
+                <div className="flex items-start justify-between gap-2 sm:gap-3">
+                  <h1 className="min-w-0 flex-1 font-serif text-[1.45rem] font-light leading-[1.25] tracking-[0.01em] text-black/[0.88] sm:text-[1.55rem]">
+                    {product.name}
+                  </h1>
+                  <div className="mt-0.5 flex shrink-0 items-center gap-0.5">
+                    <button
+                      type="button"
+                      className={`p-1.5 transition-colors ${
+                        wishlisted
+                          ? "text-[#9a7c52]"
+                          : "text-black/30 hover:text-black/55"
+                      }`}
+                      aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                      onClick={handleWishlistToggle}
+                    >
+                      <Heart
+                        size={17}
+                        strokeWidth={1.4}
+                        fill={wishlisted ? "currentColor" : "none"}
+                      />
+                    </button>
+                    <button
+                      type="button"
+                      className="p-1.5 text-black/30 transition-colors hover:text-black/55"
+                      aria-label="Share"
+                      onClick={() => {
+                        if (navigator.share) {
+                          navigator.share({ title: product.name, url: window.location.href });
+                        } else {
+                          navigator.clipboard.writeText(window.location.href);
+                        }
+                      }}
+                    >
+                      <Share2 size={17} strokeWidth={1.4} />
+                    </button>
                   </div>
-                )}
+                </div>
+                <div
+                  className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-0.5"
+                  data-testid="product-price"
+                >
+                  <span className="font-serif text-[1.2rem] font-normal tabular-nums tracking-tight text-black/[0.78]">
+                    {formatPrice(selectedBundlePrice)}
+                  </span>
+                  {(!isBundleProduct || selectedBundle === "full_set") && hasDiscount && (
+                    <span className="font-serif text-[0.95rem] tabular-nums text-black/28 line-through">
+                      {formatPrice(product.priceUSD)}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Color selector */}
               {Array.isArray(product.colors) && product.colors.length > 0 && (
                 <div data-testid="color-selector">
-                  <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-black/55">
-                    Color
+                  <p className="mb-2 font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38">
+                    Colour
                     {selectedColor && (
-                      <span className="ml-2 font-medium text-[var(--color-gold)]">
+                      <span className="ml-2 font-serif text-[13px] font-normal normal-case tracking-normal text-black/58">
                         {selectedColor}
                       </span>
                     )}
                   </p>
-                  <div className="flex flex-wrap gap-2.5">
+                  <div className="flex flex-wrap justify-start gap-2.5">
                     {product.colors.map((color) => {
                       const isSelected = selectedColor === color;
                       const cssColor = color?.toLowerCase?.() || "black";
@@ -611,10 +659,10 @@ export default function ProductDetailPage() {
                           key={color}
                           type="button"
                           onClick={() => setSelectedColor(color)}
-                          className={`group relative h-7 w-7 rounded-full border-2 transition-all ${
+                          className={`group relative h-8 w-8 rounded-full border-2 transition-all ${
                             isSelected
-                              ? "border-[var(--color-black)]"
-                              : "border-black/20 hover:border-black/40"
+                              ? "border-[var(--color-black)] ring-2 ring-[#C8A96E]/35"
+                              : "border-black/18 hover:border-black/35"
                           }`}
                           style={{ backgroundColor: cssColor }}
                           data-testid="color-option"
@@ -633,13 +681,25 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
+              {typeof product.stock === "number" &&
+                product.stock > 0 &&
+                product.stock <= 22 && (
+                  <p className="font-serif text-[12px] italic leading-snug text-[#9a7c52]">
+                    <span
+                      className="mr-1.5 inline-block h-[5px] w-[5px] rounded-full align-middle"
+                      style={{ backgroundColor: "#C8A96E" }}
+                    />
+                    Selling fast — {product.stock} left in stock
+                  </p>
+                )}
+
               {/* Bundle selector */}
               {isBundleProduct && (
                 <div data-testid="bundle-selector">
-                <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-black/55">
+                <p className="mb-2 font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38">
                   Configuration
                 </p>
-                <div className="space-y-2.5 rounded-xl border border-[var(--color-line)] p-3.5">
+                <div className="space-y-2 rounded-lg border border-black/[0.08] bg-white/60 p-3">
                   {[
                     { value: "full_set", label: "Full set", price: bundlePrices.full_set },
                     { value: "top_only", label: "Top only", price: bundlePrices.top_only },
@@ -649,10 +709,10 @@ export default function ProductDetailPage() {
                     return (
                       <label
                         key={option.value}
-                        className={`flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 transition-colors ${
+                        className={`flex cursor-pointer items-center justify-between rounded-md border px-3 py-2 transition-colors ${
                           active
-                            ? "border-[var(--color-black)] bg-[var(--color-sand)]/50"
-                            : "border-[var(--color-line)] hover:border-black/30"
+                            ? "border-black/45 bg-transparent"
+                            : "border-transparent hover:border-black/12"
                         }`}
                       >
                         <span className="flex items-center gap-2.5 text-[12px] tracking-[0.03em] text-black/80">
@@ -690,30 +750,34 @@ export default function ProductDetailPage() {
 
               {/* Size selector */}
               {Array.isArray(product.sizes) && product.sizes.length > 0 && (
-                <div data-testid="size-selector">
-                  <div className="mb-2.5 flex items-center justify-between gap-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-black/55">
+                <div className="space-y-2" data-testid="size-selector">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38">
                       {isBundleProduct && selectedBundle === "full_set"
-                        ? "Top & Bottom Size"
+                        ? "Top & bottom"
                         : isBundleProduct && selectedBundle === "top_only"
-                          ? "Top Size"
+                          ? "Top"
                           : isBundleProduct && selectedBundle === "bottom_only"
-                            ? "Bottom Size"
+                            ? "Bottom"
                             : "Size"}
-                    </p>
+                    </span>
                     <SizeGuide />
                   </div>
                   {(selectedBundle !== "bottom_only" || !isBundleProduct) && (
-                    <div className="mb-3">
+                    <div>
                       {isBundleProduct && selectedBundle === "full_set" && (
-                        <p className="mb-2 text-[10px] uppercase tracking-[0.08em] text-black/45">Top</p>
+                        <p className="mb-1.5 font-sans text-[9px] uppercase tracking-[0.12em] text-black/32">Top</p>
                       )}
-                      <div className="flex flex-wrap gap-2">
+                      <div
+                        className={`flex flex-wrap justify-start gap-2 ${
+                          product.sizes.length === 1 ? "w-full" : ""
+                        }`}
+                      >
                         {product.sizes.map((size) => {
-                          const isSelected =
-                            selectedBundle === "single"
-                              ? selectedSize === size
-                              : selectedTopSize === size;
+                          const isSelected = !isBundleProduct
+                            ? selectedSize === size
+                            : selectedTopSize === size;
+                          const oneSize = product.sizes.length === 1;
                           return (
                             <button
                               key={`top-${size}`}
@@ -723,10 +787,18 @@ export default function ProductDetailPage() {
                                 else setSelectedTopSize(size);
                                 setSizeError("");
                               }}
-                              className={`flex min-w-[46px] items-center justify-center rounded-lg border px-3.5 py-2.5 text-[12px] font-medium uppercase tracking-[0.06em] transition-all duration-200 ${
-                                isSelected
-                                  ? "border-[var(--color-black)] bg-[var(--color-sand)]/50 text-[var(--color-black)] shadow-sm"
-                                  : "border-[var(--color-line)] bg-white text-black/55 hover:border-black/30 hover:text-black"
+                              className={`flex items-center justify-center border transition-all duration-200 ${
+                                oneSize
+                                  ? `w-full rounded-sm border-black/[0.12] px-2.5 py-1 font-sans text-[9px] font-medium uppercase tracking-[0.18em] ${
+                                      isSelected
+                                        ? "border-black/40 bg-black/[0.04] text-black/70"
+                                        : "border-black/[0.1] bg-transparent text-black/38 hover:border-black/18 hover:text-black/48"
+                                    }`
+                                  : `min-w-[40px] rounded-sm px-2 py-1.5 font-serif font-normal text-[13px] uppercase tracking-[0.04em] ${
+                                      isSelected
+                                        ? "border-black/70 bg-black/[0.05] text-black/90"
+                                        : "border-black/15 bg-transparent text-black/45 hover:border-black/35 hover:text-black/70"
+                                    }`
                               }`}
                               data-testid="size-option"
                             aria-label={`Select size ${formatSizeLabel(size)}`}
@@ -740,19 +812,32 @@ export default function ProductDetailPage() {
                   )}
                   {isBundleProduct && selectedBundle !== "top_only" && (
                     <div>
-                      <p className="mb-2 text-[10px] uppercase tracking-[0.08em] text-black/45">Bottom</p>
-                      <div className="flex flex-wrap gap-2">
+                      <p className="mb-1.5 font-sans text-[9px] uppercase tracking-[0.12em] text-black/32">Bottom</p>
+                      <div
+                        className={`flex flex-wrap justify-start gap-2 ${
+                          product.sizes.length === 1 ? "w-full" : ""
+                        }`}
+                      >
                         {product.sizes.map((size) => {
                           const isSelected = selectedBottomSize === size;
+                          const oneSize = product.sizes.length === 1;
                           return (
                             <button
                               key={`bottom-${size}`}
                               type="button"
                               onClick={() => { setSelectedBottomSize(size); setSizeError(""); }}
-                              className={`flex min-w-[46px] items-center justify-center rounded-lg border px-3.5 py-2.5 text-[12px] font-medium uppercase tracking-[0.06em] transition-all duration-200 ${
-                                isSelected
-                                  ? "border-[var(--color-black)] bg-[var(--color-sand)]/50 text-[var(--color-black)] shadow-sm"
-                                  : "border-[var(--color-line)] bg-white text-black/55 hover:border-black/30 hover:text-black"
+                              className={`flex items-center justify-center border transition-all duration-200 ${
+                                oneSize
+                                  ? `w-full rounded-sm border-black/[0.12] px-2.5 py-1 font-sans text-[9px] font-medium uppercase tracking-[0.18em] ${
+                                      isSelected
+                                        ? "border-black/40 bg-black/[0.04] text-black/70"
+                                        : "border-black/[0.1] bg-transparent text-black/38 hover:border-black/18 hover:text-black/48"
+                                    }`
+                                  : `min-w-[40px] rounded-sm px-2 py-1.5 font-serif font-normal text-[13px] uppercase tracking-[0.04em] ${
+                                      isSelected
+                                        ? "border-black/70 bg-black/[0.05] text-black/90"
+                                        : "border-black/15 bg-transparent text-black/45 hover:border-black/35 hover:text-black/70"
+                                    }`
                               }`}
                               data-testid="size-option"
                               aria-label={`Select bottom size ${formatSizeLabel(size)}`}
@@ -765,151 +850,183 @@ export default function ProductDetailPage() {
                     </div>
                   )}
                   {sizeError && (
-                    <p className="mt-2 text-[11px] font-medium text-red-500">
+                    <p className="text-[11px] font-medium text-red-500">
                       {sizeError}
                     </p>
                   )}
                 </div>
               )}
 
-              {/* Quantity + Actions row */}
-              <div className="flex items-end gap-3" data-testid="quantity-section">
-                <div>
-                  <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-black/55">
-                    Quantity
-                  </p>
-                  <div className="inline-flex items-center rounded-lg border border-[var(--color-line)] bg-white">
-                    <button
-                      type="button"
-                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                      disabled={quantity <= 1}
-                      className="flex h-11 w-11 items-center justify-center text-black/35 transition-colors hover:text-black disabled:opacity-25"
-                      aria-label="Decrease quantity"
-                    >
-                      <Minus size={14} strokeWidth={2} />
-                    </button>
-                    <span className="flex h-11 min-w-[40px] items-center justify-center border-x border-[var(--color-line)] text-[13px] font-semibold tabular-nums">
-                      {quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setQuantity((q) =>
-                          Math.min(q + 1, Number(remainingStock || 99)),
-                        )
-                      }
-                      disabled={quantity >= Number(remainingStock || 99)}
-                      className="flex h-11 w-11 items-center justify-center text-black/35 transition-colors hover:text-black disabled:opacity-25"
-                      aria-label="Increase quantity"
-                    >
-                      <Plus size={14} strokeWidth={2} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Wishlist + Share */}
-                <div className="ml-auto flex gap-2">
+              {/* Quantity */}
+              <div className="space-y-1.5" data-testid="quantity-section">
+                <p className="font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38">
+                  Quantity
+                </p>
+                <div className="inline-flex items-center gap-3">
                   <button
                     type="button"
-                    className="flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--color-line)] bg-white text-black/30 transition-all hover:border-black/20 hover:text-red-400"
-                    aria-label="Add to wishlist"
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    disabled={quantity <= 1}
+                    className="p-0.5 text-black/40 transition-colors hover:text-black/65 disabled:opacity-25"
+                    aria-label="Decrease quantity"
                   >
-                    <Heart size={17} strokeWidth={1.6} />
+                    <Minus size={15} strokeWidth={1.75} />
                   </button>
+                  <span className="min-w-[1.25rem] text-center font-serif text-[16px] font-medium tabular-nums text-black/[0.82]">
+                    {quantity}
+                  </span>
                   <button
                     type="button"
-                    className="flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--color-line)] bg-white text-black/30 transition-all hover:border-black/20 hover:text-black/60"
-                    aria-label="Share"
-                    onClick={() => {
-                      if (navigator.share) {
-                        navigator.share({ title: product.name, url: window.location.href });
-                      } else {
-                        navigator.clipboard.writeText(window.location.href);
-                      }
-                    }}
+                    onClick={() =>
+                      setQuantity((q) =>
+                        Math.min(q + 1, Number(remainingStock || 99)),
+                      )
+                    }
+                    disabled={quantity >= Number(remainingStock || 99)}
+                    className="p-0.5 text-black/40 transition-colors hover:text-black/65 disabled:opacity-25"
+                    aria-label="Increase quantity"
                   >
-                    <Share2 size={16} strokeWidth={1.6} />
+                    <Plus size={15} strokeWidth={1.75} />
                   </button>
                 </div>
               </div>
 
-              {/* Low stock warning */}
-              {typeof product.stock === "number" &&
-                product.stock > 0 &&
-                product.stock < 5 && (
-                  <div className="flex items-center gap-2.5 rounded-lg border border-amber-200/60 bg-amber-50/70 px-4 py-2.5">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
-                    <p className="text-[11px] font-medium tracking-[0.02em] text-amber-700">
-                      Only {product.stock} left in stock — order soon
-                    </p>
-                  </div>
-                )}
+              {/* Delivery estimate — plain text */}
+              <p className="font-sans text-[11.5px] leading-snug text-black/45 sm:text-[12px]">
+                <span className="text-black/48">Est. delivery </span>
+                <span className="border-b border-black/20 font-medium text-black/[0.62]">
+                  {deliveryEstimateLabel}
+                </span>
+                <span className="text-black/40"> · 7–14 business days</span>
+              </p>
 
-              {/* Add to cart */}
+              {/* Add to bag */}
               <button
                 type="button"
                 onClick={handleAddToCart}
-                disabled={isOutOfStock || addedFeedback}
-                className={`relative w-full overflow-hidden rounded-xl px-4 py-[15px] text-[12px] font-semibold uppercase tracking-[0.18em] transition-all duration-300 disabled:cursor-not-allowed ${
+                disabled={remainingStock <= 0 || addedFeedback}
+                className={`w-full rounded-sm px-4 py-3 font-sans text-[11px] font-medium uppercase tracking-[0.2em] transition-all duration-300 disabled:cursor-not-allowed ${
                   addedFeedback
-                    ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20"
-                    : isOutOfStock
-                      ? "bg-black/[0.07] text-black/25"
-                      : "bg-[var(--color-black)] text-white shadow-md shadow-black/10 hover:shadow-lg hover:shadow-black/15 active:scale-[0.99]"
+                    ? "bg-emerald-800 text-white"
+                    : remainingStock <= 0
+                      ? "bg-black/[0.06] text-black/30"
+                      : "bg-[#2a2520] text-[#faf8f5] hover:bg-[#1f1b18]"
                 }`}
                 data-testid="add-to-bag-button"
               >
                 {addedFeedback ? (
-                  <span className="inline-flex items-center gap-2">
-                    <Check size={16} strokeWidth={2.5} />
-                    Added to Bag
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <Check size={15} strokeWidth={2.5} />
+                    Added
                   </span>
                 ) : isOutOfStock ? (
-                  "Sold Out"
+                  "Sold out"
+                ) : isAtCartLimit ? (
+                  "Maximum in bag"
                 ) : (
-                  "Add to Bag"
+                  "Add to bag"
                 )}
               </button>
 
-              {/* Tax note */}
-              <p className="text-center text-[10px] tracking-[0.04em] text-black/30">
-                Tax included · Free shipping on orders over {formatPrice(150)}
+              <p className="text-[11px] leading-relaxed tracking-[0.04em] text-black/32">
+                Tax included · Complimentary shipping on orders over {formatPrice(150)}
               </p>
 
-              {/* Delivery promises */}
-              <div
-                className="mt-1 space-y-0 rounded-xl border border-[var(--color-line)] bg-white"
-                data-testid="delivery-promises"
-              >
-                <div className="flex items-center gap-3.5 px-4 py-3.5">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-cream)]">
-                    <Truck size={14} strokeWidth={1.6} className="text-[var(--color-gold)]" />
+              {/* Description & Fabric & care — borderless, hairline dividers */}
+              <div className="border-t border-black/[0.08] pt-0" data-testid="product-accordions">
+                <button
+                  type="button"
+                  onClick={() => setDescriptionOpen((v) => !v)}
+                  className="flex w-full items-center border-b border-black/[0.07] py-2.5 text-left"
+                >
+                  <span className="flex-1 font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-black/55">
+                    Description
+                  </span>
+                  <ChevronDown
+                    size={15}
+                    strokeWidth={1.5}
+                    className={`shrink-0 text-black/28 transition-transform duration-200 ${
+                      descriptionOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {descriptionOpen && (
+                  <div className="border-b border-black/[0.07] py-3 font-sans text-[12px] leading-[1.65] text-black/48">
+                    {descriptionText ||
+                      "Thoughtfully cut for everyday ease. Natural fibres and clean lines."}
                   </div>
-                  <div>
-                    <p className="text-[12px] font-medium text-black/70">Worldwide Delivery</p>
-                    <p className="text-[10px] tracking-[0.02em] text-black/35">7–14 business days</p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setFabricCareOpen((v) => !v)}
+                  className="flex w-full items-center py-2.5 text-left"
+                >
+                  <span className="flex-1 font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-black/55">
+                    Fabric &amp; care
+                  </span>
+                  <ChevronDown
+                    size={15}
+                    strokeWidth={1.5}
+                    className={`shrink-0 text-black/28 transition-transform duration-200 ${
+                      fabricCareOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {fabricCareOpen && (
+                  <div className="pb-1 pt-0 font-sans text-[12px] leading-[1.65] text-black/48">
+                    <p>
+                      Fabrics are chosen for drape and longevity; exact composition is on the care
+                      label.
+                    </p>
+                    <p className="mt-2">
+                      Dry clean or gentle hand wash. Cool iron on the reverse. Store folded away
+                      from direct sunlight.
+                    </p>
                   </div>
-                </div>
-                <div className="mx-4 h-px bg-[var(--color-line)]" />
-                <div className="flex items-center gap-3.5 px-4 py-3.5">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-cream)]">
-                    <RotateCcw size={14} strokeWidth={1.6} className="text-[var(--color-gold)]" />
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setSupportOpen((v) => !v)}
+                  className="flex w-full items-center border-t border-black/[0.07] py-2.5 text-left"
+                >
+                  <span className="flex-1 font-sans text-[11px] font-medium text-black/55">
+                    24/7 Customer Support
+                  </span>
+                  <ChevronDown
+                    size={15}
+                    strokeWidth={1.5}
+                    className={`shrink-0 text-black/28 transition-transform duration-200 ${
+                      supportOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {supportOpen && (
+                  <div className="border-b border-black/[0.07] py-3 font-sans text-[12px] leading-[1.65] text-black/48">
+                    <p>Expect a response within 8 working hours.</p>
+                    <p className="mt-2">
+                      Reach out to us via email at{" "}
+                      <a
+                        href={`mailto:${SUPPORT_EMAIL}`}
+                        className="border-b border-black/20 font-medium text-black/60 transition-opacity hover:opacity-80"
+                      >
+                        {SUPPORT_EMAIL}
+                      </a>{" "}
+                      or slide into our DMs on{" "}
+                      <a
+                        href="https://www.instagram.com/sami_boutique_baku/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="border-b border-black/20 font-medium text-black/60 transition-opacity hover:opacity-80"
+                      >
+                        Instagram
+                      </a>{" "}
+                      (@sami_boutique_baku).
+                    </p>
+                    <p className="mt-2">Your satisfaction is our commitment!</p>
                   </div>
-                  <div>
-                    <p className="text-[12px] font-medium text-black/70">Easy Returns</p>
-                    <p className="text-[10px] tracking-[0.02em] text-black/35">14-day return policy</p>
-                  </div>
-                </div>
-                <div className="mx-4 h-px bg-[var(--color-line)]" />
-                <div className="flex items-center gap-3.5 px-4 py-3.5">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-cream)]">
-                    <ShieldCheck size={14} strokeWidth={1.6} className="text-[var(--color-gold)]" />
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-medium text-black/70">Secure Checkout</p>
-                    <p className="text-[10px] tracking-[0.02em] text-black/35">SSL encrypted payment</p>
-                  </div>
-                </div>
+                )}
               </div>
 
             </div>

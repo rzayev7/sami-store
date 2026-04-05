@@ -29,9 +29,9 @@ export default function SizeGuide({ className = "" }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`text-[11px] font-medium tracking-[0.08em] text-[var(--color-gold)] underline-offset-4 transition-colors hover:text-[var(--color-gold-soft)] hover:underline ${className}`}
+        className={`text-[11px] font-normal tracking-[0.12em] text-black/45 underline-offset-4 transition-colors hover:text-black/65 hover:underline ${className}`}
       >
-        Size Guide
+        Size chart
       </button>
 
       {open && (

@@ -14,7 +14,7 @@ import api, { getApiBaseURL } from "../lib/api";
 import { useCart } from "../context/CartContext";
 import { useCurrency } from "../context/CurrencyContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
-import { formatSizeLabel } from "../lib/sizeDisplay";
+import { formatSizeLabel, normalizeSizeForFilter } from "../lib/sizeDisplay";
 import { videoFilterStyle } from "../lib/videoAdjustments";
 
 function SkeletonCard() {
@@ -292,7 +292,10 @@ export default function ProductListing({
     const sizeSet = new Set();
     baseProducts.forEach((product) => {
       if (Array.isArray(product.sizes)) {
-        product.sizes.forEach((size) => sizeSet.add(size));
+        product.sizes.forEach((size) => {
+          const key = normalizeSizeForFilter(size);
+          if (key) sizeSet.add(key);
+        });
       }
     });
     const preferredOrder = ["XS", "S", "M", "L", "XL", "XXL"];
@@ -440,7 +443,10 @@ export default function ProductListing({
     if (filters.size !== "all") {
       result = result.filter(
         (product) =>
-          Array.isArray(product.sizes) && product.sizes.includes(filters.size)
+          Array.isArray(product.sizes) &&
+          product.sizes.some(
+            (s) => normalizeSizeForFilter(s) === filters.size
+          )
       );
     }
 
