@@ -4,21 +4,24 @@ import Link from "next/link";
 const heroSlides = [
   {
     title: "New Arrivals",
+    href: "/products/new-arrivals",
     cta: "Shop Now",
-    image: "/hero1.png",
-    alt: "Model in latest new arrivals fashion",
+    image: "/Confident%20in%20red%20paisley%20pattern.png",
+    alt: "Model in red linen paisley set — confident studio look",
   },
   {
-    title: "Evening Edit",
+    title: "Featured",
+    href: "/products/featured",
     cta: "Explore",
-    image: "/hero3.png",
-    alt: "Elegant evening collection look",
+    image: "/Elegant%20woman%20in%20chic%20linen%20outfit.png",
+    alt: "Elegant woman in chic beige linen outfit — studio portrait",
   },
   {
-    title: "Summer Styles",
+    title: "Shop All",
+    href: "/products",
     cta: "Discover",
-    image: "/hero2.png",
-    alt: "Bright summer style outfit",
+    image: "/Elegant%20in%20sage%20green%20and%20florals.png",
+    alt: "Elegant sage green floral look — full collection",
   },
 ];
 
@@ -29,8 +32,8 @@ export default function HeroGridSection() {
         {heroSlides.map((slide) => (
           <Link
             key={slide.title}
-            href="/products"
-            className="group relative block h-[70vh] overflow-hidden md:h-[90vh]"
+            href={slide.href}
+            className="group relative block h-[64vh] max-h-[680px] overflow-hidden md:h-[76vh] md:max-h-[780px] lg:h-[72vh] lg:max-h-[740px]"
           >
             <Image
               src={slide.image}
@@ -45,7 +48,7 @@ export default function HeroGridSection() {
             <div className="absolute inset-0 bg-black/10 transition-colors duration-500 group-hover:bg-black/25" />
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
-            <div className="absolute inset-0 flex flex-col items-center justify-end px-6 pb-14 text-center text-white">
+            <div className="absolute inset-0 flex flex-col items-center justify-end px-6 pb-10 text-center text-white sm:pb-12">
               <h2 className="font-serif text-3xl font-light tracking-[0.04em] sm:text-4xl">
                 {slide.title}
               </h2>

@@ -1,7 +1,26 @@
 import { NextResponse } from "next/server";
 
-/** Display currencies (USD is derived; rates from open.er-api are per 1 USD). */
-const TARGET_CURRENCIES = ["EUR", "AED", "AZN"];
+/**
+ * Rates per 1 USD from open.er-api. AZN is fetched only to convert stored base amounts → USD.
+ * Display currencies: no AZN in the storefront selector.
+ */
+const TARGET_CURRENCIES = [
+  "EUR",
+  "GBP",
+  "CHF",
+  "SEK",
+  "NOK",
+  "PLN",
+  "TRY",
+  "AED",
+  "SAR",
+  "CAD",
+  "AUD",
+  "JPY",
+  "INR",
+  "BRL",
+  "AZN",
+];
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 const DEFAULT_AZN_PER_USD = 1.7;
 
@@ -10,7 +29,7 @@ let cached: { rates: Record<string, number>; aznPerUsd: number; ts: number } | n
 export async function GET() {
   if (cached && Date.now() - cached.ts < CACHE_TTL) {
     return NextResponse.json({
-      base: "AZN",
+      base: "USD",
       rates: cached.rates,
       aznPerUsd: cached.aznPerUsd,
     });
@@ -40,14 +59,14 @@ export async function GET() {
     cached = { rates, aznPerUsd, ts: Date.now() };
 
     return NextResponse.json({
-      base: "AZN",
+      base: "USD",
       rates,
       aznPerUsd,
     });
   } catch (err: unknown) {
     if (cached) {
       return NextResponse.json({
-        base: "AZN",
+        base: "USD",
         rates: cached.rates,
         aznPerUsd: cached.aznPerUsd,
       });

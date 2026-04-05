@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import api from "../lib/api";
+import ProductCarousel from "./ProductCarousel";
 import { useCurrency } from "../context/CurrencyContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import { videoFilterStyle } from "../lib/videoAdjustments";
@@ -37,7 +38,7 @@ function BestSellerCard({ item, formatPrice }) {
   return (
     <Link
       href={`/products/${item._id}`}
-      className="group block w-[78vw] shrink-0 sm:w-[42vw] lg:w-[calc((100vw-13rem)/5)] lg:max-w-[250px]"
+      className="group block w-full min-w-0"
     >
       <div
         className="relative aspect-[2/3] overflow-hidden bg-[var(--color-sand)]/40"
@@ -109,15 +110,6 @@ export default function BestSellers() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const { formatPrice } = useCurrency();
-  const tickerItems = (() => {
-    if (!Array.isArray(items) || items.length === 0) return [];
-    const minItemsForLoop = 10;
-    const expanded = [];
-    while (expanded.length < minItemsForLoop) {
-      expanded.push(items[expanded.length % items.length]);
-    }
-    return expanded;
-  })();
 
   useEffect(() => {
     const fetchBestSellers = async () => {
@@ -162,12 +154,12 @@ export default function BestSellers() {
         </div>
       )}
       {!loading && items.length > 0 && (
-        <div className="best-sellers-marquee mt-14 overflow-hidden">
-          <div className="best-sellers-track flex w-max gap-6 sm:gap-8 lg:gap-5">
-            {[...tickerItems, ...tickerItems].map((item, index) => (
-              <BestSellerCard key={`${item._id}-${index}`} item={item} formatPrice={formatPrice} />
+        <div className="mt-14">
+          <ProductCarousel itemCount={items.length} intervalMs={5500}>
+            {items.map((item) => (
+              <BestSellerCard key={item._id} item={item} formatPrice={formatPrice} />
             ))}
-          </div>
+          </ProductCarousel>
         </div>
       )}
 
@@ -179,23 +171,6 @@ export default function BestSellers() {
           View All Best Sellers
         </Link>
       </div>
-      <style jsx>{`
-        .best-sellers-track {
-          animation: bestSellersAutoScroll 38s linear infinite;
-          will-change: transform;
-        }
-        .best-sellers-marquee:hover .best-sellers-track {
-          animation-play-state: paused;
-        }
-        @keyframes bestSellersAutoScroll {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-      `}</style>
     </section>
   );
 }

@@ -33,7 +33,7 @@ export default function CurrencySelector() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-1.5 min-w-[180px] rounded-lg border border-[var(--color-line)] bg-white py-1 shadow-lg">
+        <div className="absolute right-0 top-full z-50 mt-1.5 max-h-[min(70vh,22rem)] min-w-[200px] overflow-y-auto rounded-lg border border-[var(--color-line)] bg-white py-1 shadow-lg">
           {CURRENCIES.map((c) => (
             <button
               key={c.code}

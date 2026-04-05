@@ -9,17 +9,13 @@ export default function Home() {
     <div className="space-y-0">
       <HeroSection />
 
-      {/* Brand statement */}
-      <section className="w-full bg-white">
-        <div className="mx-auto w-full max-w-2xl px-6 py-16 text-center sm:py-20">
-          <div className="mx-auto mb-6 h-px w-12 bg-[var(--color-gold)]" />
-          <h2 className="font-serif text-2xl font-light tracking-[0.04em] text-[var(--color-black)] sm:text-3xl">
-            Crafted for timeless elegance
+      {/* Editorial strip — Cinzel / font-serif to match SAMÍ headings */}
+      <section className="w-full bg-[#F2F2F2]">
+        <div className="mx-auto max-w-5xl px-10 py-28 text-center sm:px-16 sm:py-20">
+          <div className="mx-auto mb-6 h-px w-12 bg-[var(--color-gold)]" aria-hidden />
+          <h2 className="font-serif text-xl font-light leading-snug tracking-[0.06em] text-[var(--color-black)] sm:text-2xl sm:tracking-[0.05em] md:text-3xl md:tracking-[0.045em] lg:text-[2.35rem] lg:tracking-[0.04em]">
+            Three Ways to Wear Elegance
           </h2>
-          <p className="mx-auto mt-5 max-w-lg text-[13px] leading-[1.9] tracking-[0.02em] text-[var(--color-muted)]">
-            Elevated silhouettes and refined details designed for modern, confident women.
-            Each piece is a balance of grace and intention.
-          </p>
         </div>
       </section>
 
@@ -27,41 +23,34 @@ export default function Home() {
 
       <BestSellers />
 
-      {/* Designed in Baku */}
-      <section className="overflow-hidden bg-white">
-        <div className="grid lg:grid-cols-2 lg:items-center">
-          <div className="px-8 py-16 sm:px-14 sm:py-20 lg:px-20 lg:py-28">
-            <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-[var(--color-gold)]">
-              Designed in Baku
-            </p>
-            <h2 className="mt-5 font-serif text-3xl font-light leading-[1.15] tracking-[0.03em] text-[var(--color-black)] sm:text-4xl lg:text-[2.75rem]">
-              Timeless elegance inspired by modern femininity.
+      {/* Packaging — below collection; text left, image right */}
+      <section className="overflow-hidden border-t border-[var(--color-line)]/80 bg-white">
+        <div className="grid lg:grid-cols-2 lg:items-stretch">
+          <div className="flex flex-col justify-center px-8 py-16 sm:px-14 sm:py-20 lg:px-20 lg:py-24">
+            <h2 className="max-w-md font-serif text-3xl font-light leading-[1.2] tracking-[0.03em] text-[var(--color-black)] sm:text-4xl lg:text-[2.5rem]">
+              Beautifully packaged, thoughtfully delivered
             </h2>
-            <p className="mt-6 max-w-md text-[13px] leading-[1.9] tracking-[0.02em] text-[var(--color-muted)]">
-              Crafted with luxurious fabrics and refined silhouettes, every piece
-              embodies quiet confidence and graceful simplicity.
+            <p className="mt-6 max-w-md text-[15px] leading-[1.75] tracking-[0.02em] text-[#4f4a45] sm:text-[16px] sm:leading-[1.8]">
+              A refined shopping experience designed with the same care as every piece we offer.
             </p>
-
-            <div className="mt-10 flex items-center gap-8 text-[10px] uppercase tracking-[0.16em] text-[var(--color-muted)]">
-              <span>Premium Fabrics</span>
-              <span className="text-[var(--color-line)]">·</span>
-              <span>Refined Cuts</span>
-              <span className="text-[var(--color-line)]">·</span>
-              <span>Timeless</span>
-            </div>
-
             <Link
               href="/products"
-              className="mt-10 inline-flex border-b border-[var(--color-black)] pb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--color-black)] transition-all hover:border-[var(--color-gold)] hover:text-[var(--color-gold)]"
+              className="group mt-10 inline-flex w-fit items-center gap-2.5 border-b-2 border-[var(--color-black)]/90 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-black)] transition-all hover:border-[var(--color-gold)] hover:text-[var(--color-gold)] sm:text-xs sm:tracking-[0.2em]"
             >
-              Explore Collection
+              <span>Shop Collection</span>
+              <span
+                className="text-[14px] font-semibold leading-none text-current transition-transform duration-300 group-hover:translate-x-1 sm:text-base"
+                aria-hidden
+              >
+                →
+              </span>
             </Link>
           </div>
 
-          <div className="relative h-[480px] w-full sm:h-[640px] lg:h-full lg:min-h-[600px]">
+          <div className="relative min-h-[420px] w-full sm:min-h-[520px] lg:min-h-[560px]">
             <Image
-              src="/hero6.png"
-              alt="Sami model photo for Designed in Baku campaign"
+              src="/Elegant%20minimalist%20packaging%20display.png"
+              alt="SAMÍ minimalist packaging — bags and boxes"
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
               quality={95}

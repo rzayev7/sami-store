@@ -36,6 +36,10 @@ app.use(
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
+      // Vercel preview deployments: https://sami-store-xxx.vercel.app
+      if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) {
+        return callback(null, true);
+      }
       return callback(null, false);
     },
     credentials: true,

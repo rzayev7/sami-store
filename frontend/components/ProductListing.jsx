@@ -214,12 +214,14 @@ function ProductCard({ product }) {
  * @param {string}   props.subtitle     - Paragraph below the heading
  * @param {function} [props.productFilter] - Optional predicate applied after
  *                                           fetching to narrow the product set
+ * @param {string}   [props.initialSort]     - Default sort: featured | newest | price-low | ...
  */
 export default function ProductListing({
   accentLabel = "Curated Selection",
   title = "The Collection",
   subtitle = "Timeless silhouettes crafted with intention. Find your next signature piece.",
   productFilter,
+  initialSort = "featured",
 }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -232,7 +234,7 @@ export default function ProductListing({
     type: "all",
     season: "all",
   });
-  const [sortBy, setSortBy] = useState("featured");
+  const [sortBy, setSortBy] = useState(initialSort);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [openSections, setOpenSections] = useState({
     price: true,
@@ -476,6 +478,12 @@ export default function ProductListing({
       result.sort(
         (a, b) => Number(b.priceUSD || 0) - Number(a.priceUSD || 0)
       );
+    } else if (sortBy === "newest") {
+      result.sort((a, b) => {
+        const ta = new Date(a.createdAt || 0).getTime();
+        const tb = new Date(b.createdAt || 0).getTime();
+        return tb - ta;
+      });
     } else if (sortBy === "name-asc") {
       result.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
     } else if (sortBy === "name-desc") {
@@ -581,6 +589,7 @@ export default function ProductListing({
             className="rounded-full border border-[var(--color-line)] bg-white px-3 py-1.5 text-[12px] tracking-[0.02em] text-black/70 outline-none transition-colors focus:border-[var(--color-gold)]"
           >
             <option value="featured">Featured</option>
+            <option value="newest">Newest</option>
             <option value="price-low">Price: Low → High</option>
             <option value="price-high">Price: High → Low</option>
             <option value="name-asc">Name: A → Z</option>
