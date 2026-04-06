@@ -100,6 +100,9 @@ export const t = {
   cardVideoUploading: "Загрузка видео…",
   removeCardVideo: "Удалить видео",
   cardVideoPreview: "Предпросмотр",
+  cardVideoLandscape: "Широкое (горизонтальное) видео",
+  cardVideoLandscapeHint:
+    "Включите, если ролик снят в альбомной ориентации. Иначе сайт может повернуть кадр, чтобы он заполнил вертикальную карточку (нужно для браузеров вроде Yandex, которые игнорируют поворот из метаданных).",
   selectOrDropVideo: "Нажмите, чтобы выбрать видео",
   replaceCardVideo: "Заменить видео",
   visibility: "Видимость",

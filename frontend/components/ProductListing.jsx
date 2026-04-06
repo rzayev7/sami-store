@@ -15,7 +15,7 @@ import { useCart } from "../context/CartContext";
 import { useCurrency } from "../context/CurrencyContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import { formatSizeLabel, normalizeSizeForFilter } from "../lib/sizeDisplay";
-import { videoFilterStyle } from "../lib/videoAdjustments";
+import PortraitCoverVideo from "./PortraitCoverVideo";
 
 function SkeletonCard() {
   return (
@@ -128,11 +128,13 @@ function ProductCard({ product }) {
           />
 
           {hasVideo ? (
-            <video
+            <PortraitCoverVideo
               ref={videoRef}
               src={product.cardVideoUrl}
-              className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-              style={videoFilterStyle(product?.cardVideoAdjustments)}
+              wrapperClassName="absolute inset-0 overflow-hidden"
+              videoClassName="opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+              videoAdjustments={product?.cardVideoAdjustments}
+              disablePortraitFix={product?.cardVideoLandscape === true}
               muted
               loop
               playsInline

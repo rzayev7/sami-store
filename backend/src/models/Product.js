@@ -66,6 +66,11 @@ const productSchema = new mongoose.Schema({
     contrast: { type: Number, default: 100 },
     saturation: { type: Number, default: 100 },
   },
+  /** If true, card video is intentionally landscape — skip client rotate-to-cover fix for portrait grids. */
+  cardVideoLandscape: {
+    type: Boolean,
+    default: false,
+  },
   stock: {
     type: Number,
     default: 0,

@@ -17,6 +17,10 @@ import {
 import api from "../../lib/api";
 import { getAdminAuthHeaders } from "../../lib/adminAuth";
 import { t } from "../../lib/admin-i18n";
+import {
+  formatAdminPriceField,
+  parseAdminPriceInput,
+} from "../../lib/money";
 import { normalizeVideoAdjustments } from "../../lib/videoAdjustments";
 
 const SIZE_SUGGESTIONS = ["XS", "S", "M", "L", "XL", "XXL", t.freeSize];
@@ -857,6 +861,7 @@ export default function ProductForm({
   const [videoBrightness, setVideoBrightness] = useState(100);
   const [videoContrast, setVideoContrast] = useState(100);
   const [videoSaturation, setVideoSaturation] = useState(100);
+  const [cardVideoLandscape, setCardVideoLandscape] = useState(false);
   const [videoUploadProgress, setVideoUploadProgress] = useState(null);
 
   const [isDragging, setIsDragging] = useState(false);
@@ -937,12 +942,28 @@ export default function ProductForm({
     setCode(product.code || "");
     setName(product.name || "");
     setDescription(product.description || "");
-    setPrice(String(product.priceUSD ?? ""));
-    setDiscountPrice(String(product.discountPriceUSD ?? ""));
+    setPrice(formatAdminPriceField(product.priceUSD));
+    setDiscountPrice(
+      product.discountPriceUSD != null && product.discountPriceUSD !== ""
+        ? formatAdminPriceField(product.discountPriceUSD)
+        : "",
+    );
     setAllowSeparatePurchase(Boolean(product.allowSeparatePurchase));
-    setBundleFullSetPrice(String(product.bundleFullSetPriceUSD ?? ""));
-    setBundleTopPrice(String(product.bundleTopPriceUSD ?? ""));
-    setBundleBottomPrice(String(product.bundleBottomPriceUSD ?? ""));
+    setBundleFullSetPrice(
+      product.bundleFullSetPriceUSD != null && product.bundleFullSetPriceUSD !== ""
+        ? formatAdminPriceField(product.bundleFullSetPriceUSD)
+        : "",
+    );
+    setBundleTopPrice(
+      product.bundleTopPriceUSD != null && product.bundleTopPriceUSD !== ""
+        ? formatAdminPriceField(product.bundleTopPriceUSD)
+        : "",
+    );
+    setBundleBottomPrice(
+      product.bundleBottomPriceUSD != null && product.bundleBottomPriceUSD !== ""
+        ? formatAdminPriceField(product.bundleBottomPriceUSD)
+        : "",
+    );
     setCategory(product.category || "");
     setStock(String(product.stock ?? 0));
     setSizes(Array.isArray(product.sizes) ? product.sizes : []);
@@ -967,6 +988,7 @@ export default function ProductForm({
     setVideoBrightness(videoFx.brightness);
     setVideoContrast(videoFx.contrast);
     setVideoSaturation(videoFx.saturation);
+    setCardVideoLandscape(Boolean(product.cardVideoLandscape));
     setVideoUploadProgress(null);
   }, []);
 
@@ -1148,40 +1170,83 @@ export default function ProductForm({
       xhr.send(formData);
     });
 
+  /** Direct upload to Cloudinary (signed) — file never passes through Next.js body limit. */
   const uploadCardVideoFile = (file) =>
     new Promise((resolve, reject) => {
-      const formData = new FormData();
-      formData.append("video", file);
-
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", "/api/upload/video");
-
-      xhr.upload.addEventListener("progress", (e) => {
-        if (e.lengthComputable) {
-          const pct = Math.round((e.loaded / e.total) * 100);
-          setVideoUploadProgress(pct);
-        }
-      });
-
-      xhr.addEventListener("load", () => {
-        setVideoUploadProgress(null);
-        if (xhr.status >= 200 && xhr.status < 300) {
+      void (async () => {
+        try {
+          const sigRes = await fetch("/api/upload/video-signature", {
+            method: "POST",
+            headers: {
+              ...getAdminAuthHeaders(),
+            },
+          });
+          const rawText = await sigRes.text();
+          let sig;
           try {
-            const data = JSON.parse(xhr.responseText);
-            resolve(data.secure_url);
+            sig = JSON.parse(rawText);
           } catch {
-            reject(new Error(t.invalidUploadResponse));
+            reject(
+              new Error(
+                sigRes.ok ? t.invalidUploadResponse : `HTTP ${sigRes.status}`,
+              ),
+            );
+            return;
           }
-        } else {
-          reject(new Error(xhrErrorDetail(xhr, t.uploadFailed)));
-        }
-      });
+          if (!sigRes.ok) {
+            reject(new Error(sig.message || `HTTP ${sigRes.status}`));
+            return;
+          }
 
-      xhr.addEventListener("error", () => {
-        setVideoUploadProgress(null);
-        reject(new Error(t.networkError));
-      });
-      xhr.send(formData);
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("api_key", sig.apiKey);
+          formData.append("timestamp", String(sig.timestamp));
+          formData.append("signature", sig.signature);
+          formData.append("folder", sig.folder);
+          if (sig.uploadPreset) {
+            formData.append("upload_preset", sig.uploadPreset);
+          }
+
+          const uploadUrl =
+            sig.uploadUrl ||
+            `https://api.cloudinary.com/v1_1/${sig.cloudName}/video/upload`;
+
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", uploadUrl);
+          xhr.upload.addEventListener("progress", (e) => {
+            if (e.lengthComputable) {
+              const pct = Math.round((e.loaded / e.total) * 100);
+              setVideoUploadProgress(pct);
+            }
+          });
+          xhr.addEventListener("load", () => {
+            setVideoUploadProgress(null);
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                const data = JSON.parse(xhr.responseText);
+                if (data.secure_url) {
+                  resolve(data.secure_url);
+                } else {
+                  reject(new Error(t.invalidUploadResponse));
+                }
+              } catch {
+                reject(new Error(t.invalidUploadResponse));
+              }
+            } else {
+              reject(new Error(xhrErrorDetail(xhr, t.uploadFailed)));
+            }
+          });
+          xhr.addEventListener("error", () => {
+            setVideoUploadProgress(null);
+            reject(new Error(t.networkError));
+          });
+          xhr.send(formData);
+        } catch (err) {
+          setVideoUploadProgress(null);
+          reject(err instanceof Error ? err : new Error(String(err)));
+        }
+      })();
     });
 
   const handleCardVideoFile = async (fileList) => {
@@ -1198,6 +1263,7 @@ export default function ProductForm({
       const url = await uploadCardVideoFile(file);
       if (url) setCardVideoUrl(url);
     } catch (err) {
+      setVideoUploadProgress(null);
       setErrorMessage(err?.message || t.uploadFailed);
     }
   };
@@ -1265,16 +1331,50 @@ export default function ProductForm({
       const rawStock = stockInputRef.current?.value ?? stock;
       const parsedStock = toNonNegativeInt(rawStock, 0);
 
+      const priceNum = parseAdminPriceInput(price);
+      if (!Number.isFinite(priceNum) || priceNum < 0) {
+        setErrorMessage("Enter a valid price.");
+        return;
+      }
+
+      let discountPriceUSD = null;
+      if (discountPrice.trim()) {
+        const d = parseAdminPriceInput(discountPrice);
+        if (!Number.isFinite(d) || d < 0) {
+          setErrorMessage("Enter a valid discount price or leave it empty.");
+          return;
+        }
+        discountPriceUSD = d;
+      }
+
+      const parseOptionalBundle = (raw, label) => {
+        const s = String(raw ?? "").trim();
+        if (!s) return null;
+        const n = parseAdminPriceInput(s);
+        if (!Number.isFinite(n) || n < 0) {
+          setErrorMessage(`Enter a valid ${label} or leave it empty.`);
+          return undefined;
+        }
+        return n;
+      };
+
+      const bundleFull = parseOptionalBundle(bundleFullSetPrice, "full set price");
+      if (bundleFull === undefined) return;
+      const bundleTop = parseOptionalBundle(bundleTopPrice, "top price");
+      if (bundleTop === undefined) return;
+      const bundleBot = parseOptionalBundle(bundleBottomPrice, "bottom price");
+      if (bundleBot === undefined) return;
+
       const payload = {
         code: code.trim(),
         name: name.trim(),
         description: description.trim(),
-        priceUSD: Number(price),
-        discountPriceUSD: discountPrice ? Number(discountPrice) : null,
+        priceUSD: priceNum,
+        discountPriceUSD,
         allowSeparatePurchase,
-        bundleFullSetPriceUSD: bundleFullSetPrice ? Number(bundleFullSetPrice) : null,
-        bundleTopPriceUSD: bundleTopPrice ? Number(bundleTopPrice) : null,
-        bundleBottomPriceUSD: bundleBottomPrice ? Number(bundleBottomPrice) : null,
+        bundleFullSetPriceUSD: bundleFull,
+        bundleTopPriceUSD: bundleTop,
+        bundleBottomPriceUSD: bundleBot,
         category: category.trim(),
         sizes,
         colors,
@@ -1289,6 +1389,7 @@ export default function ProductForm({
           contrast: videoContrast,
           saturation: videoSaturation,
         },
+        cardVideoLandscape,
       };
 
       const requestConfig = { headers: getAdminAuthHeaders() };
@@ -1901,6 +2002,22 @@ export default function ProductForm({
               Reset Video Adjustments
             </button>
           </div>
+          <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-[var(--color-line)] bg-white/60 px-3 py-2.5">
+            <input
+              type="checkbox"
+              checked={cardVideoLandscape}
+              onChange={(e) => setCardVideoLandscape(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-green)]"
+            />
+            <span>
+              <span className="block text-[12px] font-medium text-black/70">
+                {t.cardVideoLandscape}
+              </span>
+              <span className="mt-0.5 block text-[11px] leading-snug text-black/45">
+                {t.cardVideoLandscapeHint}
+              </span>
+            </span>
+          </label>
           {cardVideoUrl ? (
             <button
               type="button"

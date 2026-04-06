@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import {
   ChevronLeft,
   ChevronDown,
@@ -24,7 +24,7 @@ import { useCart } from "../../../context/CartContext";
 import { useCurrency } from "../../../context/CurrencyContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../../../lib/image";
 import { formatSizeLabel } from "../../../lib/sizeDisplay";
-import { videoFilterStyle } from "../../../lib/videoAdjustments";
+import PortraitCoverVideo from "../../../components/PortraitCoverVideo";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -45,8 +45,11 @@ export default function ProductDetailPage() {
   const [sizeError, setSizeError] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [addedFeedback, setAddedFeedback] = useState(false);
+  const router = useRouter();
   const thumbnailContainerRef = useRef(null);
+  const carouselRef = useRef(null);
   const videoRefs = useRef({});
+  const carouselScrollRaf = useRef(null);
   const [playingVideoIndex, setPlayingVideoIndex] = useState(null);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [fabricCareOpen, setFabricCareOpen] = useState(false);
@@ -162,35 +165,85 @@ export default function ProductDetailPage() {
     };
   }, [user, product?._id]);
 
+  /** Desktop only: sync thumbnail highlight while scrolling the vertical image stack. */
   useEffect(() => {
     if (!galleryItems.length) return;
-    const elements = galleryItems
-      .map((_, index) => document.getElementById(`media-item-${index}`))
-      .filter(Boolean);
-    if (!elements.length) return;
+    const mq = window.matchMedia("(min-width: 1024px)");
+    let observer = null;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        let best = null;
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          if (!best || entry.intersectionRatio > best.intersectionRatio) {
-            best = entry;
+    const attach = () => {
+      observer?.disconnect();
+      observer = null;
+      if (!mq.matches) return;
+      const elements = galleryItems
+        .map((_, index) => document.getElementById(`media-item-${index}`))
+        .filter(Boolean);
+      if (!elements.length) return;
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          let best = null;
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            if (!best || entry.intersectionRatio > best.intersectionRatio) {
+              best = entry;
+            }
           }
-        }
-        if (best?.target?.id) {
-          const idx = Number(best.target.id.replace("media-item-", ""));
-          if (!Number.isNaN(idx)) setActiveMediaIndex(idx);
-        }
-      },
-      { threshold: [0.25, 0.45, 0.65, 0.85] },
-    );
+          if (best?.target?.id) {
+            const idx = Number(best.target.id.replace("media-item-", ""));
+            if (!Number.isNaN(idx)) setActiveMediaIndex(idx);
+          }
+        },
+        { threshold: [0.25, 0.45, 0.65, 0.85] },
+      );
 
-    elements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+      elements.forEach((el) => observer.observe(el));
+    };
+
+    attach();
+    const onMq = () => {
+      observer?.disconnect();
+      observer = null;
+      attach();
+    };
+    mq.addEventListener("change", onMq);
+    return () => {
+      mq.removeEventListener("change", onMq);
+      observer?.disconnect();
+    };
   }, [galleryItems]);
 
+  /** Mobile: sync active slide while horizontally snapping the gallery. */
+  const syncCarouselActive = useCallback(() => {
+    const root = carouselRef.current;
+    if (!root || window.matchMedia("(min-width: 1024px)").matches) return;
+    const center = root.scrollLeft + root.clientWidth / 2;
+    let bestIdx = 0;
+    let bestDist = Infinity;
+    root.querySelectorAll("[data-media-slide]").forEach((el, i) => {
+      const slide = el;
+      const slideCenter = slide.offsetLeft + slide.offsetWidth / 2;
+      const dist = Math.abs(center - slideCenter);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestIdx = i;
+      }
+    });
+    setActiveMediaIndex(bestIdx);
+  }, []);
+
+  const onCarouselScroll = useCallback(() => {
+    if (carouselScrollRaf.current) return;
+    carouselScrollRaf.current = requestAnimationFrame(() => {
+      carouselScrollRaf.current = null;
+      syncCarouselActive();
+    });
+  }, [syncCarouselActive]);
+
+  /** Desktop only: keep active thumb in view. On mobile, thumbs are `hidden` but still in DOM — scrollIntoView would scroll the page vertically while swiping the carousel. */
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia("(min-width: 1024px)").matches) return;
     const container = thumbnailContainerRef.current;
     if (!container) return;
     const activeThumb = container.querySelector('[data-testid="image-thumbnail-active"]');
@@ -228,30 +281,31 @@ export default function ProductDetailPage() {
     }
   }, [product]);
 
-  const handleAddToCart = () => {
+  /** Returns true if items were added to cart. */
+  const commitAddToCart = () => {
     const activeBundle = isBundleProduct ? selectedBundle : "single";
     const hasSizes = Array.isArray(product?.sizes) && product.sizes.length > 0;
     if (hasSizes) {
       if (activeBundle === "full_set" && (!selectedTopSize || !selectedBottomSize)) {
         setSizeError("Please select both top and bottom sizes");
-        return;
+        return false;
       }
       if (activeBundle === "top_only" && !selectedTopSize) {
         setSizeError("Please select a top size");
-        return;
+        return false;
       }
       if (activeBundle === "bottom_only" && !selectedBottomSize) {
         setSizeError("Please select a bottom size");
-        return;
+        return false;
       }
       if (activeBundle === "single" && !selectedSize) {
         setSizeError("Please select a size");
-        return;
+        return false;
       }
     }
     setSizeError("");
     const toAdd = Math.min(quantity, remainingStock);
-    if (toAdd <= 0) return;
+    if (toAdd <= 0) return false;
     const sizeForCart =
       activeBundle === "full_set"
         ? `Top: ${selectedTopSize} / Bottom: ${selectedBottomSize}`
@@ -277,8 +331,18 @@ export default function ProductDetailPage() {
     for (let i = 0; i < toAdd; i++) {
       addToCart(cartProduct, sizeForCart, selectedColor, { bundle: bundleLabelForCart });
     }
+    return true;
+  };
+
+  const handleAddToCart = () => {
+    if (!commitAddToCart()) return;
     setAddedFeedback(true);
     setTimeout(() => setAddedFeedback(false), 2200);
+  };
+
+  const handleBuyNow = () => {
+    if (!commitAddToCart()) return;
+    router.push("/checkout");
   };
 
   const handleWishlistToggle = async () => {
@@ -421,7 +485,7 @@ export default function ProductDetailPage() {
     <section className="pb-20 pt-2 sm:pt-6">
       {/* Breadcrumb */}
       <nav className="mb-6 sm:mb-10">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <Link
             href="/products"
             className="group inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.1em] text-black/35 transition-colors hover:text-black/60"
@@ -432,17 +496,16 @@ export default function ProductDetailPage() {
         </div>
       </nav>
 
-      <div className="mx-auto max-w-6xl">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-12">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-12">
 
-          {/* ─── Product media feed (stacked vertically) ─── */}
-          <div className="flex gap-3 lg:gap-5">
+          {/* ─── Gallery: mobile = peeking snap carousel + dots; desktop = thumbs + vertical stack ─── */}
+          <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:gap-5">
             {galleryItems.length > 1 && (
-              <div className="lg:sticky lg:top-24 lg:self-start">
+              <div className="hidden min-w-0 shrink-0 lg:sticky lg:top-24 lg:block lg:self-start">
                 <div
                   ref={thumbnailContainerRef}
-                  className="no-scrollbar flex gap-2.5 overflow-x-auto pb-1 lg:w-[90px] lg:shrink-0 lg:flex-col lg:overflow-y-auto lg:overflow-x-hidden lg:pb-0"
-                  style={{ maxHeight: "calc(100vh - 120px)" }}
+                  className="no-scrollbar flex w-[90px] flex-col overflow-y-auto overflow-x-hidden lg:max-h-[min(calc(100vh-120px),900px)]"
                   data-testid="image-thumbnails"
                 >
                   {galleryItems.map((item, index) => {
@@ -461,21 +524,21 @@ export default function ProductDetailPage() {
                             .getElementById(`media-item-${index}`)
                             ?.scrollIntoView({ behavior: "smooth", block: "start" });
                         }}
-                        className={`relative shrink-0 overflow-hidden border-2 transition-all duration-200 ${
+                        className={`relative h-[100px] w-[76px] shrink-0 overflow-hidden border-2 transition-all duration-200 sm:h-[112px] sm:w-[86px] ${
                           isActive
                             ? "border-[var(--color-gold)]"
                             : "border-transparent opacity-50 hover:opacity-85"
                         }`}
-                        style={{ width: 86, height: 112 }}
                         aria-label={label}
                         data-testid={isActive ? "image-thumbnail-active" : "image-thumbnail"}
                       >
                         {item.type === "video" ? (
                           <div className="group relative h-full w-full bg-black">
-                            <video
+                            <PortraitCoverVideo
                               src={item.url}
-                              className="h-full w-full object-cover"
-                              style={videoFilterStyle(product?.cardVideoAdjustments)}
+                              wrapperClassName="absolute inset-0 overflow-hidden"
+                              videoAdjustments={product?.cardVideoAdjustments}
+                              disablePortraitFix={product?.cardVideoLandscape === true}
                               muted
                               playsInline
                               preload="metadata"
@@ -496,7 +559,7 @@ export default function ProductDetailPage() {
                             src={cloudinaryOptimizedUrl(item.url, { preset: "thumb" })}
                             alt={`${product.name} ${index + 1}`}
                             fill
-                            sizes="86px"
+                            sizes="(max-width: 1024px) 86px, 86px"
                             className="object-cover"
                             unoptimized={isCloudinaryUrl(item.url)}
                             quality={90}
@@ -509,25 +572,32 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            <div className="w-full space-y-4">
+            <div className="-mx-4 flex min-w-0 flex-1 flex-col gap-3 sm:-mx-6 lg:mx-0">
+              <div
+                ref={carouselRef}
+                onScroll={onCarouselScroll}
+                className="no-scrollbar flex flex-row gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain scroll-smooth px-[7.5vw] [-webkit-overflow-scrolling:touch] snap-x snap-mandatory lg:flex-col lg:gap-4 lg:overflow-visible lg:overscroll-auto lg:px-0 lg:snap-none"
+                data-testid="product-media-carousel"
+              >
               {galleryItems.map((item, index) => (
                 <div
                   id={`media-item-${index}`}
                   key={`${item.type}-${item.url}-${index}`}
-                  className="relative w-full overflow-hidden bg-[var(--color-sand)]/20"
-                  style={{ maxWidth: 500, height: 650 }}
+                  data-media-slide
+                  className="relative aspect-[3/4] w-[85vw] max-w-[500px] shrink-0 snap-center overflow-hidden bg-[var(--color-sand)]/20 lg:w-full lg:max-w-[500px] lg:snap-none lg:mx-0 mx-auto"
                   data-testid={index === 0 ? "main-product-image" : "product-gallery-item"}
                 >
                   {item.type === "video" ? (
                     <div className="group absolute inset-0">
-                      <video
-                        src={item.url}
-                        className="absolute inset-0 h-full w-full object-cover"
-                        style={videoFilterStyle(product?.cardVideoAdjustments)}
+                      <PortraitCoverVideo
                         ref={(el) => {
                           if (el) videoRefs.current[index] = el;
                           else delete videoRefs.current[index];
                         }}
+                        src={item.url}
+                        wrapperClassName="absolute inset-0 overflow-hidden"
+                        videoAdjustments={product?.cardVideoAdjustments}
+                        disablePortraitFix={product?.cardVideoLandscape === true}
                         muted
                         playsInline
                         preload="metadata"
@@ -579,19 +649,52 @@ export default function ProductDetailPage() {
                   )}
                 </div>
               ))}
+              </div>
+
+              {galleryItems.length > 1 && (
+                <div
+                  className="flex justify-center gap-2 pb-1 pt-1 lg:hidden"
+                  role="tablist"
+                  aria-label="Product images"
+                >
+                  {galleryItems.map((_, i) => (
+                    <button
+                      key={`dot-${i}`}
+                      type="button"
+                      role="tab"
+                      aria-selected={i === activeMediaIndex}
+                      aria-label={`View image ${i + 1} of ${galleryItems.length}`}
+                      onClick={() => {
+                        setActiveMediaIndex(i);
+                        document
+                          .getElementById(`media-item-${i}`)
+                          ?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+                      }}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        i === activeMediaIndex ? "w-6 bg-[#1a1a1a]" : "w-1.5 bg-black/25"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* ─── Product info — left-aligned, tight rhythm ─── */}
-          <div className="lg:sticky lg:top-24 lg:self-start">
-            <div className="w-full max-w-[400px] space-y-4 text-left">
+          {/* ─── Product info — centered on mobile, left on desktop (Ramsha-style) ─── */}
+          <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+            <div className="mx-auto w-full max-w-[400px] space-y-5 text-center lg:mx-0 lg:text-left">
 
               <div>
-                <div className="flex items-start justify-between gap-2 sm:gap-3">
-                  <h1 className="min-w-0 flex-1 font-serif text-[1.45rem] font-light leading-[1.25] tracking-[0.01em] text-black/[0.88] sm:text-[1.55rem]">
+                {product.code && (
+                  <p className="mb-2 font-sans text-[11px] font-medium uppercase tracking-[0.2em] text-black/40">
+                    {product.code}
+                  </p>
+                )}
+                <div className="flex flex-col items-center gap-3 sm:gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <h1 className="w-full max-w-xl text-center font-serif text-[1.35rem] font-light leading-[1.3] tracking-[0.01em] text-black/[0.88] sm:text-[1.5rem] lg:text-left">
                     {product.name}
                   </h1>
-                  <div className="mt-0.5 flex shrink-0 items-center gap-0.5">
+                  <div className="flex shrink-0 items-center gap-1 lg:mt-0.5">
                     <button
                       type="button"
                       className={`p-1.5 transition-colors ${
@@ -625,10 +728,10 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
                 <div
-                  className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-0.5"
+                  className="mt-4 flex flex-wrap items-baseline justify-center gap-x-3 gap-y-0.5 lg:mt-3 lg:justify-start"
                   data-testid="product-price"
                 >
-                  <span className="font-serif text-[1.2rem] font-normal tabular-nums tracking-tight text-black/[0.78]">
+                  <span className="font-serif text-[1.35rem] font-normal tabular-nums tracking-tight text-black/[0.82]">
                     {formatPrice(selectedBundlePrice)}
                   </span>
                   {(!isBundleProduct || selectedBundle === "full_set") && hasDiscount && (
@@ -637,12 +740,54 @@ export default function ProductDetailPage() {
                     </span>
                   )}
                 </div>
+
+                {typeof product.stock === "number" && (
+                  <div
+                    className="mt-3 space-y-1 text-center lg:text-left"
+                    data-testid="product-availability"
+                  >
+                    {isOutOfStock ? (
+                      <p className="font-sans text-[12px] font-medium text-black/40">
+                        Out of stock
+                      </p>
+                    ) : isAtCartLimit ? (
+                      <p className="font-sans text-[12px] text-black/45">
+                        All available units are in your bag
+                      </p>
+                    ) : (
+                      <p className="font-sans text-[12px] text-black/[0.58]">
+                        <span className="font-semibold tabular-nums text-black/[0.78]">
+                          {remainingStock}
+                        </span>
+                        {remainingStock === 1 ? " unit" : " units"} available
+                        {totalInCart > 0 && (
+                          <span className="text-black/38">
+                            {" "}
+                            ({totalInCart} in your bag)
+                          </span>
+                        )}
+                      </p>
+                    )}
+                    {!isOutOfStock &&
+                      !isAtCartLimit &&
+                      remainingStock > 0 &&
+                      remainingStock <= 22 && (
+                        <p className="font-serif text-[12px] italic leading-snug text-[#9a7c52]">
+                          <span
+                            className="mr-1.5 inline-block h-[5px] w-[5px] rounded-full align-middle"
+                            style={{ backgroundColor: "#C8A96E" }}
+                          />
+                          Selling fast
+                        </p>
+                      )}
+                  </div>
+                )}
               </div>
 
               {/* Color selector */}
               {Array.isArray(product.colors) && product.colors.length > 0 && (
                 <div data-testid="color-selector">
-                  <p className="mb-2 font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38">
+                  <p className="mb-2 font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38 lg:text-left">
                     Colour
                     {selectedColor && (
                       <span className="ml-2 font-serif text-[13px] font-normal normal-case tracking-normal text-black/58">
@@ -650,7 +795,7 @@ export default function ProductDetailPage() {
                       </span>
                     )}
                   </p>
-                  <div className="flex flex-wrap justify-start gap-2.5">
+                  <div className="flex flex-wrap justify-center gap-2.5 lg:justify-start">
                     {product.colors.map((color) => {
                       const isSelected = selectedColor === color;
                       const cssColor = color?.toLowerCase?.() || "black";
@@ -681,22 +826,10 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              {typeof product.stock === "number" &&
-                product.stock > 0 &&
-                product.stock <= 22 && (
-                  <p className="font-serif text-[12px] italic leading-snug text-[#9a7c52]">
-                    <span
-                      className="mr-1.5 inline-block h-[5px] w-[5px] rounded-full align-middle"
-                      style={{ backgroundColor: "#C8A96E" }}
-                    />
-                    Selling fast — {product.stock} left in stock
-                  </p>
-                )}
-
               {/* Bundle selector */}
               {isBundleProduct && (
                 <div data-testid="bundle-selector">
-                <p className="mb-2 font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38">
+                <p className="mb-2 text-center font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38 lg:text-left">
                   Configuration
                 </p>
                 <div className="space-y-2 rounded-lg border border-black/[0.08] bg-white/60 p-3">
@@ -751,7 +884,7 @@ export default function ProductDetailPage() {
               {/* Size selector */}
               {Array.isArray(product.sizes) && product.sizes.length > 0 && (
                 <div className="space-y-2" data-testid="size-selector">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center justify-center gap-3 lg:justify-between">
                     <span className="font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38">
                       {isBundleProduct && selectedBundle === "full_set"
                         ? "Top & bottom"
@@ -768,7 +901,7 @@ export default function ProductDetailPage() {
                       {isBundleProduct && selectedBundle === "full_set" && (
                         <p className="mb-1.5 font-sans text-[9px] uppercase tracking-[0.12em] text-black/32">Top</p>
                       )}
-                      <div className="flex flex-wrap justify-start gap-2">
+                      <div className="flex flex-wrap justify-center gap-2 lg:justify-start">
                         {product.sizes.map((size) => {
                           const isSelected = !isBundleProduct
                             ? selectedSize === size
@@ -811,7 +944,7 @@ export default function ProductDetailPage() {
                   {isBundleProduct && selectedBundle !== "top_only" && (
                     <div>
                       <p className="mb-1.5 font-sans text-[9px] uppercase tracking-[0.12em] text-black/32">Bottom</p>
-                      <div className="flex flex-wrap justify-start gap-2">
+                      <div className="flex flex-wrap justify-center gap-2 lg:justify-start">
                         {product.sizes.map((size) => {
                           const isSelected = selectedBottomSize === size;
                           const oneSize = product.sizes.length === 1;
@@ -846,7 +979,7 @@ export default function ProductDetailPage() {
                     </div>
                   )}
                   {sizeError && (
-                    <p className="text-[11px] font-medium text-red-500">
+                    <p className="text-center text-[11px] font-medium text-red-500 lg:text-left">
                       {sizeError}
                     </p>
                   )}
@@ -855,10 +988,10 @@ export default function ProductDetailPage() {
 
               {/* Quantity */}
               <div className="space-y-1.5" data-testid="quantity-section">
-                <p className="font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38">
+                <p className="text-center font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38 lg:text-left">
                   Quantity
                 </p>
-                <div className="inline-flex items-center gap-3">
+                <div className="inline-flex w-full items-center justify-center gap-3 lg:justify-start">
                   <button
                     type="button"
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -888,7 +1021,7 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Delivery estimate — plain text */}
-              <p className="font-sans text-[11.5px] leading-snug text-black/45 sm:text-[12px]">
+              <p className="text-center font-sans text-[11.5px] leading-snug text-black/45 sm:text-[12px] lg:text-left">
                 <span className="text-black/48">Est. delivery </span>
                 <span className="border-b border-black/20 font-medium text-black/[0.62]">
                   {deliveryEstimateLabel}
@@ -896,35 +1029,50 @@ export default function ProductDetailPage() {
                 <span className="text-black/40"> · 7–14 business days</span>
               </p>
 
-              {/* Add to bag */}
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                disabled={remainingStock <= 0 || addedFeedback}
-                className={`w-full rounded-sm px-4 py-3 font-sans text-[11px] font-medium uppercase tracking-[0.2em] transition-all duration-300 disabled:cursor-not-allowed ${
-                  addedFeedback
-                    ? "bg-emerald-800 text-white"
-                    : remainingStock <= 0
+              {/* Add to bag + Buy now (mobile-first, Ramsha-style) */}
+              <div className="flex flex-col gap-2.5">
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  disabled={remainingStock <= 0 || addedFeedback}
+                  className={`w-full rounded-sm border px-4 py-3.5 font-sans text-[11px] font-medium uppercase tracking-[0.2em] transition-all duration-300 disabled:cursor-not-allowed ${
+                    addedFeedback
+                      ? "border-emerald-800 bg-emerald-800 text-white"
+                      : remainingStock <= 0
+                        ? "border-black/[0.12] bg-transparent text-black/30"
+                        : "border-black/80 bg-white text-black hover:bg-black/[0.02]"
+                  }`}
+                  data-testid="add-to-bag-button"
+                >
+                  {addedFeedback ? (
+                    <span className="inline-flex items-center justify-center gap-2">
+                      <Check size={15} strokeWidth={2.5} />
+                      Added
+                    </span>
+                  ) : isOutOfStock ? (
+                    "Sold out"
+                  ) : isAtCartLimit ? (
+                    "Maximum in bag"
+                  ) : (
+                    "Add to bag"
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBuyNow}
+                  disabled={remainingStock <= 0 || addedFeedback}
+                  className={`w-full rounded-sm px-4 py-3.5 font-sans text-[11px] font-medium uppercase tracking-[0.2em] transition-all duration-300 disabled:cursor-not-allowed ${
+                    remainingStock <= 0 || addedFeedback
                       ? "bg-black/[0.06] text-black/30"
-                      : "bg-[#2a2520] text-[#faf8f5] hover:bg-[#1f1b18]"
-                }`}
-                data-testid="add-to-bag-button"
-              >
-                {addedFeedback ? (
-                  <span className="inline-flex items-center justify-center gap-2">
-                    <Check size={15} strokeWidth={2.5} />
-                    Added
-                  </span>
-                ) : isOutOfStock ? (
-                  "Sold out"
-                ) : isAtCartLimit ? (
-                  "Maximum in bag"
-                ) : (
-                  "Add to bag"
-                )}
-              </button>
+                      : "bg-[#1a1a1a] text-white hover:bg-black"
+                  }`}
+                  data-testid="buy-now-button"
+                >
+                  Buy now
+                </button>
+              </div>
 
-              <p className="text-[11px] leading-relaxed tracking-[0.04em] text-black/32">
+              <p className="text-center text-[11px] leading-relaxed tracking-[0.04em] text-black/32 lg:text-left">
                 Tax included · Complimentary shipping on orders over {formatPrice(150)}
               </p>
 
@@ -1029,7 +1177,7 @@ export default function ProductDetailPage() {
           </div>
 
           {relatedProducts.length > 0 && (
-            <div className="mt-16 border-t border-[var(--color-line)] pt-14">
+            <div className="col-span-full mt-16 border-t border-[var(--color-line)] pt-14">
               <h2 className="font-serif text-xl font-light tracking-[0.02em] text-[var(--color-black)] sm:text-2xl">
                 You may also like
               </h2>

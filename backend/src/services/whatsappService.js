@@ -1,5 +1,8 @@
 const WHATSAPP_API_VERSION = process.env.WHATSAPP_API_VERSION || "v21.0";
 
+/** Owner / ops number for new-order alerts (E.164 digits, no +). Override with WHATSAPP_TO_NUMBER. */
+const DEFAULT_ORDER_NOTIFY_WHATSAPP_E164 = "994554737996";
+
 function normalizePhoneNumber(rawPhone) {
   if (!rawPhone) return "";
   return String(rawPhone).replace(/[^\d]/g, "");
@@ -9,15 +12,16 @@ function formatOrderMessage(order) {
   const customer = order?.customerInfo?.name || "Unknown customer";
   const phone = order?.customerInfo?.phone || "-";
   const country = order?.customerInfo?.country || "-";
+  const email = order?.customerInfo?.email || "-";
   const total = Number(order?.totalPriceUSD || 0).toFixed(2);
   const itemLines = Array.isArray(order?.items)
     ? order.items
         .slice(0, 6)
         .map(
           (item, index) =>
-            `${index + 1}. ${item?.name || "Item"} x${Number(item?.quantity || 0)} (${Number(
+            `${index + 1}. ${item?.name || "Item"} x${Number(item?.quantity || 0)} (₼${Number(
               item?.priceUSD || 0
-            ).toFixed(2)} USD)`
+            ).toFixed(2)} ea)`
         )
         .join("\n")
     : "No items";
@@ -25,12 +29,13 @@ function formatOrderMessage(order) {
   const suffix = Array.isArray(order?.items) && order.items.length > 6 ? "\n..." : "";
 
   return (
-    `New Sami Order\n` +
+    `New SAMÍ order\n` +
     `Order ID: ${order?._id}\n` +
     `Customer: ${customer}\n` +
+    `Email: ${email}\n` +
     `Phone: ${phone}\n` +
     `Country: ${country}\n` +
-    `Total: ${total} USD\n\n` +
+    `Total: ₼${total}\n\n` +
     `Items:\n${itemLines}${suffix}`
   );
 }
@@ -38,7 +43,8 @@ function formatOrderMessage(order) {
 async function sendWhatsAppOrderNotification(order) {
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  const defaultTo = process.env.WHATSAPP_TO_NUMBER || "";
+  const defaultTo =
+    process.env.WHATSAPP_TO_NUMBER || DEFAULT_ORDER_NOTIFY_WHATSAPP_E164;
 
   if (!accessToken || !phoneNumberId || !defaultTo) {
     return { sent: false, reason: "missing_whatsapp_env" };

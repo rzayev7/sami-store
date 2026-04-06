@@ -7,7 +7,7 @@ import api from "../lib/api";
 import ProductCarousel from "./ProductCarousel";
 import { useCurrency } from "../context/CurrencyContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
-import { videoFilterStyle } from "../lib/videoAdjustments";
+import PortraitCoverVideo from "./PortraitCoverVideo";
 
 function BestSellerCard({ item, formatPrice }) {
   const videoRef = useRef(null);
@@ -58,11 +58,13 @@ function BestSellerCard({ item, formatPrice }) {
           quality={92}
         />
         {hasVideo ? (
-          <video
+          <PortraitCoverVideo
             ref={videoRef}
             src={item.cardVideoUrl}
-            className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-            style={videoFilterStyle(item?.cardVideoAdjustments)}
+            wrapperClassName="absolute inset-0 overflow-hidden"
+            videoClassName="opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+            videoAdjustments={item?.cardVideoAdjustments}
+            disablePortraitFix={item?.cardVideoLandscape === true}
             muted
             loop
             playsInline

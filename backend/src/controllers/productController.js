@@ -1,5 +1,36 @@
 const Product = require("../models/Product");
 
+/** Cent rounding only — no FX; matches admin-entered values. */
+const roundPriceCents = (value) => {
+  const x = Number(value);
+  if (!Number.isFinite(x)) return x;
+  return Math.round(x * 100) / 100;
+};
+
+const MONEY_FIELDS = [
+  "priceUSD",
+  "discountPriceUSD",
+  "bundleFullSetPriceUSD",
+  "bundleTopPriceUSD",
+  "bundleBottomPriceUSD",
+];
+
+function normalizeMoneyFields(payload) {
+  if (!payload || typeof payload !== "object") return;
+  for (const key of MONEY_FIELDS) {
+    if (key === "discountPriceUSD") {
+      if (payload[key] === "" || payload[key] === undefined) {
+        payload[key] = null;
+        continue;
+      }
+      if (payload[key] === null) continue;
+    }
+    if (payload[key] === undefined || payload[key] === null || payload[key] === "") continue;
+    const r = roundPriceCents(payload[key]);
+    if (Number.isFinite(r)) payload[key] = r;
+  }
+}
+
 const toNonNegativeInt = (value, fallback = 0) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.max(0, Math.trunc(parsed)) : fallback;
@@ -93,13 +124,17 @@ const createProduct = async (req, res, next) => {
           _id: existingProduct._id,
           name: existingProduct.name,
           code: existingProduct.code,
-          priceUSD: existingProduct.priceUSD,
-          discountPriceUSD: existingProduct.discountPriceUSD,
+          priceUSD: roundPriceCents(existingProduct.priceUSD),
+          discountPriceUSD:
+            existingProduct.discountPriceUSD != null
+              ? roundPriceCents(existingProduct.discountPriceUSD)
+              : null,
           category: existingProduct.category,
         },
       });
     }
 
+    normalizeMoneyFields(payload);
     const product = await Product.create(payload);
     res.status(201).json(product);
   } catch (error) {
@@ -113,6 +148,7 @@ const updateProduct = async (req, res, next) => {
     if (payload.stock !== undefined) {
       payload.stock = toNonNegativeInt(payload.stock, 0);
     }
+    normalizeMoneyFields(payload);
 
     let product = await Product.findByIdAndUpdate(req.params.id, payload, {
       new: true,
