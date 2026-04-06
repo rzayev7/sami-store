@@ -7,9 +7,9 @@ import api from "../../../lib/api";
 import { useAuth } from "../../../context/AuthContext";
 import { useCurrency } from "../../../context/CurrencyContext";
 import { getCustomerAuthHeaders } from "../../../lib/customerAuth";
+import { SUPPORT_EMAIL } from "../../../lib/sitePublic";
 
 const WHATSAPP_E164 = "994554737996";
-const SUPPORT_EMAIL = "rzaevsahib@gmail.com";
 const IBAN = "AZ28AIIB38817944006860051100";
 const SWIFT = "AIIBAZ2X";
 const ACCOUNT_NAME = "Samira Rzayeva";

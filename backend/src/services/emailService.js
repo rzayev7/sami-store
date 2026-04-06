@@ -130,7 +130,7 @@ const sendOrderConfirmationEmail = async (order) => {
   const orderIdShort = String(order._id || "").slice(-8).toUpperCase();
   const subject = `Your Sami order ${orderIdShort} has been received`;
 
-  const supportEmail = process.env.SUPPORT_EMAIL || "support@samiofficial.store";
+  const supportEmail = process.env.SUPPORT_EMAIL || "samistore.support@gmail.com";
 
   const html = `
     <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color:#111; padding:16px; background:#f7f5f0;">

@@ -1,3 +1,5 @@
+import { SUPPORT_EMAIL } from "../lib/sitePublic";
+
 const IBAN = "AZ28AIIB38817944006860051100";
 const SWIFT = "AIIBAZ2X";
 const ACCOUNT_NAME = "Samira Rzayeva";
@@ -44,10 +46,10 @@ export default function BankTransferDetails({ className = "", showAfterPayment =
           </p>
           <p className="text-black/85">
             <a
-              href="mailto:rzaevsahib@gmail.com"
+              href={`mailto:${SUPPORT_EMAIL}`}
               className="font-medium text-black underline decoration-black/30 underline-offset-2 hover:decoration-black"
             >
-              rzaevsahib@gmail.com
+              {SUPPORT_EMAIL}
             </a>
           </p>
         </div>
