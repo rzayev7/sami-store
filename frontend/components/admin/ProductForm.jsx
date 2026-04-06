@@ -40,6 +40,24 @@ function formatBytes(n) {
   return `${(n / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+/** Prefer JSON `{ message }` from failed upload XHR; else status + short body (avoids vague "upload error" only). */
+function xhrErrorDetail(xhr, fallbackLabel) {
+  const raw = xhr.responseText?.trim() || "";
+  if (raw) {
+    try {
+      const j = JSON.parse(raw);
+      const msg = j?.message ?? j?.error;
+      if (msg != null && String(msg).trim()) return String(msg).trim();
+    } catch {
+      const snippet = raw.length > 180 ? `${raw.slice(0, 180)}…` : raw;
+      if (!snippet.includes("<!DOCTYPE")) {
+        return `${fallbackLabel} (HTTP ${xhr.status}): ${snippet}`;
+      }
+    }
+  }
+  return `${fallbackLabel} (HTTP ${xhr.status}${xhr.statusText ? ` ${xhr.statusText}` : ""})`;
+}
+
 /**
  * Scales image so the longest side is at most maxLongEdge (Canvas API).
  */
@@ -1122,12 +1140,7 @@ export default function ProductForm({
             reject(new Error(t.invalidUploadResponse));
           }
         } else {
-          try {
-            const err = JSON.parse(xhr.responseText);
-            reject(new Error(err.message || t.uploadFailed));
-          } catch {
-            reject(new Error(t.uploadFailed));
-          }
+          reject(new Error(xhrErrorDetail(xhr, t.uploadFailed)));
         }
       });
 
@@ -1160,12 +1173,7 @@ export default function ProductForm({
             reject(new Error(t.invalidUploadResponse));
           }
         } else {
-          try {
-            const err = JSON.parse(xhr.responseText);
-            reject(new Error(err.message || t.uploadFailed));
-          } catch {
-            reject(new Error(t.uploadFailed));
-          }
+          reject(new Error(xhrErrorDetail(xhr, t.uploadFailed)));
         }
       });
 
