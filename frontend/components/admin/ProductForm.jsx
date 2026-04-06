@@ -838,6 +838,7 @@ export default function ProductForm({
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [fabricCare, setFabricCare] = useState("");
   const [price, setPrice] = useState("");
   const [discountPrice, setDiscountPrice] = useState("");
   const [allowSeparatePurchase, setAllowSeparatePurchase] = useState(false);
@@ -942,6 +943,9 @@ export default function ProductForm({
     setCode(product.code || "");
     setName(product.name || "");
     setDescription(product.description || "");
+    setFabricCare(
+      typeof product.fabricCare === "string" ? product.fabricCare : "",
+    );
     setPrice(formatAdminPriceField(product.priceUSD));
     setDiscountPrice(
       product.discountPriceUSD != null && product.discountPriceUSD !== ""
@@ -1369,6 +1373,7 @@ export default function ProductForm({
         code: code.trim(),
         name: name.trim(),
         description: description.trim(),
+        fabricCare: fabricCare.trim() || "",
         priceUSD: priceNum,
         discountPriceUSD,
         allowSeparatePurchase,
@@ -1625,6 +1630,18 @@ export default function ProductForm({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={t.placeholderDescription}
+                className="sami-input resize-y rounded-lg"
+              />
+            </div>
+
+            <div>
+              <FieldLabel htmlFor="pf-fabric-care">{t.fabricCare}</FieldLabel>
+              <textarea
+                id="pf-fabric-care"
+                rows={2}
+                value={fabricCare}
+                onChange={(e) => setFabricCare(e.target.value)}
+                placeholder={t.fabricCarePlaceholder}
                 className="sami-input resize-y rounded-lg"
               />
             </div>

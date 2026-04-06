@@ -497,10 +497,10 @@ export default function ProductDetailPage() {
       </nav>
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-12">
+        <div className="relative z-10 grid min-h-0 gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-12 lg:items-start">
 
           {/* ─── Gallery: mobile = peeking snap carousel + dots; desktop = thumbs + vertical stack ─── */}
-          <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:gap-5">
+          <div className="relative z-0 flex min-w-0 flex-col gap-3 lg:flex-row lg:gap-5">
             {galleryItems.length > 1 && (
               <div className="hidden min-w-0 shrink-0 lg:sticky lg:top-24 lg:block lg:self-start">
                 <div
@@ -681,7 +681,7 @@ export default function ProductDetailPage() {
           </div>
 
           {/* ─── Product info — centered on mobile, left on desktop (Ramsha-style) ─── */}
-          <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+          <div className="relative z-[1] min-w-0 bg-[var(--color-cream)] lg:sticky lg:top-24 lg:z-20 lg:self-start lg:bg-[var(--color-cream)]">
             <div className="mx-auto w-full max-w-[400px] space-y-5 text-center lg:mx-0 lg:text-left">
 
               <div>
@@ -1119,14 +1119,20 @@ export default function ProductDetailPage() {
                 </button>
                 {fabricCareOpen && (
                   <div className="pb-1 pt-0 font-sans text-[12px] leading-[1.65] text-black/48">
-                    <p>
-                      Fabrics are chosen for drape and longevity; exact composition is on the care
-                      label.
-                    </p>
-                    <p className="mt-2">
-                      Dry clean or gentle hand wash. Cool iron on the reverse. Store folded away
-                      from direct sunlight.
-                    </p>
+                    {product?.fabricCare?.trim() ? (
+                      <p>{product.fabricCare.trim()}</p>
+                    ) : (
+                      <>
+                        <p>
+                          Fabrics are chosen for drape and longevity; exact composition is on the
+                          care label.
+                        </p>
+                        <p className="mt-2">
+                          Dry clean or gentle hand wash. Cool iron on the reverse. Store folded away
+                          from direct sunlight.
+                        </p>
+                      </>
+                    )}
                   </div>
                 )}
 
@@ -1175,13 +1181,15 @@ export default function ProductDetailPage() {
 
             </div>
           </div>
+        </div>
 
-          {relatedProducts.length > 0 && (
-            <div className="col-span-full mt-16 border-t border-[var(--color-line)] pt-14">
-              <h2 className="font-serif text-xl font-light tracking-[0.02em] text-[var(--color-black)] sm:text-2xl">
+        {relatedProducts.length > 0 && (
+          <div className="relative z-0 mt-12 border-t border-[var(--color-line)] bg-[var(--color-cream)] pt-10">
+            <div className="mx-auto max-w-3xl lg:max-w-4xl">
+              <h2 className="font-serif text-lg font-light tracking-[0.02em] text-[var(--color-black)] sm:text-xl">
                 You may also like
               </h2>
-              <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
                 {relatedProducts.map((p) => {
                   const img =
                     Array.isArray(p.images) && p.images[0]
@@ -1199,27 +1207,29 @@ export default function ProductDetailPage() {
                       href={`/products/${p._id}`}
                       className="group block"
                     >
-                      <div className="relative aspect-[3/4] w-full overflow-hidden bg-[var(--color-sand)]/30">
+                      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-md bg-[var(--color-sand)]/30">
                         <Image
                           src={cloudinaryOptimizedUrl(img, { preset: "product" })}
                           alt={p.name || "Product"}
                           fill
-                          sizes="(max-width: 640px) 50vw, 33vw"
+                          sizes="(max-width: 640px) 42vw, 28vw"
                           className="object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]"
                           unoptimized={isCloudinaryUrl(img)}
                         />
                       </div>
-                      <p className="mt-3 text-[12px] font-medium tracking-[0.02em] text-[var(--color-black)] line-clamp-2 group-hover:opacity-80">
+                      <p className="mt-2 text-[11px] font-medium leading-snug tracking-[0.02em] text-[var(--color-black)] line-clamp-2 group-hover:opacity-80 sm:text-[12px]">
                         {p.name}
                       </p>
-                      <p className="mt-1 text-[12px] tabular-nums text-black/60">{formatPrice(price)}</p>
+                      <p className="mt-0.5 text-[11px] tabular-nums text-black/60 sm:text-[12px]">
+                        {formatPrice(price)}
+                      </p>
                     </Link>
                   );
                 })}
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </section>
   );

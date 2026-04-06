@@ -33,10 +33,21 @@ api.interceptors.response.use(
   },
   (error) => {
     if (typeof window !== "undefined") {
-      const url = error?.config?.baseURL + (error?.config?.url || "");
+      const base = error?.config?.baseURL || "";
+      const path = error?.config?.url || "";
+      const url = `${base}${path}`;
       const status = error?.response?.status;
       const data = error?.response?.data;
-      console.error("[api] error", { url, status, message: error?.message, data });
+      const code = error?.code;
+      const msg = error?.message || String(error);
+      console.error(
+        "[api] error",
+        msg,
+        url || "(no url)",
+        status != null ? status : "no response",
+        code ? `code=${code}` : "",
+        data != null ? data : "",
+      );
     }
     try {
       const status = error?.response?.status;

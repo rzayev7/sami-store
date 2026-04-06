@@ -120,6 +120,9 @@ export const t = {
   placeholderProductName: "напр. Шёлковая блузка",
   placeholderCategory: "напр. Платья",
   placeholderDescription: "Опишите товар — ткань, посадка, повод...",
+  fabricCare: "Ткань и уход",
+  fabricCarePlaceholder:
+    "Состав ткани, рекомендации по уходу (необязательно; показывается в карточке товара)",
   placeholderSize: "Введите размер и нажмите Enter",
   placeholderColor: "Введите цвет и нажмите Enter",
   dragImagesHere: "Перетащите изображения сюда",
