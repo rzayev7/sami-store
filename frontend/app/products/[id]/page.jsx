@@ -768,11 +768,7 @@ export default function ProductDetailPage() {
                       {isBundleProduct && selectedBundle === "full_set" && (
                         <p className="mb-1.5 font-sans text-[9px] uppercase tracking-[0.12em] text-black/32">Top</p>
                       )}
-                      <div
-                        className={`flex flex-wrap justify-start gap-2 ${
-                          product.sizes.length === 1 ? "w-full" : ""
-                        }`}
-                      >
+                      <div className="flex flex-wrap justify-start gap-2">
                         {product.sizes.map((size) => {
                           const isSelected = !isBundleProduct
                             ? selectedSize === size
@@ -787,9 +783,11 @@ export default function ProductDetailPage() {
                                 else setSelectedTopSize(size);
                                 setSizeError("");
                               }}
-                              className={`flex items-center justify-center border transition-all duration-200 ${
+                              className={`${
+                                oneSize ? "inline-flex" : "flex"
+                              } items-center justify-center border transition-all duration-200 ${
                                 oneSize
-                                  ? `w-full rounded-sm border-black/[0.12] px-2.5 py-1 font-sans text-[9px] font-medium uppercase tracking-[0.18em] ${
+                                  ? `w-auto max-w-full rounded-sm border-black/[0.12] px-2 py-0.5 font-sans text-[8px] font-medium uppercase leading-none tracking-[0.16em] ${
                                       isSelected
                                         ? "border-black/40 bg-black/[0.04] text-black/70"
                                         : "border-black/[0.1] bg-transparent text-black/38 hover:border-black/18 hover:text-black/48"
@@ -813,11 +811,7 @@ export default function ProductDetailPage() {
                   {isBundleProduct && selectedBundle !== "top_only" && (
                     <div>
                       <p className="mb-1.5 font-sans text-[9px] uppercase tracking-[0.12em] text-black/32">Bottom</p>
-                      <div
-                        className={`flex flex-wrap justify-start gap-2 ${
-                          product.sizes.length === 1 ? "w-full" : ""
-                        }`}
-                      >
+                      <div className="flex flex-wrap justify-start gap-2">
                         {product.sizes.map((size) => {
                           const isSelected = selectedBottomSize === size;
                           const oneSize = product.sizes.length === 1;
@@ -826,9 +820,11 @@ export default function ProductDetailPage() {
                               key={`bottom-${size}`}
                               type="button"
                               onClick={() => { setSelectedBottomSize(size); setSizeError(""); }}
-                              className={`flex items-center justify-center border transition-all duration-200 ${
+                              className={`${
+                                oneSize ? "inline-flex" : "flex"
+                              } items-center justify-center border transition-all duration-200 ${
                                 oneSize
-                                  ? `w-full rounded-sm border-black/[0.12] px-2.5 py-1 font-sans text-[9px] font-medium uppercase tracking-[0.18em] ${
+                                  ? `w-auto max-w-full rounded-sm border-black/[0.12] px-2 py-0.5 font-sans text-[8px] font-medium uppercase leading-none tracking-[0.16em] ${
                                       isSelected
                                         ? "border-black/40 bg-black/[0.04] text-black/70"
                                         : "border-black/[0.1] bg-transparent text-black/38 hover:border-black/18 hover:text-black/48"
