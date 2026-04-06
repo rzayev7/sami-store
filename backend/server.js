@@ -47,7 +47,7 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: "15mb" }));
 
 app.get("/", (req, res) => {
   res.send("Sami API is running");
@@ -57,6 +57,7 @@ app.use("/api/products", require("./src/routes/productRoutes"));
 app.use("/api/orders", require("./src/routes/orderRoutes"));
 app.use("/api/admin", require("./src/routes/adminRoutes"));
 app.use("/api/admin", require("./src/routes/adminDashboardRoutes"));
+app.use("/api/admin", require("./src/routes/adminAiRoutes"));
 app.use("/api/upload", require("./src/routes/uploadRoutes"));
 app.use("/api/categories", require("./src/routes/categoryRoutes"));
 app.use("/api/coupons", require("./src/routes/couponRoutes"));

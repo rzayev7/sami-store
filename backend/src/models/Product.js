@@ -13,6 +13,11 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  /** Optional fabric / care line (e.g. from AI or manual). Shown on PDP Fabric & care. */
+  fabricCare: {
+    type: String,
+    default: "",
+  },
   priceUSD: {
     type: Number,
     required: true,
