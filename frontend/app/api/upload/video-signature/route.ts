@@ -26,7 +26,10 @@ export async function POST(request: NextRequest) {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
       return NextResponse.json(
-        { message: "JWT_SECRET is not configured on the server" },
+        {
+          message:
+            "JWT_SECRET is missing in the Next.js environment. Add JWT_SECRET to frontend .env (same value as backend JWT_SECRET) and restart the dev server.",
+        },
         { status: 500 }
       );
     }
