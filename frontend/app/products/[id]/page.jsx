@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import Link from "../../../components/LocaleLink";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -22,6 +22,7 @@ import { useAuth } from "../../../context/AuthContext";
 import SizeGuide from "../../../components/SizeGuide";
 import { useCart } from "../../../context/CartContext";
 import { useCurrency } from "../../../context/CurrencyContext";
+import { useLanguage, useLocalePath } from "../../../context/LanguageContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../../../lib/image";
 import { formatSizeLabel } from "../../../lib/sizeDisplay";
 import PortraitCoverVideo from "../../../components/PortraitCoverVideo";
@@ -32,6 +33,8 @@ export default function ProductDetailPage() {
   const { addToCart, cartItems } = useCart();
   const { formatPrice } = useCurrency();
   const { user, requireAuth } = useAuth();
+  const { t } = useLanguage();
+  const localePath = useLocalePath();
   const resolvedProductId = Array.isArray(productId) ? productId[0] : productId;
 
   const [product, setProduct] = useState(null);
@@ -111,7 +114,6 @@ export default function ProductDetailPage() {
     };
   }, [product?._id, product?.category]);
 
-  /** Images plus optional product video (after first photo) for the same strip as admin "card" video. */
   const galleryItems = useMemo(() => {
     const imgs =
       Array.isArray(product?.images) && product.images.length > 0
@@ -164,7 +166,6 @@ export default function ProductDetailPage() {
     };
   }, [user, product?._id]);
 
-  /** Desktop only: sync thumbnail highlight while scrolling the vertical image stack. */
   useEffect(() => {
     if (!galleryItems.length) return;
     const mq = window.matchMedia("(min-width: 1024px)");
@@ -212,7 +213,6 @@ export default function ProductDetailPage() {
     };
   }, [galleryItems]);
 
-  /** Mobile: sync active slide while horizontally snapping the gallery. */
   const syncCarouselActive = useCallback(() => {
     const root = carouselRef.current;
     if (!root || window.matchMedia("(min-width: 1024px)").matches) return;
@@ -239,7 +239,6 @@ export default function ProductDetailPage() {
     });
   }, [syncCarouselActive]);
 
-  /** Desktop only: keep active thumb in view. On mobile, thumbs are `hidden` but still in DOM — scrollIntoView would scroll the page vertically while swiping the carousel. */
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!window.matchMedia("(min-width: 1024px)").matches) return;
@@ -280,25 +279,24 @@ export default function ProductDetailPage() {
     }
   }, [product]);
 
-  /** Returns true if items were added to cart. */
   const commitAddToCart = () => {
     const activeBundle = isBundleProduct ? selectedBundle : "single";
     const hasSizes = Array.isArray(product?.sizes) && product.sizes.length > 0;
     if (hasSizes) {
       if (activeBundle === "full_set" && (!selectedTopSize || !selectedBottomSize)) {
-        setSizeError("Please select both top and bottom sizes");
+        setSizeError(t("product.selectBothSizes"));
         return false;
       }
       if (activeBundle === "top_only" && !selectedTopSize) {
-        setSizeError("Please select a top size");
+        setSizeError(t("product.selectTopSize"));
         return false;
       }
       if (activeBundle === "bottom_only" && !selectedBottomSize) {
-        setSizeError("Please select a bottom size");
+        setSizeError(t("product.selectBottomSize"));
         return false;
       }
       if (activeBundle === "single" && !selectedSize) {
-        setSizeError("Please select a size");
+        setSizeError(t("product.selectSize"));
         return false;
       }
     }
@@ -307,20 +305,20 @@ export default function ProductDetailPage() {
     if (toAdd <= 0) return false;
     const sizeForCart =
       activeBundle === "full_set"
-        ? `Top: ${selectedTopSize} / Bottom: ${selectedBottomSize}`
+        ? `${t("product.topLabel")}: ${selectedTopSize} / ${t("product.bottomLabel")}: ${selectedBottomSize}`
         : activeBundle === "top_only"
-          ? `Top: ${selectedTopSize}`
+          ? `${t("product.topLabel")}: ${selectedTopSize}`
           : activeBundle === "bottom_only"
-            ? `Bottom: ${selectedBottomSize}`
+            ? `${t("product.bottomLabel")}: ${selectedBottomSize}`
             : selectedSize;
     const bundleLabelForCart =
       activeBundle === "full_set"
-        ? "Full Set"
+        ? t("product.fullSet")
         : activeBundle === "top_only"
-          ? "Top Only"
+          ? t("product.topOnly")
           : activeBundle === "bottom_only"
-            ? "Bottom Only"
-            : "Single";
+            ? t("product.bottomOnly")
+            : t("product.single");
     const cartProduct = {
       ...product,
       priceUSD: selectedBundlePrice,
@@ -341,7 +339,7 @@ export default function ProductDetailPage() {
 
   const handleBuyNow = () => {
     if (!commitAddToCart()) return;
-    router.push("/checkout");
+    router.push(localePath("/checkout"));
   };
 
   const handleWishlistToggle = async () => {
@@ -367,9 +365,7 @@ export default function ProductDetailPage() {
       .reduce((sum, item) => sum + Number(item.quantity || 0), 0);
   }, [cartItems, product?._id]);
 
-  /** Units left to sell in catalog (not reduced by this session’s cart). */
   const productStock = Number(product?.stock || 0);
-  /** How many more units the shopper can add (respects cart). */
   const remainingStock = Math.max(0, productStock - Number(totalInCart || 0));
 
   const isOutOfStock = productStock <= 0;
@@ -467,14 +463,14 @@ export default function ProductDetailPage() {
           <span className="font-serif text-2xl text-black/20">?</span>
         </div>
         <p className="mt-5 text-[15px] font-medium text-black/60">
-          Product not found
+          {t("product.notFound")}
         </p>
         <Link
           href="/products"
           className="mt-4 inline-flex items-center gap-1.5 text-[12px] font-medium tracking-[0.06em] text-[var(--color-gold)] transition-colors hover:text-[var(--color-gold-soft)]"
         >
           <ChevronLeft size={14} />
-          Back to collection
+          {t("product.backToCollection")}
         </Link>
       </div>
     );
@@ -490,7 +486,7 @@ export default function ProductDetailPage() {
             className="group inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.1em] text-black/35 transition-colors hover:text-black/60"
           >
             <ChevronLeft size={13} strokeWidth={2} className="transition-transform group-hover:-translate-x-0.5" />
-            Collection
+            {t("product.collection")}
           </Link>
         </div>
       </nav>
@@ -498,7 +494,7 @@ export default function ProductDetailPage() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="relative z-10 grid min-h-0 gap-6 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-12 lg:items-start">
 
-          {/* ─── Gallery: mobile = peeking snap carousel + dots; desktop = thumbs + vertical stack ─── */}
+          {/* ─── Gallery ─── */}
           <div className="relative z-0 flex min-w-0 flex-col gap-3 lg:flex-row lg:gap-5">
             {galleryItems.length > 1 && (
               <div className="hidden min-w-0 shrink-0 lg:sticky lg:top-24 lg:block lg:self-start">
@@ -548,7 +544,7 @@ export default function ProductDetailPage() {
                                 <Play
                                   size={16}
                                   strokeWidth={2.2}
-                                  className="ml-[1px] text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.45)]"
+                                  className="ms-[1px] text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.45)]"
                                 />
                               </span>
                             </span>
@@ -623,7 +619,7 @@ export default function ProductDetailPage() {
                         {playingVideoIndex === index ? (
                           <Pause size={24} strokeWidth={2.1} />
                         ) : (
-                          <Play size={24} strokeWidth={2.1} className="ml-0.5" />
+                          <Play size={24} strokeWidth={2.1} className="ms-0.5" />
                         )}
                       </button>
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/45 to-transparent" />
@@ -642,8 +638,8 @@ export default function ProductDetailPage() {
                   )}
 
                   {isOutOfStock && index === 0 && (
-                    <div className="absolute left-4 top-4 rounded-full bg-black/75 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white backdrop-blur-sm">
-                      Sold Out
+                    <div className="absolute start-4 top-4 rounded-full bg-black/75 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white backdrop-blur-sm">
+                      {t("product.soldOut")}
                     </div>
                   )}
                 </div>
@@ -679,9 +675,9 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* ─── Product info — centered on mobile, left on desktop (Ramsha-style) ─── */}
+          {/* ─── Product info ─── */}
           <div className="relative z-[1] min-w-0 bg-[var(--color-cream)] lg:sticky lg:top-24 lg:z-20 lg:self-start lg:bg-[var(--color-cream)]">
-            <div className="mx-auto w-full max-w-[400px] space-y-5 text-center lg:mx-0 lg:text-left">
+            <div className="mx-auto w-full max-w-[400px] space-y-5 text-center lg:mx-0 lg:text-start">
 
               <div>
                 {product.code && (
@@ -690,7 +686,7 @@ export default function ProductDetailPage() {
                   </p>
                 )}
                 <div className="flex flex-col items-center gap-3 sm:gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <h1 className="w-full max-w-xl text-center font-serif text-[1.35rem] font-light leading-[1.3] tracking-[0.01em] text-black/[0.88] sm:text-[1.5rem] lg:text-left">
+                  <h1 className="w-full max-w-xl text-center font-serif text-[1.35rem] font-light leading-[1.3] tracking-[0.01em] text-black/[0.88] sm:text-[1.5rem] lg:text-start">
                     {product.name}
                   </h1>
                   <div className="flex shrink-0 items-center gap-1 lg:mt-0.5">
@@ -742,27 +738,27 @@ export default function ProductDetailPage() {
 
                 {typeof product.stock === "number" && (
                   <div
-                    className="mt-3 space-y-1 text-center lg:text-left"
+                    className="mt-3 space-y-1 text-center lg:text-start"
                     data-testid="product-availability"
                   >
                     {isOutOfStock ? (
                       <p className="font-sans text-[12px] font-medium text-black/40">
-                        Out of stock
+                        {t("product.outOfStock")}
                       </p>
                     ) : isAtCartLimit ? (
                       <p className="font-sans text-[12px] text-black/45">
-                        All available units are in your bag
+                        {t("product.allInBag")}
                       </p>
                     ) : (
                       <p className="font-sans text-[12px] text-black/[0.58]">
                         <span className="font-semibold tabular-nums text-black/[0.78]">
                           {remainingStock}
                         </span>
-                        {remainingStock === 1 ? " unit" : " units"} available
+                        {remainingStock === 1 ? ` ${t("product.unit")}` : ` ${t("product.units")}`} {t("product.available")}
                         {totalInCart > 0 && (
                           <span className="text-black/38">
                             {" "}
-                            ({totalInCart} in your bag)
+                            ({totalInCart} {t("product.inYourBag")})
                           </span>
                         )}
                       </p>
@@ -773,10 +769,10 @@ export default function ProductDetailPage() {
                       remainingStock <= 22 && (
                         <p className="font-serif text-[12px] italic leading-snug text-[#9a7c52]">
                           <span
-                            className="mr-1.5 inline-block h-[5px] w-[5px] rounded-full align-middle"
+                            className="me-1.5 inline-block h-[5px] w-[5px] rounded-full align-middle"
                             style={{ backgroundColor: "#C8A96E" }}
                           />
-                          Selling fast
+                          {t("product.sellingFast")}
                         </p>
                       )}
                   </div>
@@ -786,10 +782,10 @@ export default function ProductDetailPage() {
               {/* Color selector */}
               {Array.isArray(product.colors) && product.colors.length > 0 && (
                 <div data-testid="color-selector">
-                  <p className="mb-2 font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38 lg:text-left">
-                    Colour
+                  <p className="mb-2 font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38 lg:text-start">
+                    {t("product.colour")}
                     {selectedColor && (
-                      <span className="ml-2 font-serif text-[13px] font-normal normal-case tracking-normal text-black/58">
+                      <span className="ms-2 font-serif text-[13px] font-normal normal-case tracking-normal text-black/58">
                         {selectedColor}
                       </span>
                     )}
@@ -828,14 +824,14 @@ export default function ProductDetailPage() {
               {/* Bundle selector */}
               {isBundleProduct && (
                 <div data-testid="bundle-selector">
-                <p className="mb-2 text-center font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38 lg:text-left">
-                  Configuration
+                <p className="mb-2 text-center font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38 lg:text-start">
+                  {t("product.configuration")}
                 </p>
                 <div className="space-y-2 rounded-lg border border-black/[0.08] bg-white/60 p-3">
                   {[
-                    { value: "full_set", label: "Full set", price: bundlePrices.full_set },
-                    { value: "top_only", label: "Top only", price: bundlePrices.top_only },
-                    { value: "bottom_only", label: "Bottom only", price: bundlePrices.bottom_only },
+                    { value: "full_set", label: t("product.fullSet"), price: bundlePrices.full_set },
+                    { value: "top_only", label: t("product.topOnly"), price: bundlePrices.top_only },
+                    { value: "bottom_only", label: t("product.bottomOnly"), price: bundlePrices.bottom_only },
                   ].map((option) => {
                     const active = selectedBundle === option.value;
                     return (
@@ -874,7 +870,7 @@ export default function ProductDetailPage() {
                 </div>
                 {!hasBundlePresetPrices && (
                   <p className="mt-2 text-[10px] tracking-[0.02em] text-black/40">
-                    Bundle prices are automatically calculated from the set price.
+                    {t("product.bundleNote")}
                   </p>
                 )}
               </div>
@@ -886,19 +882,19 @@ export default function ProductDetailPage() {
                   <div className="flex items-center justify-center gap-3 lg:justify-between">
                     <span className="font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38">
                       {isBundleProduct && selectedBundle === "full_set"
-                        ? "Top & bottom"
+                        ? t("product.topAndBottom")
                         : isBundleProduct && selectedBundle === "top_only"
-                          ? "Top"
+                          ? t("product.top")
                           : isBundleProduct && selectedBundle === "bottom_only"
-                            ? "Bottom"
-                            : "Size"}
+                            ? t("product.bottom")
+                            : t("product.size")}
                     </span>
                     <SizeGuide />
                   </div>
                   {(selectedBundle !== "bottom_only" || !isBundleProduct) && (
                     <div>
                       {isBundleProduct && selectedBundle === "full_set" && (
-                        <p className="mb-1.5 font-sans text-[9px] uppercase tracking-[0.12em] text-black/32">Top</p>
+                        <p className="mb-1.5 font-sans text-[9px] uppercase tracking-[0.12em] text-black/32">{t("product.top")}</p>
                       )}
                       <div className="flex flex-wrap justify-center gap-2 lg:justify-start">
                         {product.sizes.map((size) => {
@@ -942,7 +938,7 @@ export default function ProductDetailPage() {
                   )}
                   {isBundleProduct && selectedBundle !== "top_only" && (
                     <div>
-                      <p className="mb-1.5 font-sans text-[9px] uppercase tracking-[0.12em] text-black/32">Bottom</p>
+                      <p className="mb-1.5 font-sans text-[9px] uppercase tracking-[0.12em] text-black/32">{t("product.bottom")}</p>
                       <div className="flex flex-wrap justify-center gap-2 lg:justify-start">
                         {product.sizes.map((size) => {
                           const isSelected = selectedBottomSize === size;
@@ -978,7 +974,7 @@ export default function ProductDetailPage() {
                     </div>
                   )}
                   {sizeError && (
-                    <p className="text-center text-[11px] font-medium text-red-500 lg:text-left">
+                    <p className="text-center text-[11px] font-medium text-red-500 lg:text-start">
                       {sizeError}
                     </p>
                   )}
@@ -987,8 +983,8 @@ export default function ProductDetailPage() {
 
               {/* Quantity */}
               <div className="space-y-1.5" data-testid="quantity-section">
-                <p className="text-center font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38 lg:text-left">
-                  Quantity
+                <p className="text-center font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38 lg:text-start">
+                  {t("product.quantity")}
                 </p>
                 <div className="inline-flex w-full items-center justify-center gap-3 lg:justify-start">
                   <button
@@ -996,7 +992,7 @@ export default function ProductDetailPage() {
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                     disabled={quantity <= 1}
                     className="p-0.5 text-black/40 transition-colors hover:text-black/65 disabled:opacity-25"
-                    aria-label="Decrease quantity"
+                    aria-label={t("cart.decreaseQty")}
                   >
                     <Minus size={15} strokeWidth={1.75} />
                   </button>
@@ -1012,23 +1008,23 @@ export default function ProductDetailPage() {
                     }
                     disabled={quantity >= Number(remainingStock || 99)}
                     className="p-0.5 text-black/40 transition-colors hover:text-black/65 disabled:opacity-25"
-                    aria-label="Increase quantity"
+                    aria-label={t("cart.increaseQty")}
                   >
                     <Plus size={15} strokeWidth={1.75} />
                   </button>
                 </div>
               </div>
 
-              {/* Delivery estimate — plain text */}
-              <p className="text-center font-sans text-[11.5px] leading-snug text-black/45 sm:text-[12px] lg:text-left">
-                <span className="text-black/48">Est. delivery </span>
+              {/* Delivery estimate */}
+              <p className="text-center font-sans text-[11.5px] leading-snug text-black/45 sm:text-[12px] lg:text-start">
+                <span className="text-black/48">{t("product.estDelivery")} </span>
                 <span className="border-b border-black/20 font-medium text-black/[0.62]">
                   {deliveryEstimateLabel}
                 </span>
-                <span className="text-black/40"> · 7–14 business days</span>
+                <span className="text-black/40"> {t("product.businessDays")}</span>
               </p>
 
-              {/* Add to bag + Buy now (mobile-first, Ramsha-style) */}
+              {/* Add to bag + Buy now */}
               <div className="flex flex-col gap-2.5">
                 <button
                   type="button"
@@ -1046,14 +1042,14 @@ export default function ProductDetailPage() {
                   {addedFeedback ? (
                     <span className="inline-flex items-center justify-center gap-2">
                       <Check size={15} strokeWidth={2.5} />
-                      Added
+                      {t("product.added")}
                     </span>
                   ) : isOutOfStock ? (
-                    "Sold out"
+                    t("product.soldOut")
                   ) : isAtCartLimit ? (
-                    "Maximum in bag"
+                    t("product.maxInBag")
                   ) : (
-                    "Add to bag"
+                    t("product.addToBag")
                   )}
                 </button>
                 <button
@@ -1067,23 +1063,23 @@ export default function ProductDetailPage() {
                   }`}
                   data-testid="buy-now-button"
                 >
-                  Buy now
+                  {t("product.buyNow")}
                 </button>
               </div>
 
-              <p className="text-center text-[11px] leading-relaxed tracking-[0.04em] text-black/32 lg:text-left">
-                Tax included · Complimentary shipping on orders over {formatPrice(150)}
+              <p className="text-center text-[11px] leading-relaxed tracking-[0.04em] text-black/32 lg:text-start">
+                {t("product.taxIncluded", { amount: formatPrice(150) })}
               </p>
 
-              {/* Description & Fabric & care — borderless, hairline dividers */}
+              {/* Description & Fabric & care */}
               <div className="border-t border-black/[0.08] pt-0" data-testid="product-accordions">
                 <button
                   type="button"
                   onClick={() => setDescriptionOpen((v) => !v)}
-                  className="flex w-full items-center border-b border-black/[0.07] py-2.5 text-left"
+                  className="flex w-full items-center border-b border-black/[0.07] py-2.5 text-start"
                 >
                   <span className="flex-1 font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-black/55">
-                    Description
+                    {t("product.description")}
                   </span>
                   <ChevronDown
                     size={15}
@@ -1096,17 +1092,17 @@ export default function ProductDetailPage() {
                 {descriptionOpen && (
                   <div className="border-b border-black/[0.07] py-3 font-sans text-[12px] leading-[1.65] text-black/48">
                     {descriptionText ||
-                      "Thoughtfully cut for everyday ease. Natural fibres and clean lines."}
+                      t("product.descriptionDefault")}
                   </div>
                 )}
 
                 <button
                   type="button"
                   onClick={() => setFabricCareOpen((v) => !v)}
-                  className="flex w-full items-center py-2.5 text-left"
+                  className="flex w-full items-center py-2.5 text-start"
                 >
                   <span className="flex-1 font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-black/55">
-                    Fabric &amp; care
+                    {t("product.fabricCare")}
                   </span>
                   <ChevronDown
                     size={15}
@@ -1122,14 +1118,8 @@ export default function ProductDetailPage() {
                       <p>{product.fabricCare.trim()}</p>
                     ) : (
                       <>
-                        <p>
-                          Fabrics are chosen for drape and longevity; exact composition is on the
-                          care label.
-                        </p>
-                        <p className="mt-2">
-                          Dry clean or gentle hand wash. Cool iron on the reverse. Store folded away
-                          from direct sunlight.
-                        </p>
+                        <p>{t("product.fabricCareDefault1")}</p>
+                        <p className="mt-2">{t("product.fabricCareDefault2")}</p>
                       </>
                     )}
                   </div>
@@ -1138,10 +1128,10 @@ export default function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={() => setSupportOpen((v) => !v)}
-                  className="flex w-full items-center border-t border-black/[0.07] py-2.5 text-left"
+                  className="flex w-full items-center border-t border-black/[0.07] py-2.5 text-start"
                 >
                   <span className="flex-1 font-sans text-[11px] font-medium text-black/55">
-                    24/7 Customer Support
+                    {t("product.customerSupport")}
                   </span>
                   <ChevronDown
                     size={15}
@@ -1153,16 +1143,16 @@ export default function ProductDetailPage() {
                 </button>
                 {supportOpen && (
                   <div className="border-b border-black/[0.07] py-3 font-sans text-[12px] leading-[1.65] text-black/48">
-                    <p>Expect a response within 8 working hours.</p>
+                    <p>{t("product.supportResponse")}</p>
                     <p className="mt-2">
-                      Reach out to us via email at{" "}
+                      {t("product.supportReachOut")}{" "}
                       <a
                         href={`mailto:${SUPPORT_EMAIL}`}
                         className="border-b border-black/20 font-medium text-black/60 transition-opacity hover:opacity-80"
                       >
                         {SUPPORT_EMAIL}
                       </a>{" "}
-                      or slide into our DMs on{" "}
+                      {t("product.supportOrDMs")}{" "}
                       <a
                         href="https://www.instagram.com/sami_boutique_baku/"
                         target="_blank"
@@ -1173,7 +1163,7 @@ export default function ProductDetailPage() {
                       </a>{" "}
                       (@sami_boutique_baku).
                     </p>
-                    <p className="mt-2">Your satisfaction is our commitment!</p>
+                    <p className="mt-2">{t("product.supportCommitment")}</p>
                   </div>
                 )}
               </div>
@@ -1186,7 +1176,7 @@ export default function ProductDetailPage() {
           <div className="relative z-0 mt-12 border-t border-[var(--color-line)] bg-[var(--color-cream)] pt-10">
             <div className="mx-auto max-w-3xl lg:max-w-4xl">
               <h2 className="font-serif text-lg font-light tracking-[0.02em] text-[var(--color-black)] sm:text-xl">
-                You may also like
+                {t("product.youMayAlsoLike")}
               </h2>
               <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
                 {relatedProducts.map((p) => {

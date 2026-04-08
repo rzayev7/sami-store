@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Mail, Lock, Eye, EyeOff, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function AuthModal() {
   const { authModalOpen, closeAuthModal, login, signup } = useAuth();
+  const { t } = useLanguage();
 
   const [mode, setMode] = useState("login");
   const [name, setName] = useState("");
@@ -56,11 +58,11 @@ export default function AuthModal() {
 
     if (mode === "signup") {
       if (password !== confirmPassword) {
-        setError("Passwords do not match");
+        setError(t("auth.passwordsMismatch"));
         return;
       }
       if (password.length < 6) {
-        setError("Password must be at least 6 characters");
+        setError(t("auth.passwordTooShort"));
         return;
       }
     }
@@ -78,7 +80,7 @@ export default function AuthModal() {
     } catch (err) {
       setError(
         err?.response?.data?.message ||
-          "Something went wrong. Please try again.",
+          t("auth.genericError"),
       );
     } finally {
       setIsLoading(false);
@@ -107,21 +109,21 @@ export default function AuthModal() {
         <div className="relative border-b border-[var(--color-line)] px-8 pb-6 pt-7">
           <button
             type="button"
-            aria-label="Close"
+            aria-label={t("common.close")}
             onClick={closeAuthModal}
-            className="absolute right-5 top-5 rounded-full p-1.5 text-black/40 transition-colors hover:bg-black/5 hover:text-black"
+            className="absolute end-5 top-5 rounded-full p-1.5 text-black/40 transition-colors hover:bg-black/5 hover:text-black"
           >
             <X size={16} strokeWidth={2} />
           </button>
 
           <div className="flex flex-col items-center text-center">
             <h2 className="text-[20px] font-semibold tracking-[0.18em] text-black">
-              WELCOME
+              {t("auth.welcome")}
             </h2>
             <p className="mt-1 text-[12px] text-black/55">
               {isLogin
-                ? "Sign in to your account"
-                : "Create an account to continue"}
+                ? t("auth.signInSubtitle")
+                : t("auth.signUpSubtitle")}
             </p>
           </div>
         </div>
@@ -135,14 +137,14 @@ export default function AuthModal() {
                   htmlFor="auth-name"
                   className="mb-1 block text-xs font-medium text-black/70"
                 >
-                  Full Name <span className="text-red-500">*</span>
+                  {t("auth.fullName")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="auth-name"
                   type="text"
                   required
                   autoComplete="name"
-                  placeholder="Your full name"
+                  placeholder={t("auth.fullNamePlaceholder")}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="sami-input"
@@ -156,14 +158,14 @@ export default function AuthModal() {
                 htmlFor="auth-email"
                 className="mb-1 block text-xs font-medium text-black/70"
               >
-                Email <span className="text-red-500">*</span>
+                {t("auth.email")} <span className="text-red-500">*</span>
               </label>
               <input
                 id="auth-email"
                 type="email"
                 required
                 autoComplete="email"
-                placeholder="you@example.com"
+                placeholder={t("auth.emailPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="sami-input"
@@ -176,7 +178,7 @@ export default function AuthModal() {
                 htmlFor="auth-password"
                 className="mb-1 block text-xs font-medium text-black/70"
               >
-                Password <span className="text-red-500">*</span>
+                {t("auth.password")} <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -184,16 +186,16 @@ export default function AuthModal() {
                   type={showPassword ? "text" : "password"}
                   required
                   autoComplete={isLogin ? "current-password" : "new-password"}
-                  placeholder={isLogin ? "Enter your password" : "Min. 6 characters"}
+                  placeholder={isLogin ? t("auth.passwordPlaceholderLogin") : t("auth.passwordPlaceholderSignup")}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="sami-input !pr-10"
+                  className="sami-input !pe-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-0.5 text-black/30 transition-colors hover:text-black/60"
+                  aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+                  className="absolute end-3 top-1/2 -translate-y-1/2 rounded p-0.5 text-black/30 transition-colors hover:text-black/60"
                 >
                   {showPassword ? (
                     <EyeOff size={16} strokeWidth={1.6} />
@@ -211,14 +213,14 @@ export default function AuthModal() {
                   htmlFor="auth-confirm"
                   className="mb-1 block text-xs font-medium text-black/70"
                 >
-                  Confirm Password <span className="text-red-500">*</span>
+                  {t("auth.confirmPassword")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="auth-confirm"
                   type={showPassword ? "text" : "password"}
                   required
                   autoComplete="new-password"
-                  placeholder="Repeat your password"
+                  placeholder={t("auth.confirmPasswordPlaceholder")}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="sami-input"
@@ -237,13 +239,13 @@ export default function AuthModal() {
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                 />
-                <span>Remember me</span>
+                <span>{t("auth.rememberMe")}</span>
               </label>
               <button
                 type="button"
                 className="text-[11px] font-medium text-black/70 underline underline-offset-2 hover:text-black"
               >
-                Forgot Password?
+                {t("auth.forgotPassword")}
               </button>
             </div>
           )}
@@ -261,14 +263,14 @@ export default function AuthModal() {
             disabled={isLoading}
             className="mt-6 flex w-full items-center justify-center rounded-full bg-black px-4 py-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isLoading ? "Processing..." : isLogin ? "Login" : "Sign Up"}
+            {isLoading ? t("common.processing") : isLogin ? t("auth.login") : t("auth.signUp")}
           </button>
 
           {/* Social login */}
           <div className="mt-6">
             <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.16em] text-black/35">
               <span className="h-px flex-1 bg-[var(--color-line)]" />
-              <span>Or login with</span>
+              <span>{t("auth.orLoginWith")}</span>
               <span className="h-px flex-1 bg-[var(--color-line)]" />
             </div>
             <div className="mt-4 flex items-center justify-center gap-4">
@@ -301,24 +303,24 @@ export default function AuthModal() {
           <p className="mt-6 text-center text-[11px] text-black/60">
             {isLogin ? (
               <>
-                Don&apos;t have an account?{" "}
+                {t("auth.noAccount")}{" "}
                 <button
                   type="button"
                   onClick={() => switchMode("signup")}
                   className="font-semibold text-black underline underline-offset-2"
                 >
-                  Sign Up
+                  {t("auth.signUp")}
                 </button>
               </>
             ) : (
               <>
-                Already have an account?{" "}
+                {t("auth.hasAccount")}{" "}
                 <button
                   type="button"
                   onClick={() => switchMode("login")}
                   className="font-semibold text-black underline underline-offset-2"
                 >
-                  Login
+                  {t("auth.login")}
                 </button>
               </>
             )}

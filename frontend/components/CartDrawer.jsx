@@ -1,24 +1,25 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import Link from "./LocaleLink";
 import { useEffect, useMemo, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { X, Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useCurrency } from "../context/CurrencyContext";
+import { useLanguage } from "../context/LanguageContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import { formatSizeLabel } from "../lib/sizeDisplay";
 
 const FREE_SHIPPING_THRESHOLD = 150;
 
-function QuantityStepper({ quantity, onDecrement, onIncrement }) {
+function QuantityStepper({ quantity, onDecrement, onIncrement, t }) {
   return (
     <div className="inline-flex items-center border border-[var(--color-line)] rounded-full">
       <button
         type="button"
         onClick={onDecrement}
-        aria-label="Decrease quantity"
+        aria-label={t("cart.decreaseQty")}
         className="flex h-7 w-7 items-center justify-center rounded-full text-black/50 transition-colors hover:bg-black/5 hover:text-black"
       >
         <Minus size={12} strokeWidth={2} />
@@ -29,7 +30,7 @@ function QuantityStepper({ quantity, onDecrement, onIncrement }) {
       <button
         type="button"
         onClick={onIncrement}
-        aria-label="Increase quantity"
+        aria-label={t("cart.increaseQty")}
         className="flex h-7 w-7 items-center justify-center rounded-full text-black/50 transition-colors hover:bg-black/5 hover:text-black"
       >
         <Plus size={12} strokeWidth={2} />
@@ -38,7 +39,7 @@ function QuantityStepper({ quantity, onDecrement, onIncrement }) {
   );
 }
 
-function CartItem({ item, onUpdateQuantity, onRemove, formatPrice }) {
+function CartItem({ item, onUpdateQuantity, onRemove, formatPrice, t }) {
   const lineTotal = Number(item.priceUSD || 0) * Number(item.quantity || 0);
   const rawImage = item.image || "https://placehold.co/300x400?text=Sami";
   const imageSrc = cloudinaryOptimizedUrl(rawImage, { preset: "cart" });
@@ -82,17 +83,17 @@ function CartItem({ item, onUpdateQuantity, onRemove, formatPrice }) {
           <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5">
             {item.size && (
               <p className="text-[11px] tracking-[0.04em] text-black/45">
-                Size: {formatSizeLabel(item.size)}
+                {t("cart.size")} {formatSizeLabel(item.size)}
               </p>
             )}
             {item.bundle && (
               <p className="text-[11px] tracking-[0.04em] text-black/45">
-                Type: {item.bundle}
+                {t("cart.type")} {item.bundle}
               </p>
             )}
             {item.color && (
               <p className="text-[11px] tracking-[0.04em] text-black/45">
-                Color: {item.color}
+                {t("cart.color")} {item.color}
               </p>
             )}
           </div>
@@ -101,6 +102,7 @@ function CartItem({ item, onUpdateQuantity, onRemove, formatPrice }) {
         <div className="mt-3 flex items-center justify-between">
           <QuantityStepper
             quantity={item.quantity}
+            t={t}
             onDecrement={() =>
               onUpdateQuantity(
                 item.productId,
@@ -120,7 +122,7 @@ function CartItem({ item, onUpdateQuantity, onRemove, formatPrice }) {
               )
             }
           />
-          <div className="text-right">
+          <div className="text-end">
             <p className="text-[13px] font-semibold tracking-[0.01em]">
               {formatPrice(lineTotal)}
             </p>
@@ -142,6 +144,7 @@ export default function CartDrawer() {
   const { cartItems, isCartOpen, closeCart, removeFromCart, updateQuantity } =
     useCart();
   const { formatPrice } = useCurrency();
+  const { t } = useLanguage();
   const drawerRef = useRef(null);
 
   const subtotal = useMemo(
@@ -205,9 +208,9 @@ export default function CartDrawer() {
         ref={drawerRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Shopping cart"
-        className={`fixed right-0 top-0 z-50 flex h-full w-full max-w-[420px] flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out ${
-          isCartOpen ? "translate-x-0" : "translate-x-full"
+        aria-label={t("cart.shoppingCart")}
+        className={`fixed top-0 z-50 flex h-full w-full max-w-[420px] flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out ltr:right-0 rtl:left-0 ${
+          isCartOpen ? "translate-x-0" : "ltr:translate-x-full rtl:-translate-x-full"
         }`}
       >
         {/* Header */}
@@ -215,8 +218,8 @@ export default function CartDrawer() {
           <div className="flex items-center gap-2.5">
             <ShoppingBag size={18} strokeWidth={1.6} className="text-black/70" />
             <h2 className="text-[13px] font-semibold uppercase tracking-[0.16em]">
-              Your Bag
-              <span className="ml-1.5 font-normal text-black/40">
+              {t("cart.yourBag")}
+              <span className="ms-1.5 font-normal text-black/40">
                 ({itemCount})
               </span>
             </h2>
@@ -224,7 +227,7 @@ export default function CartDrawer() {
           <button
             type="button"
             onClick={closeCart}
-            aria-label="Close cart"
+            aria-label={t("cart.closeCart")}
             className="rounded-full p-1.5 text-black/50 transition-colors hover:bg-black/5 hover:text-black"
           >
             <X size={18} strokeWidth={1.8} />
@@ -236,16 +239,10 @@ export default function CartDrawer() {
           <div className="border-b border-[var(--color-line)] px-6 py-3.5">
             <p className="text-center text-[11px] tracking-[0.03em] text-black/55">
               {amountToFreeShipping > 0 ? (
-                <>
-                  You&apos;re{" "}
-                  <span className="font-semibold text-black/80">
-                    {formatPrice(amountToFreeShipping)}
-                  </span>{" "}
-                  away from free shipping
-                </>
+                t("cart.awayFromFree", { amount: formatPrice(amountToFreeShipping) })
               ) : (
                 <span className="font-medium text-[var(--color-green)]">
-                  You&apos;ve unlocked free shipping!
+                  {t("cart.freeShippingUnlocked")}
                 </span>
               )}
             </p>
@@ -270,17 +267,17 @@ export default function CartDrawer() {
                 />
               </div>
               <p className="mt-5 text-[13px] font-medium tracking-[0.02em] text-black/70">
-                Your bag is empty
+                {t("cart.emptyTitle")}
               </p>
               <p className="mt-1.5 text-[12px] tracking-[0.02em] text-black/40">
-                Looks like you haven&apos;t added anything yet.
+                {t("cart.emptySubtitle")}
               </p>
               <Link
                 href="/products"
                 onClick={closeCart}
                 className="mt-7 inline-flex border-b border-black pb-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-black transition-colors hover:border-[var(--color-gold)] hover:text-[var(--color-gold)]"
               >
-                Continue Shopping
+                {t("common.continueShopping")}
               </Link>
             </div>
           ) : (
@@ -292,6 +289,7 @@ export default function CartDrawer() {
                   onUpdateQuantity={updateQuantity}
                   onRemove={removeFromCart}
                   formatPrice={formatPrice}
+                  t={t}
                 />
               ))}
             </div>
@@ -303,14 +301,14 @@ export default function CartDrawer() {
           <div className="border-t border-[var(--color-line)] bg-[var(--color-sand)]/30 px-6 py-5">
             <div className="flex items-center justify-between">
               <span className="text-[12px] uppercase tracking-[0.12em] text-black/50">
-                Subtotal
+                {t("common.subtotal")}
               </span>
               <span className="text-[15px] font-semibold tracking-[0.01em]">
                 {formatPrice(subtotal)}
               </span>
             </div>
             <p className="mt-1.5 text-[11px] tracking-[0.02em] text-black/35">
-              Shipping &amp; taxes calculated at checkout
+              {t("cart.shippingTaxNote")}
             </p>
 
             <Link
@@ -318,7 +316,7 @@ export default function CartDrawer() {
               onClick={closeCart}
               className="sami-btn-dark mt-4 flex w-full items-center justify-center gap-2 px-4 py-3.5 text-[12px] uppercase tracking-[0.16em]"
             >
-              Checkout
+              {t("cart.checkout")}
             </Link>
 
             <button
@@ -326,7 +324,7 @@ export default function CartDrawer() {
               onClick={closeCart}
               className="mt-2.5 w-full text-center text-[11px] tracking-[0.04em] text-black/40 transition-colors hover:text-black/70"
             >
-              or continue shopping
+              {t("cart.orContinue")}
             </button>
           </div>
         )}

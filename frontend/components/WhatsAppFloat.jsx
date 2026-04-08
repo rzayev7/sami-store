@@ -1,30 +1,29 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-
-const MSG = "Hi SAMÍ, I have a question about an order.";
-
-function waHref(digits) {
-  const enc = encodeURIComponent(MSG);
-  return `https://wa.me/${digits}?text=${enc}`;
-}
+import { useLanguage, stripLocale } from "../context/LanguageContext";
 
 export default function WhatsAppFloat() {
   const pathname = usePathname();
+  const { t } = useLanguage();
   const raw = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "";
   const digits = String(raw).replace(/\D/g, "");
+  const cleanPath = stripLocale(pathname);
 
-  if (pathname?.startsWith("/admin")) return null;
+  if (cleanPath?.startsWith("/admin")) return null;
   if (!digits) return null;
+
+  const msg = encodeURIComponent(t("whatsapp.prefilledMessage"));
+  const href = `https://wa.me/${digits}?text=${msg}`;
 
   return (
     <a
-      href={waHref(digits)}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="whatsapp-float-enter fixed bottom-5 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-lg shadow-black/15 md:hidden"
+      className="whatsapp-float-enter fixed bottom-5 end-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-lg shadow-black/15 md:hidden"
       style={{ backgroundColor: "#25D366" }}
-      aria-label="Chat on WhatsApp"
+      aria-label={t("whatsapp.ariaLabel")}
     >
       <svg
         width="28"

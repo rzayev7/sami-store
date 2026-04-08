@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "../../context/CartContext";
 import { useCurrency } from "../../context/CurrencyContext";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage, useLocalePath } from "../../context/LanguageContext";
 import api from "../../lib/api";
 import { getCustomerAuthHeaders } from "../../lib/customerAuth";
 import BankTransferDetails from "../../components/BankTransferDetails";
@@ -36,6 +37,8 @@ export default function CheckoutPage() {
   const { cartItems, clearCart } = useCart();
   const { formatPrice } = useCurrency();
   const { user: customerUser } = useAuth();
+  const { t } = useLanguage();
+  const localePath = useLocalePath();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [couponCode, setCouponCode] = useState("");
@@ -57,7 +60,7 @@ export default function CheckoutPage() {
   const handleApplyCoupon = async () => {
     const code = String(couponCode || "").trim().toUpperCase();
     if (!code) {
-      setCouponError("Enter a coupon code");
+      setCouponError(t("checkout.enterCoupon"));
       return;
     }
     setCouponError("");
@@ -68,11 +71,11 @@ export default function CheckoutPage() {
         setAppliedCoupon({ code: data.code, discountPercentage: data.discountPercentage });
       } else {
         setAppliedCoupon(null);
-        setCouponError(data.message || "Invalid coupon code");
+        setCouponError(data.message || t("checkout.invalidCoupon"));
       }
     } catch {
       setAppliedCoupon(null);
-      setCouponError("Could not validate coupon. Try again.");
+      setCouponError(t("checkout.couponValidationError"));
     } finally {
       setCouponLoading(false);
     }
@@ -80,7 +83,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (cartItems.length === 0 && !hasPlacedOrder) {
-      router.replace("/products");
+      router.replace(localePath("/products"));
     }
   }, [cartItems, router, hasPlacedOrder]);
 
@@ -138,14 +141,14 @@ export default function CheckoutPage() {
       setHasPlacedOrder(true);
       clearCart();
       router.replace(
-        `/payment/bank-transfer?orderId=${encodeURIComponent(String(orderId))}&email=${encodeURIComponent(
+        localePath(`/payment/bank-transfer?orderId=${encodeURIComponent(String(orderId))}&email=${encodeURIComponent(
           email
-        )}`
+        )}`)
       );
     } catch (error) {
       const message = error?.response?.data?.message
         ? error.response.data.message
-        : error?.message || "Could not place your order. Please try again.";
+        : error?.message || t("checkout.orderError");
       setErrorMessage(message);
     } finally {
       setIsPlacingOrder(false);
@@ -161,23 +164,23 @@ export default function CheckoutPage() {
       <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
         <form id="checkout-form" onSubmit={handleSubmit} className="space-y-7">
           <div>
-            <h1 className="text-2xl font-semibold tracking-[0.03em]">Checkout</h1>
+            <h1 className="text-2xl font-semibold tracking-[0.03em]">{t("checkout.title")}</h1>
             <p className="mt-1 text-sm text-[var(--color-muted)]">
-              Complete your details to place the order.
+              {t("checkout.subtitle")}
             </p>
           </div>
 
           {/* Contact — email only */}
           <fieldset className="space-y-3 rounded-xl border border-[var(--color-line)] bg-white p-5">
             <legend className="px-2 text-sm font-semibold uppercase tracking-[0.12em]">
-              Contact Information
+              {t("checkout.contactInfo")}
             </legend>
             <input
               name="email"
               type="email"
               required
               autoComplete="email"
-              placeholder="Email address *"
+              placeholder={t("checkout.emailPlaceholder")}
               className="sami-input"
             />
           </fieldset>
@@ -185,13 +188,13 @@ export default function CheckoutPage() {
           {/* Delivery */}
           <fieldset className="space-y-3 rounded-xl border border-[var(--color-line)] bg-white p-5">
             <legend className="px-2 text-sm font-semibold uppercase tracking-[0.12em]">
-              Shipping Address
+              {t("checkout.shippingAddress")}
             </legend>
 
             <div>
               <select name="country" required defaultValue="" autoComplete="country-name" className="sami-input">
                 <option value="" disabled>
-                  Country / Region *
+                  {t("checkout.countryPlaceholder")}
                 </option>
                 {COUNTRIES.map((c) => (
                   <option key={c} value={c}>
@@ -202,15 +205,15 @@ export default function CheckoutPage() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <input name="firstName" type="text" required autoComplete="given-name" placeholder="First name *" className="sami-input" />
-              <input name="lastName" type="text" required autoComplete="family-name" placeholder="Last name *" className="sami-input" />
+              <input name="firstName" type="text" required autoComplete="given-name" placeholder={t("checkout.firstNamePlaceholder")} className="sami-input" />
+              <input name="lastName" type="text" required autoComplete="family-name" placeholder={t("checkout.lastNamePlaceholder")} className="sami-input" />
             </div>
 
-            <input name="address" type="text" required autoComplete="street-address" placeholder="Address *" className="sami-input" />
+            <input name="address" type="text" required autoComplete="street-address" placeholder={t("checkout.addressPlaceholder")} className="sami-input" />
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <input name="city" type="text" required autoComplete="address-level2" placeholder="City *" className="sami-input" />
-              <input name="postalCode" type="text" autoComplete="postal-code" placeholder="Postal Code" className="sami-input" />
+              <input name="city" type="text" required autoComplete="address-level2" placeholder={t("checkout.cityPlaceholder")} className="sami-input" />
+              <input name="postalCode" type="text" autoComplete="postal-code" placeholder={t("checkout.postalCodePlaceholder")} className="sami-input" />
             </div>
 
             <input
@@ -219,47 +222,47 @@ export default function CheckoutPage() {
               required
               autoComplete="tel"
               aria-describedby="checkout-phone-hint"
-              placeholder="Phone / WhatsApp number *"
+              placeholder={t("checkout.phonePlaceholder")}
               className="sami-input"
             />
             <p id="checkout-phone-hint" className="text-xs text-[var(--color-muted)]">
-              We may contact you on WhatsApp regarding your order and delivery details.
+              {t("checkout.phoneHint")}
             </p>
           </fieldset>
 
           {/* Order notes */}
           <fieldset className="space-y-3 rounded-xl border border-[var(--color-line)] bg-white p-5">
             <legend className="px-2 text-sm font-semibold uppercase tracking-[0.12em]">
-              Order notes (optional)
+              {t("checkout.orderNotes")}
             </legend>
             <textarea
               name="orderNotes"
               rows={3}
               className="sami-input min-h-[80px] resize-y text-sm"
-              placeholder="Special requests, gift note, or delivery instructions"
+              placeholder={t("checkout.orderNotesPlaceholder")}
               maxLength={2000}
             />
           </fieldset>
 
           {/* Payment */}
           <fieldset className="space-y-3 rounded-xl border border-[var(--color-line)] bg-white p-5">
-            <legend className="px-2 text-sm font-semibold uppercase tracking-[0.12em]">Payment</legend>
+            <legend className="px-2 text-sm font-semibold uppercase tracking-[0.12em]">{t("checkout.payment")}</legend>
 
             <div className="rounded-lg border border-[var(--color-line)] bg-[var(--color-sand)]/40 px-3 py-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-sm font-medium">Credit / Debit Card</span>
+                <span className="text-sm font-medium">{t("checkout.creditCard")}</span>
                 <div className="flex items-center gap-2">
                   <VisaMark className="h-6 w-auto" />
                   <MastercardMark className="h-6 w-auto" />
                 </div>
               </div>
               <p className="mt-2 text-xs text-[var(--color-muted)]">
-                Online card payments are not available at this time. Please pay by bank transfer below.
+                {t("checkout.cardNotAvailable")}
               </p>
             </div>
 
             <div>
-              <p className="mb-2 text-sm font-medium">Bank transfer</p>
+              <p className="mb-2 text-sm font-medium">{t("checkout.bankTransfer")}</p>
               <BankTransferDetails />
             </div>
           </fieldset>
@@ -267,8 +270,10 @@ export default function CheckoutPage() {
 
         {/* Order Summary */}
         <aside className="h-fit rounded-2xl border border-[var(--color-line)] bg-white p-5 lg:sticky lg:top-24">
-          <h2 className="text-sm font-semibold uppercase tracking-[0.14em]">Order Summary</h2>
-          <p className="mt-1 text-xs text-[var(--color-muted)]">{cartItems.length} item{cartItems.length !== 1 ? "s" : ""}</p>
+          <h2 className="text-sm font-semibold uppercase tracking-[0.14em]">{t("checkout.orderSummary")}</h2>
+          <p className="mt-1 text-xs text-[var(--color-muted)]">
+            {cartItems.length} {cartItems.length !== 1 ? t("common.items") : t("common.item")}
+          </p>
           <div className="mt-4 space-y-3">
             {cartItems.map((item) => (
               <article
@@ -303,7 +308,7 @@ export default function CheckoutPage() {
                 type="text"
                 value={couponCode}
                 onChange={(e) => setCouponCode(e.target.value)}
-                placeholder="Discount code"
+                placeholder={t("checkout.discountCode")}
                 className="sami-input flex-1 text-sm"
                 disabled={!!appliedCoupon}
               />
@@ -313,34 +318,34 @@ export default function CheckoutPage() {
                 disabled={couponLoading || !!appliedCoupon}
                 className="sami-btn-dark shrink-0 px-3 py-2 text-sm"
               >
-                {couponLoading ? "..." : appliedCoupon ? "Applied" : "Apply"}
+                {couponLoading ? "..." : appliedCoupon ? t("checkout.applied") : t("checkout.apply")}
               </button>
             </div>
             {couponError && <p className="text-xs text-red-600">{couponError}</p>}
             {appliedCoupon && (
               <p className="text-xs text-green-600">
-                {appliedCoupon.code}: {appliedCoupon.discountPercentage}% off
+                {appliedCoupon.code}: {appliedCoupon.discountPercentage}% {t("checkout.off")}
               </p>
             )}
           </div>
 
           <div className="mt-5 space-y-2 border-t border-[var(--color-line)] pt-4 text-sm">
             <div className="flex items-center justify-between">
-              <span>Subtotal</span>
+              <span>{t("common.subtotal")}</span>
               <span>{formatPrice(subtotal)}</span>
             </div>
             {appliedCoupon && (
               <div className="flex items-center justify-between text-green-600">
-                <span>Discount ({appliedCoupon.code})</span>
+                <span>{t("checkout.discount")} ({appliedCoupon.code})</span>
                 <span>-{formatPrice(discountAmount)}</span>
               </div>
             )}
             <div className="flex items-center justify-between">
-              <span>Shipping</span>
-              <span>{shippingCost > 0 ? formatPrice(shippingCost) : "Calculated at delivery"}</span>
+              <span>{t("common.shipping")}</span>
+              <span>{shippingCost > 0 ? formatPrice(shippingCost) : t("checkout.calculatedAtDelivery")}</span>
             </div>
             <div className="flex items-center justify-between pt-1 text-base font-semibold">
-              <span>Total</span>
+              <span>{t("common.total")}</span>
               <span>{formatPrice(totalPrice)}</span>
             </div>
           </div>
@@ -351,7 +356,7 @@ export default function CheckoutPage() {
             disabled={isPlacingOrder}
             className="sami-btn-dark mt-5 w-full px-4 py-3.5 text-sm"
           >
-            {isPlacingOrder ? "Processing..." : "Place Order"}
+            {isPlacingOrder ? t("common.processing") : t("checkout.placeOrder")}
           </button>
 
           {errorMessage && (

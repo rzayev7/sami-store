@@ -1,17 +1,72 @@
 "use client";
 
-import Link from "next/link";
+import Link from "./LocaleLink";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { Menu, Search, User, ShoppingBag, X, Lock, Mail, Eye, EyeOff } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocalePath, stripLocale } from "../context/LanguageContext";
+import { Menu, Search, User, ShoppingBag, X, ChevronDown } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
+import { LANGUAGES } from "../i18n";
 import CurrencySelector from "./CurrencySelector";
 import api from "../lib/api";
+
+function LanguageSwitcher({ className = "" }) {
+  const { language, setLanguage } = useLanguage();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className={`relative ${className}`}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium tracking-[0.06em] text-[var(--color-muted)] transition-colors hover:text-[var(--color-black)]"
+      >
+        <span>{language.toUpperCase()}</span>
+        <ChevronDown size={12} strokeWidth={2} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="absolute end-0 top-full z-50 mt-1.5 min-w-[160px] overflow-y-auto rounded-lg border border-[var(--color-line)] bg-white py-1 shadow-lg">
+          {LANGUAGES.map((l) => (
+            <button
+              key={l.code}
+              type="button"
+              onClick={() => {
+                setLanguage(l.code);
+                setOpen(false);
+              }}
+              className={`flex w-full items-center gap-2.5 px-3 py-2 text-start text-[12px] transition-colors hover:bg-[var(--color-cream)]/60 ${
+                l.code === language
+                  ? "font-semibold text-[var(--color-black)]"
+                  : "text-[var(--color-muted)]"
+              }`}
+            >
+              <span className="w-6 text-[11px] font-semibold uppercase text-black/40">{l.code}</span>
+              <span className="flex-1">{l.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Navbar() {
   const { cartItems, openCart } = useCart();
   const { user: customerUser, openAuthModal } = useAuth();
+  const { t } = useLanguage();
+  const localePath = useLocalePath();
   const pathname = usePathname();
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -48,13 +103,12 @@ export default function Navbar() {
 
   const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
 
-  const isHome = pathname === "/";
-  const isTransparent = pathname === "/" && !isScrolled;
+  const cleanPath = stripLocale(pathname);
+  const isHome = cleanPath === "/";
+  const isTransparent = cleanPath === "/" && !isScrolled;
   const iconColor = isTransparent ? "text-white" : "text-[var(--color-black)]";
 
-  // Hide the public navbar entirely on admin routes; admin pages use their
-  // own layout and navigation.
-  if (pathname?.startsWith("/admin")) {
+  if (cleanPath?.startsWith("/admin")) {
     return null;
   }
 
@@ -71,7 +125,7 @@ export default function Navbar() {
           <div className="flex items-center justify-start">
             <button
               type="button"
-              aria-label="Open menu"
+              aria-label={t("nav.openMenu")}
               onClick={() => setIsSidebarOpen(true)}
               className={`rounded-full p-2 transition-opacity hover:opacity-60 ${iconColor}`}
             >
@@ -92,14 +146,17 @@ export default function Navbar() {
           </Link>
 
           <div className="flex items-center justify-end gap-1 sm:gap-2">
-            {/* Hide currency selector in the top bar on very small screens to prevent wrapping under the logo */}
+            <div className="hidden sm:block">
+              <LanguageSwitcher />
+            </div>
+
             <div className="hidden sm:block">
               <CurrencySelector />
             </div>
 
             <Link
               href="/products"
-              aria-label="Search products"
+              aria-label={t("nav.searchProducts")}
               className={`rounded-full p-2 transition-opacity hover:opacity-60 ${iconColor}`}
             >
               <Search size={21} strokeWidth={1.8} />
@@ -107,10 +164,10 @@ export default function Navbar() {
 
             <button
               type="button"
-              aria-label="Account"
+              aria-label={t("nav.account")}
               onClick={() => {
                 if (customerUser) {
-                  router.push("/account");
+                  router.push(localePath("/account"));
                 } else {
                   openAuthModal();
                 }
@@ -119,19 +176,19 @@ export default function Navbar() {
             >
               <User size={21} strokeWidth={1.8} />
               {customerUser && (
-                <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-[var(--color-green)]" />
+                <span className="absolute -end-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-[var(--color-green)]" />
               )}
             </button>
 
             <button
               type="button"
-              aria-label="Open cart"
+              aria-label={t("nav.openCart")}
               onClick={openCart}
               className={`relative rounded-full p-2 transition-opacity hover:opacity-60 ${iconColor}`}
             >
               <ShoppingBag size={21} strokeWidth={1.8} />
               {cartCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[var(--color-green)] px-1 text-[10px] font-bold leading-none text-white">
+                <span className="absolute -end-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[var(--color-green)] px-1 text-[10px] font-bold leading-none text-white">
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
               )}
@@ -151,8 +208,8 @@ export default function Navbar() {
 
       {/* Left sidebar drawer */}
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-full w-80 max-w-[85vw] flex-col bg-white text-[var(--color-black)] shadow-2xl transition-transform duration-300 ease-in-out ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed top-0 z-50 flex h-full w-80 max-w-[85vw] flex-col bg-white text-[var(--color-black)] shadow-2xl transition-transform duration-300 ease-in-out ltr:left-0 rtl:right-0 ${
+          isSidebarOpen ? "translate-x-0" : "ltr:-translate-x-full rtl:translate-x-full"
         }`}
       >
         <div className="border-b border-[var(--color-line)] px-6 py-4">
@@ -160,7 +217,7 @@ export default function Navbar() {
             <span className="sami-brand text-2xl leading-none">SAMÍ</span>
             <button
               type="button"
-              aria-label="Close menu"
+              aria-label={t("nav.closeMenu")}
               onClick={closeSidebar}
               className="rounded-full p-1.5 text-black/60 transition hover:bg-black/5 hover:text-black"
             >
@@ -168,13 +225,21 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* Mobile currency selector lives in the header area of the sidebar for quick access */}
           <div className="mt-4 flex items-center justify-between gap-3 sm:hidden">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/45">
-              Currency
+              {t("nav.currency")}
             </p>
             <div className="min-w-[130px]">
               <CurrencySelector />
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center justify-between gap-3 sm:hidden">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-black/45">
+              {t("nav.language")}
+            </p>
+            <div className="min-w-[130px]">
+              <LanguageSwitcher />
             </div>
           </div>
         </div>
@@ -182,7 +247,7 @@ export default function Navbar() {
         <nav className="flex-1 overflow-y-auto">
           <div className="px-6 pt-5 pb-3">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-black/40">
-              Shop
+              {t("nav.shop")}
             </p>
           </div>
           <div className="flex flex-col">
@@ -191,7 +256,7 @@ export default function Navbar() {
               onClick={closeSidebar}
               className="px-6 py-3.5 text-[14px] font-medium tracking-[0.02em] transition-colors hover:bg-[var(--color-cream)]"
             >
-              All Products
+              {t("nav.allProducts")}
             </Link>
           </div>
 
@@ -199,23 +264,23 @@ export default function Navbar() {
 
           <div className="px-6 pb-3">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-black/40">
-              Categories
+              {t("nav.categories")}
             </p>
           </div>
           <div className="flex flex-col">
             {[
-              { label: "Sets", slug: "Sets" },
-              { label: "Dresses", slug: "Dresses" },
-              { label: "Shirts & Blouses", slug: "Shirts & Blouses" },
-              { label: "Pants & Skirts", slug: "Pants & Skirts" },
-            ].map(({ label, slug }) => (
+              { key: "nav.sets", slug: "Sets" },
+              { key: "nav.dresses", slug: "Dresses" },
+              { key: "nav.shirtsBlouses", slug: "Shirts & Blouses" },
+              { key: "nav.pantsSkirts", slug: "Pants & Skirts" },
+            ].map(({ key, slug }) => (
               <Link
                 key={slug}
                 href={`/products?category=${encodeURIComponent(slug)}`}
                 onClick={closeSidebar}
                 className="px-6 py-3.5 text-[14px] tracking-[0.02em] text-black/80 transition-colors hover:bg-[var(--color-cream)] hover:text-black"
               >
-                {label}
+                {t(key)}
               </Link>
             ))}
           </div>
@@ -224,7 +289,7 @@ export default function Navbar() {
 
           <div className="px-6 pb-3">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-black/40">
-              Account
+              {t("nav.account")}
             </p>
           </div>
           <div className="flex flex-col">
@@ -235,21 +300,21 @@ export default function Navbar() {
                   onClick={closeSidebar}
                   className="px-6 py-3.5 text-[14px] font-medium tracking-[0.02em] transition-colors hover:bg-[var(--color-cream)]"
                 >
-                  My Account
+                  {t("nav.myAccount")}
                 </Link>
                 <Link
                   href="/account?tab=orders"
                   onClick={closeSidebar}
                   className="px-6 py-3.5 text-[14px] tracking-[0.02em] text-black/80 transition-colors hover:bg-[var(--color-cream)] hover:text-black"
                 >
-                  My Orders
+                  {t("nav.myOrders")}
                 </Link>
                 <Link
                   href="/account?tab=wishlist"
                   onClick={closeSidebar}
                   className="px-6 py-3.5 text-[14px] tracking-[0.02em] text-black/80 transition-colors hover:bg-[var(--color-cream)] hover:text-black"
                 >
-                  Wishlist
+                  {t("nav.wishlist")}
                 </Link>
               </>
             ) : (
@@ -259,9 +324,9 @@ export default function Navbar() {
                   closeSidebar();
                   openAuthModal();
                 }}
-                className="px-6 py-3.5 text-left text-[14px] font-medium tracking-[0.02em] transition-colors hover:bg-[var(--color-cream)]"
+                className="px-6 py-3.5 text-start text-[14px] font-medium tracking-[0.02em] transition-colors hover:bg-[var(--color-cream)]"
               >
-                Sign In / Create Account
+                {t("nav.signInCreate")}
               </button>
             )}
           </div>
@@ -270,7 +335,7 @@ export default function Navbar() {
 
           <div className="px-6 pb-3">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-black/40">
-              Help
+              {t("nav.help")}
             </p>
           </div>
           <div className="flex flex-col">
@@ -279,7 +344,7 @@ export default function Navbar() {
               onClick={closeSidebar}
               className="px-6 py-3.5 text-[14px] tracking-[0.02em] text-black/80 transition-colors hover:bg-[var(--color-cream)] hover:text-black"
             >
-              Track Order
+              {t("nav.trackOrder")}
             </Link>
           </div>
 
@@ -287,7 +352,7 @@ export default function Navbar() {
 
         <div className="border-t border-[var(--color-line)] px-6 py-5">
           <p className="text-[11px] uppercase tracking-[0.14em] text-black/40">
-            Worldwide Shipping
+            {t("nav.worldwideShipping")}
           </p>
         </div>
       </aside>

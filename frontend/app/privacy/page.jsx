@@ -1,173 +1,147 @@
-import Link from "next/link";
-import { SUPPORT_EMAIL } from "../../lib/sitePublic";
+"use client";
 
-export const metadata = {
-  title: "Privacy Policy | SAMÍ",
-  description: "How SAMÍ collects, uses, and protects your personal data.",
-};
+import Link from "../../components/LocaleLink";
+import { SUPPORT_EMAIL } from "../../lib/sitePublic";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function PrivacyPage() {
+  const { t } = useLanguage();
+
   return (
     <div className="mx-auto max-w-2xl pb-16 pt-4">
       <nav className="mb-8 text-[11px] font-medium uppercase tracking-[0.1em] text-black/40">
         <Link href="/" className="transition-colors hover:text-black/60">
-          Home
+          {t("common.home")}
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-black/55">Privacy Policy</span>
+        <span className="text-black/55">{t("privacy.title")}</span>
       </nav>
 
       <h1 className="font-serif text-3xl font-light tracking-[0.02em] text-[var(--color-black)] sm:text-4xl">
-        Privacy Policy
+        {t("privacy.title")}
       </h1>
 
       <p className="mt-8 text-[15px] leading-[1.85] text-black/70">
-        SAMÍ (&ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;) is
-        committed to protecting your personal information. This policy explains
-        what data we collect, how we use it, and your rights.
+        {t("privacy.intro")}
       </p>
 
       <section className="mt-10 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Information We Collect
+          {t("privacy.infoCollect")}
         </h2>
-        <ul className="list-disc space-y-1.5 pl-5 text-[15px] leading-[1.85] text-black/70">
+        <ul className="list-disc space-y-1.5 ps-5 text-[15px] leading-[1.85] text-black/70">
           <li>
-            <strong>Account information</strong> — name, email address, and
-            password when you create an account.
+            <strong>{t("privacy.accountInfo")}</strong> — {t("privacy.accountInfoDesc")}
           </li>
           <li>
-            <strong>Order information</strong> — shipping address, phone number,
-            and payment details when you place an order.
+            <strong>{t("privacy.orderInfo")}</strong> — {t("privacy.orderInfoDesc")}
           </li>
           <li>
-            <strong>Usage data</strong> — pages visited, browser type, and
-            device information collected automatically to improve our website.
+            <strong>{t("privacy.usageData")}</strong> — {t("privacy.usageDataDesc")}
           </li>
         </ul>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          How We Use Your Information
+          {t("privacy.howWeUse")}
         </h2>
-        <ul className="list-disc space-y-1.5 pl-5 text-[15px] leading-[1.85] text-black/70">
-          <li>To process and deliver your orders.</li>
-          <li>To communicate with you about your orders and account.</li>
-          <li>To improve our website and services.</li>
-          <li>To send order confirmations and shipping updates via email.</li>
+        <ul className="list-disc space-y-1.5 ps-5 text-[15px] leading-[1.85] text-black/70">
+          <li>{t("privacy.use1")}</li>
+          <li>{t("privacy.use2")}</li>
+          <li>{t("privacy.use3")}</li>
+          <li>{t("privacy.use4")}</li>
         </ul>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Data Sharing
+          {t("privacy.dataSharing")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          We do not sell your personal data. We share information only with
-          trusted service providers that help us operate (payment processors,
-          shipping carriers, email services), and only to the extent necessary
-          to fulfil your order.
+          {t("privacy.dataSharingBody")}
         </p>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Legal Basis for Processing
+          {t("privacy.legalBasis")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          We process your personal data on the following grounds:
+          {t("privacy.legalBasisIntro")}
         </p>
-        <ul className="list-disc space-y-1.5 pl-5 text-[15px] leading-[1.85] text-black/70">
+        <ul className="list-disc space-y-1.5 ps-5 text-[15px] leading-[1.85] text-black/70">
           <li>
-            <strong>Contract</strong> — to fulfil orders you place with us
-            (shipping address, payment details, etc.).
+            <strong>{t("privacy.contract")}</strong> — {t("privacy.contractDesc")}
           </li>
           <li>
-            <strong>Consent</strong> — when you create an account or contact us
-            voluntarily.
+            <strong>{t("privacy.consent")}</strong> — {t("privacy.consentDesc")}
           </li>
           <li>
-            <strong>Legitimate interest</strong> — to improve our website,
-            prevent fraud, and ensure security.
+            <strong>{t("privacy.legitimateInterest")}</strong> — {t("privacy.legitimateInterestDesc")}
           </li>
         </ul>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          You may withdraw your consent at any time by contacting us or deleting
-          your account. Withdrawal does not affect the lawfulness of processing
-          carried out before the withdrawal.
+          {t("privacy.withdrawConsent")}
         </p>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Cookies
+          {t("privacy.cookies")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          Our website uses cookies and similar technologies to keep you signed
-          in, remember your preferences (such as currency), and understand how
-          visitors use our site. These are essential for the website to function
-          correctly.
+          {t("privacy.cookiesBody1")}
         </p>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          We do not use third-party advertising or tracking cookies. You can
-          control or delete cookies through your browser settings at any time,
-          although doing so may affect your experience on our site.
+          {t("privacy.cookiesBody2")}
         </p>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Data Retention
+          {t("privacy.dataRetention")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          We retain your personal data only for as long as necessary to provide
-          our services and comply with legal obligations. Specifically:
+          {t("privacy.dataRetentionIntro")}
         </p>
-        <ul className="list-disc space-y-1.5 pl-5 text-[15px] leading-[1.85] text-black/70">
+        <ul className="list-disc space-y-1.5 ps-5 text-[15px] leading-[1.85] text-black/70">
           <li>
-            <strong>Account data</strong> — kept for as long as your account is
-            active. You may request deletion at any time.
+            <strong>{t("privacy.accountRetention")}</strong> — {t("privacy.accountRetentionDesc")}
           </li>
           <li>
-            <strong>Order records</strong> — retained for up to 5&nbsp;years to
-            comply with tax and accounting regulations.
+            <strong>{t("privacy.orderRetention")}</strong> — {t("privacy.orderRetentionDesc")}
           </li>
           <li>
-            <strong>Usage data</strong> — retained in anonymised or aggregated
-            form and periodically purged.
+            <strong>{t("privacy.usageRetention")}</strong> — {t("privacy.usageRetentionDesc")}
           </li>
         </ul>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Data Security
+          {t("privacy.dataSecurity")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          We use industry-standard measures to protect your data, including
-          encrypted connections (HTTPS), secure password storage, and restricted
-          access to personal information.
+          {t("privacy.dataSecurityBody")}
         </p>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Your Rights
+          {t("privacy.yourRights")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          You may request access to, correction of, or deletion of your personal
-          data at any time by contacting us. If you have an account, you can
-          update your information directly from your account page.
+          {t("privacy.yourRightsBody")}
         </p>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Contact
+          {t("privacy.contact")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          If you have any questions about this policy, please email us at{" "}
+          {t("privacy.contactBody")}{" "}
           <a
             href={`mailto:${SUPPORT_EMAIL}`}
             className="underline underline-offset-2 transition-opacity hover:opacity-70"

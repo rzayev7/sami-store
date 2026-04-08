@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import Link from "./LocaleLink";
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import {
   Search,
@@ -13,6 +13,7 @@ import {
 import api, { getApiBaseURL } from "../lib/api";
 import { useCart } from "../context/CartContext";
 import { useCurrency } from "../context/CurrencyContext";
+import { useLanguage } from "../context/LanguageContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import { formatSizeLabel, normalizeSizeForFilter } from "../lib/sizeDisplay";
 import PortraitCoverVideo from "./PortraitCoverVideo";
@@ -48,7 +49,7 @@ function FilterSection({ label, isOpen, onToggle, children }) {
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between text-left"
+        className="flex w-full items-center justify-between text-start"
       >
         <span className="text-[12px] font-medium uppercase tracking-[0.14em] text-black/70">
           {label}
@@ -76,6 +77,7 @@ function FilterSection({ label, isOpen, onToggle, children }) {
 function ProductCard({ product }) {
   const { addToCart } = useCart();
   const { formatPrice } = useCurrency();
+  const { t } = useLanguage();
   const videoRef = useRef(null);
   const hasVideo = Boolean(product.cardVideoUrl);
   const isOutOfStock = Number(product.stock || 0) <= 0;
@@ -155,8 +157,8 @@ function ProductCard({ product }) {
           )}
 
           {isOutOfStock && (
-            <span className="absolute left-3 top-3 rounded-full bg-black/70 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.1em] text-white backdrop-blur-sm">
-              Sold Out
+            <span className="absolute start-3 top-3 rounded-full bg-black/70 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.1em] text-white backdrop-blur-sm">
+              {t("product.soldOut")}
             </span>
           )}
 
@@ -171,7 +173,7 @@ function ProductCard({ product }) {
                 }}
                 className="rounded-full bg-white/95 px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-black shadow-lg backdrop-blur-sm transition-all hover:bg-black hover:text-white"
               >
-                Quick Add
+                {t("product.quickAdd")}
               </button>
             </div>
           )}
@@ -227,6 +229,7 @@ export default function ProductListing({
   initialSort = "featured",
   initialType = "",
 }) {
+  const { t } = useLanguage();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -322,73 +325,73 @@ export default function ProductListing({
     () => [
       {
         key: "price",
-        label: "Price",
+        label: t("products.filterPrice"),
         options: [
-          { value: "all", label: "All Prices" },
-          { value: "0-100", label: "Under $100" },
-          { value: "100-200", label: "$100 – $200" },
-          { value: "200-400", label: "$200 – $400" },
+          { value: "all", label: t("products.allPrices") },
+          { value: "0-100", label: t("products.under100") },
+          { value: "100-200", label: t("products.range100to200") },
+          { value: "200-400", label: t("products.range200to400") },
         ],
       },
       {
         key: "size",
-        label: "Size",
+        label: t("products.filterSize"),
         options: [
-          { value: "all", label: "All Sizes" },
+          { value: "all", label: t("products.allSizes") },
           ...allSizes.map((size) => ({ value: size, label: formatSizeLabel(size) })),
         ],
       },
       {
         key: "cut",
-        label: "Cut",
+        label: t("products.filterCut"),
         options: [
-          { value: "all", label: "All" },
-          { value: "straight", label: "Straight" },
-          { value: "flowy", label: "Flowy" },
-          { value: "tailored", label: "Tailored" },
+          { value: "all", label: t("products.all") },
+          { value: "straight", label: t("products.cutStraight") },
+          { value: "flowy", label: t("products.cutFlowy") },
+          { value: "tailored", label: t("products.cutTailored") },
         ],
       },
       {
         key: "fabric",
-        label: "Fabric",
+        label: t("products.filterFabric"),
         options: [
-          { value: "all", label: "All" },
-          { value: "satin", label: "Satin" },
-          { value: "linen", label: "Linen" },
-          { value: "chiffon", label: "Chiffon" },
-          { value: "cotton", label: "Cotton" },
+          { value: "all", label: t("products.all") },
+          { value: "satin", label: t("products.fabricSatin") },
+          { value: "linen", label: t("products.fabricLinen") },
+          { value: "chiffon", label: t("products.fabricChiffon") },
+          { value: "cotton", label: t("products.fabricCotton") },
         ],
       },
       {
         key: "piece",
-        label: "Piece",
+        label: t("products.filterPiece"),
         options: [
-          { value: "all", label: "All" },
-          { value: "1pc", label: "1 Piece" },
-          { value: "2pc", label: "2 Piece" },
-          { value: "3pc", label: "3 Piece" },
+          { value: "all", label: t("products.all") },
+          { value: "1pc", label: t("products.piece1") },
+          { value: "2pc", label: t("products.piece2") },
+          { value: "3pc", label: t("products.piece3") },
         ],
       },
       {
         key: "type",
-        label: "Type",
+        label: t("products.filterType"),
         options: [
-          { value: "all", label: "All" },
+          { value: "all", label: t("products.all") },
           ...allTypes.map((type) => ({ value: type, label: type })),
         ],
       },
       {
         key: "season",
-        label: "Season",
+        label: t("products.filterSeason"),
         options: [
-          { value: "all", label: "All" },
-          { value: "spring", label: "Spring" },
-          { value: "summer", label: "Summer" },
-          { value: "ramadan", label: "Ramadan" },
+          { value: "all", label: t("products.all") },
+          { value: "spring", label: t("products.seasonSpring") },
+          { value: "summer", label: t("products.seasonSummer") },
+          { value: "ramadan", label: t("products.seasonRamadan") },
         ],
       },
     ],
-    [allSizes, allTypes]
+    [allSizes, allTypes, t]
   );
 
   const updateFilter = useCallback((key, value) => {
@@ -507,7 +510,7 @@ export default function ProductListing({
             key={option.value}
             type="button"
             onClick={() => updateFilter(section.key, option.value)}
-            className={`flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors ${
+            className={`flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-start text-[13px] transition-colors ${
               isActive
                 ? "bg-[var(--color-sand)]/50 font-medium text-black"
                 : "text-black/50 hover:bg-[var(--color-sand)]/30 hover:text-black/70"
@@ -570,7 +573,7 @@ export default function ProductListing({
             className="inline-flex items-center gap-2 rounded-full border border-[var(--color-line)] bg-white px-4 py-2 text-[11px] font-medium uppercase tracking-[0.12em] text-black/60 shadow-sm transition-colors hover:border-black/30 hover:text-black lg:hidden"
           >
             <SlidersHorizontal size={13} strokeWidth={2} />
-            Filters
+            {t("products.filters")}
             {activeFilterCount > 0 && (
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-green)] text-[9px] font-bold text-white">
                 {activeFilterCount}
@@ -580,25 +583,25 @@ export default function ProductListing({
 
           <p className="text-[12px] tracking-[0.04em] text-black/40">
             {filteredProducts.length}{" "}
-            {filteredProducts.length === 1 ? "product" : "products"}
+            {filteredProducts.length === 1 ? t("products.product") : t("products.productPlural")}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="text-[11px] uppercase tracking-[0.1em] text-black/35">
-            Sort
+            {t("products.sort")}
           </span>
           <select
             value={sortBy}
             onChange={(event) => setSortBy(event.target.value)}
             className="rounded-full border border-[var(--color-line)] bg-white px-3 py-1.5 text-[12px] tracking-[0.02em] text-black/70 outline-none transition-colors focus:border-[var(--color-gold)]"
           >
-            <option value="featured">Featured</option>
-            <option value="newest">Newest</option>
-            <option value="price-low">Price: Low → High</option>
-            <option value="price-high">Price: High → Low</option>
-            <option value="name-asc">Name: A → Z</option>
-            <option value="name-desc">Name: Z → A</option>
+            <option value="featured">{t("products.sortFeatured")}</option>
+            <option value="newest">{t("products.sortNewest")}</option>
+            <option value="price-low">{t("products.sortPriceLow")}</option>
+            <option value="price-high">{t("products.sortPriceHigh")}</option>
+            <option value="name-asc">{t("products.sortNameAsc")}</option>
+            <option value="name-desc">{t("products.sortNameDesc")}</option>
           </select>
         </div>
       </div>
@@ -623,7 +626,7 @@ export default function ProductListing({
             onClick={clearAllFilters}
             className="text-[11px] tracking-[0.04em] text-black/40 underline underline-offset-2 transition-colors hover:text-black/70"
           >
-            Clear all
+            {t("products.clearAll")}
           </button>
         </div>
       )}
@@ -635,7 +638,7 @@ export default function ProductListing({
           <div className="sticky top-28">
             <div className="mb-1 flex items-center justify-between">
               <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/50">
-                Filters
+                {t("products.filters")}
               </h3>
               {activeFilterCount > 0 && (
                 <button
@@ -643,7 +646,7 @@ export default function ProductListing({
                   onClick={clearAllFilters}
                   className="text-[11px] tracking-[0.04em] text-[var(--color-gold)] transition-colors hover:text-[var(--color-gold-soft)]"
                 >
-                  Reset
+                  {t("products.reset")}
                 </button>
               )}
             </div>
@@ -669,10 +672,10 @@ export default function ProductListing({
                 />
               </div>
               <p className="mt-4 text-[14px] font-medium text-black/60">
-                No products found
+                {t("products.noProducts")}
               </p>
               <p className="mt-1 text-[12px] text-black/35">
-                Try adjusting your filters.
+                {t("products.adjustFilters")}
               </p>
               {activeFilterCount > 0 && (
                 <button
@@ -680,7 +683,7 @@ export default function ProductListing({
                   onClick={clearAllFilters}
                   className="mt-5 rounded-full border border-[var(--color-line)] px-5 py-2 text-[11px] font-medium uppercase tracking-[0.12em] text-black/60 transition-colors hover:border-black/40 hover:text-black"
                 >
-                  Clear Filters
+                  {t("products.clearFilters")}
                 </button>
               )}
             </div>
@@ -706,8 +709,8 @@ export default function ProductListing({
       />
 
       <aside
-        className={`fixed right-0 top-0 z-50 flex h-full w-full max-w-[360px] flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
-          isMobileFiltersOpen ? "translate-x-0" : "translate-x-full"
+        className={`fixed top-0 z-50 flex h-full w-full max-w-[360px] flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ltr:right-0 rtl:left-0 ${
+          isMobileFiltersOpen ? "translate-x-0" : "ltr:translate-x-full rtl:-translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between border-b border-[var(--color-line)] px-6 py-5">
@@ -718,9 +721,9 @@ export default function ProductListing({
               className="text-black/50"
             />
             <h3 className="text-[13px] font-semibold uppercase tracking-[0.14em]">
-              Filters
+              {t("products.filters")}
               {activeFilterCount > 0 && (
-                <span className="ml-1.5 font-normal text-black/40">
+                <span className="ms-1.5 font-normal text-black/40">
                   ({activeFilterCount})
                 </span>
               )}
@@ -729,7 +732,7 @@ export default function ProductListing({
           <button
             type="button"
             onClick={() => setIsMobileFiltersOpen(false)}
-            aria-label="Close filters"
+            aria-label={t("common.close")}
             className="rounded-full p-1.5 text-black/50 transition-colors hover:bg-black/5 hover:text-black"
           >
             <X size={18} strokeWidth={1.8} />
@@ -746,7 +749,7 @@ export default function ProductListing({
                 onClick={clearAllFilters}
                 className="flex-1 rounded-full border border-[var(--color-line)] py-3 text-[11px] font-medium uppercase tracking-[0.12em] text-black/60 transition-colors hover:border-black/30"
               >
-                Reset
+                {t("products.reset")}
               </button>
             )}
             <button
@@ -754,7 +757,7 @@ export default function ProductListing({
               onClick={() => setIsMobileFiltersOpen(false)}
               className="sami-btn-dark flex-1 rounded-full py-3 text-[11px] tracking-[0.12em]"
             >
-              Show {filteredProducts.length} Results
+              {t("products.showResults", { count: filteredProducts.length })}
             </button>
           </div>
         </div>

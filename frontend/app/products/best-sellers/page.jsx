@@ -2,8 +2,10 @@
 
 import { useCallback } from "react";
 import ProductListing from "../../../components/ProductListing";
+import { useLanguage } from "../../../context/LanguageContext";
 
 export default function BestSellersPage() {
+  const { t } = useLanguage();
   const filterBestSellers = useCallback(
     (product) => product.isBestSeller === true,
     []
@@ -11,9 +13,9 @@ export default function BestSellersPage() {
 
   return (
     <ProductListing
-      accentLabel="Most Loved"
-      title="Best Sellers"
-      subtitle="Our most popular pieces — chosen again and again by women around the world."
+      accentLabel={t("products.mostLovedEyebrow")}
+      title={t("products.bestSellersTitle")}
+      subtitle={t("products.bestSellersDesc")}
       productFilter={filterBestSellers}
     />
   );

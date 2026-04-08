@@ -1,3 +1,6 @@
+"use client";
+
+import { useLanguage } from "../context/LanguageContext";
 import { SUPPORT_EMAIL } from "../lib/sitePublic";
 
 const IBAN = "AZ28AIIB38817944006860051100";
@@ -11,20 +14,22 @@ const ACCOUNT_NAME = "Samira Rzayeva";
  * @param {boolean} [props.showAfterPayment]
  */
 export default function BankTransferDetails({ className = "", showAfterPayment = true }) {
+  const { t } = useLanguage();
+
   return (
     <div className={className}>
       <div className="rounded-lg border border-[var(--color-line)] bg-[var(--color-sand)]/50 p-4 text-sm">
-        <p className="mb-3 font-semibold text-black/90">Bank transfer</p>
+        <p className="mb-3 font-semibold text-black/90">{t("bankTransfer.bankTransfer")}</p>
         <div className="space-y-2 text-black/85">
           <p>
-            <span className="text-black/55">IBAN:</span>{" "}
+            <span className="text-black/55">{t("bankTransfer.iban")}</span>{" "}
             <span className="break-all font-mono text-sm font-medium">{IBAN}</span>
           </p>
           <p>
-            <span className="text-black/55">Name:</span> {ACCOUNT_NAME}
+            <span className="text-black/55">{t("bankTransfer.name")}</span> {ACCOUNT_NAME}
           </p>
           <p>
-            <span className="text-black/55">SWIFT:</span>{" "}
+            <span className="text-black/55">{t("bankTransfer.swift")}</span>{" "}
             <span className="font-mono text-sm font-medium tracking-wide">{SWIFT}</span>
           </p>
         </div>
@@ -32,8 +37,8 @@ export default function BankTransferDetails({ className = "", showAfterPayment =
 
       {showAfterPayment && (
         <div className="mt-4 rounded-lg border border-[var(--color-line)] bg-white p-4 text-sm">
-          <p className="mb-2 font-semibold text-black/90">After payment</p>
-          <p className="text-black/80">Send your receipt via WhatsApp or email:</p>
+          <p className="mb-2 font-semibold text-black/90">{t("bankTransfer.afterPayment")}</p>
+          <p className="text-black/80">{t("bankTransfer.sendReceipt")}</p>
           <p className="mt-2 text-black/85">
             <a
               href="https://wa.me/994554737996"

@@ -1,44 +1,46 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import Link from "./LocaleLink";
 import { useEffect, useState } from "react";
-
-const slides = [
-  {
-    id: "premium",
-    image: "/hero5.png",
-    alt: "Premium fashion campaign in refined neutral tones",
-    objectPosition: "50% 5%",
-    label: "NEW",
-    title: "Modern Elegance",
-    description: "Now available online.",
-    premium: true,
-  },
-  {
-    id: "campaign",
-    image: "/hero1.png",
-    alt: "Sami luxury studio campaign portrait",
-    objectPosition: "72% 30%",
-    label: "CAMPAIGN EDIT",
-    title: "The Collection",
-    description: "Designed to move with you.",
-    premium: false,
-  },
-  {
-    id: "evening",
-    image: "/hero6.png",
-    alt: "Sami dramatic fashion lighting campaign",
-    objectPosition: "50% 8%",
-    label: "EVENING LINE",
-    title: "Confidence",
-    description: "Elevated pieces for every moment.",
-    premium: false,
-  },
-];
+import { useLanguage } from "../context/LanguageContext";
 
 export default function HeroSection() {
+  const { t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
+
+  const slides = [
+    {
+      id: "premium",
+      image: "/hero5.png",
+      alt: "Premium fashion campaign in refined neutral tones",
+      objectPosition: "50% 5%",
+      label: t("home.new"),
+      title: t("home.modernElegance"),
+      description: t("home.nowAvailable"),
+      premium: true,
+    },
+    {
+      id: "campaign",
+      image: "/hero1.png",
+      alt: "Sami luxury studio campaign portrait",
+      objectPosition: "72% 30%",
+      label: t("home.campaignEdit"),
+      title: t("home.theCollection"),
+      description: t("home.designedToMove"),
+      premium: false,
+    },
+    {
+      id: "evening",
+      image: "/hero6.png",
+      alt: "Sami dramatic fashion lighting campaign",
+      objectPosition: "50% 8%",
+      label: t("home.eveningLine"),
+      title: t("home.confidence"),
+      description: t("home.elevatedPieces"),
+      premium: false,
+    },
+  ];
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -51,7 +53,7 @@ export default function HeroSection() {
   const slide = slides[activeIndex];
 
   return (
-    <section className="relative left-1/2 right-1/2 -mt-6 h-screen w-screen max-w-none -translate-x-1/2 overflow-hidden sm:-mt-8">
+    <section className="full-bleed -mt-6 h-screen max-w-none overflow-hidden sm:-mt-8">
       {slides.map((s, index) => (
         <div
           key={s.id}
@@ -117,7 +119,7 @@ export default function HeroSection() {
             href="/products"
             className="mt-11 inline-flex min-h-[48px] items-center justify-center border border-white/25 bg-white px-10 py-3.5 text-[10px] font-semibold uppercase tracking-[0.26em] text-[var(--color-black)] shadow-[0_8px_32px_rgba(0,0,0,0.2)] backdrop-blur-md transition-all duration-500 hover:border-white/40 hover:bg-white hover:shadow-[0_12px_40px_rgba(0,0,0,0.25)]"
           >
-            Shop Collection
+            {t("common.shopCollection")}
           </Link>
         </div>
       </div>

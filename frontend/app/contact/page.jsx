@@ -1,35 +1,33 @@
-import Link from "next/link";
-import { SUPPORT_EMAIL } from "../../lib/sitePublic";
+"use client";
 
-export const metadata = {
-  title: "Contact | SAMÍ",
-  description: "Get in touch with the SAMÍ team.",
-};
+import Link from "../../components/LocaleLink";
+import { SUPPORT_EMAIL } from "../../lib/sitePublic";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function ContactPage() {
+  const { t } = useLanguage();
+
   return (
     <div className="mx-auto max-w-2xl pb-16 pt-4">
       <nav className="mb-8 text-[11px] font-medium uppercase tracking-[0.1em] text-black/40">
         <Link href="/" className="transition-colors hover:text-black/60">
-          Home
+          {t("common.home")}
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-black/55">Contact</span>
+        <span className="text-black/55">{t("contact.title")}</span>
       </nav>
 
       <h1 className="font-serif text-3xl font-light tracking-[0.02em] text-[var(--color-black)] sm:text-4xl">
-        Contact Us
+        {t("contact.title")}
       </h1>
 
       <p className="mt-8 text-[15px] leading-[1.85] text-black/70">
-        We would love to hear from you. Whether you have a question about an
-        order, need help with sizing, or just want to say hello — our team is
-        here to help.
+        {t("contact.intro")}
       </p>
 
       <section className="mt-10 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Email
+          {t("contact.emailSection")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
           <a
@@ -40,17 +38,16 @@ export default function ContactPage() {
           </a>
         </p>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          We aim to respond within one business day.
+          {t("contact.responseTime")}
         </p>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          WhatsApp
+          {t("contact.whatsapp")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          You can also reach us on WhatsApp for quick questions about orders or
-          products.
+          {t("contact.whatsappBody")}
         </p>
         <p className="text-[15px] leading-[1.85] text-black/70">
           <a
@@ -66,10 +63,10 @@ export default function ContactPage() {
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Social Media
+          {t("contact.socialMedia")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          Follow us on{" "}
+          {t("contact.followUs")}{" "}
           <a
             href="https://www.instagram.com/sami_boutique_baku/"
             target="_blank"
@@ -78,18 +75,16 @@ export default function ContactPage() {
           >
             Instagram
           </a>{" "}
-          for new arrivals, styling inspiration, and updates.
+          {t("contact.instagramSuffix")}
         </p>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Business Inquiries
+          {t("contact.businessInquiries")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          For wholesale, press, or collaboration requests, please email us with
-          the subject line &ldquo;Business Inquiry&rdquo; and we will get back
-          to you.
+          {t("contact.businessBody")}
         </p>
       </section>
     </div>

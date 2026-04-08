@@ -33,7 +33,7 @@ export default function CurrencySelector() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-1.5 max-h-[min(70vh,22rem)] min-w-[200px] overflow-y-auto rounded-lg border border-[var(--color-line)] bg-white py-1 shadow-lg">
+        <div className="absolute end-0 top-full z-50 mt-1.5 max-h-[min(70vh,22rem)] min-w-[200px] overflow-y-auto rounded-lg border border-[var(--color-line)] bg-white py-1 shadow-lg">
           {CURRENCIES.map((c) => (
             <button
               key={c.code}
@@ -42,7 +42,7 @@ export default function CurrencySelector() {
                 setCurrency(c.code);
                 setOpen(false);
               }}
-              className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-[12px] transition-colors hover:bg-[var(--color-cream)]/60 ${
+              className={`flex w-full items-center gap-2.5 px-3 py-2 text-start text-[12px] transition-colors hover:bg-[var(--color-cream)]/60 ${
                 c.code === currency
                   ? "font-semibold text-[var(--color-black)]"
                   : "text-[var(--color-muted)]"

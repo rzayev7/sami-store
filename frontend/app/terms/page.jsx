@@ -1,145 +1,125 @@
-import Link from "next/link";
-import { SUPPORT_EMAIL } from "../../lib/sitePublic";
+"use client";
 
-export const metadata = {
-  title: "Terms & Conditions | SAMÍ",
-  description: "Terms and conditions for using the SAMÍ online store.",
-};
+import Link from "../../components/LocaleLink";
+import { SUPPORT_EMAIL } from "../../lib/sitePublic";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function TermsPage() {
+  const { t } = useLanguage();
+
   return (
     <div className="mx-auto max-w-2xl pb-16 pt-4">
       <nav className="mb-8 text-[11px] font-medium uppercase tracking-[0.1em] text-black/40">
         <Link href="/" className="transition-colors hover:text-black/60">
-          Home
+          {t("common.home")}
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-black/55">Terms &amp; Conditions</span>
+        <span className="text-black/55">{t("terms.title")}</span>
       </nav>
 
       <h1 className="font-serif text-3xl font-light tracking-[0.02em] text-[var(--color-black)] sm:text-4xl">
-        Terms &amp; Conditions
+        {t("terms.title")}
       </h1>
 
       <p className="mt-8 text-[15px] leading-[1.85] text-black/70">
-        By placing an order on the SAMÍ website you agree to the following
-        terms. Please read them carefully before purchasing.
+        {t("terms.intro")}
       </p>
 
       <section className="mt-10 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Orders &amp; Pricing
+          {t("terms.ordersPricing")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          All prices are displayed in the selected currency and are subject to
-          change without notice. We reserve the right to cancel orders due to
-          pricing errors, stock issues, or suspected fraud. You will be notified
-          if your order is affected.
+          {t("terms.ordersPricingBody")}
         </p>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          An order is not considered accepted until it has been confirmed by us.
-          We reserve the right to refuse or cancel any order at our discretion.
+          {t("terms.orderAcceptance")}
         </p>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Payment
+          {t("terms.payment")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          We accept bank transfers and, where available, card payments through
-          our payment provider. Orders will only be processed and shipped after
-          full payment has been successfully received and confirmed.
+          {t("terms.paymentBody")}
         </p>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Sales &amp; Returns
+          {t("terms.salesReturns")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          All sales are final. We do not currently offer standard returns or
-          exchanges. If you receive a damaged, defective, or incorrect item,
-          please refer to our{" "}
+          {t("terms.salesReturnsBody")}{" "}
           <Link
             href="/returns"
             className="underline underline-offset-2 transition-opacity hover:opacity-70"
           >
-            Returns Policy
+            {t("terms.salesReturnsLink")}
           </Link>{" "}
-          for details on how to contact us.
+          {t("terms.salesReturnsEnd")}
         </p>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Shipping
+          {t("terms.shippingSection")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          Delivery times are estimates and may vary depending on your location
-          and customs processing. SAMÍ is not responsible for delays caused by
-          third-party carriers or customs authorities. For full details, see
-          our{" "}
+          {t("terms.shippingBody")}{" "}
           <Link
             href="/shipping"
             className="underline underline-offset-2 transition-opacity hover:opacity-70"
           >
-            Shipping
+            {t("terms.shippingLink")}
           </Link>{" "}
-          page.
+          {t("terms.shippingEnd")}
         </p>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Accuracy of Information
+          {t("terms.accuracy")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          You are responsible for providing accurate and complete information
-          when placing an order. We are not responsible for issues arising from
-          incorrect details provided by the customer.
+          {t("terms.accuracyBody")}
         </p>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Intellectual Property
+          {t("terms.ip")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          All content on this website — including images, text, logos, and
-          designs — is the property of SAMÍ and may not be reproduced without
-          written permission.
+          {t("terms.ipBody")}
         </p>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Limitation of Liability
+          {t("terms.liability")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          SAMÍ is not liable for any indirect, incidental, or consequential
-          damages arising from the use of our website or products, to the
-          fullest extent permitted by applicable law.
+          {t("terms.liabilityBody")}
         </p>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Changes to These Terms
+          {t("terms.changes")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          We may update these terms at any time. Changes take effect
-          immediately upon publication on this page. Continued use of the
-          website constitutes acceptance of the updated terms.
+          {t("terms.changesBody")}
         </p>
       </section>
 
       <section className="mt-12 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">
-          Contact
+          {t("terms.contact")}
         </h2>
         <p className="text-[15px] leading-[1.85] text-black/70">
-          Questions about these terms? Email us at{" "}
+          {t("terms.contactBody")}{" "}
           <a
             href={`mailto:${SUPPORT_EMAIL}`}
             className="underline underline-offset-2 transition-opacity hover:opacity-70"

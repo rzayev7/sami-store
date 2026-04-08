@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState } from "react";
 import { X } from "lucide-react";
+import { useLanguage } from "../context/LanguageContext";
 
 const ROWS = [
   { size: "XS", bust: 82, waist: 62, hip: 88 },
@@ -14,6 +15,7 @@ const ROWS = [
 export default function SizeGuide({ className = "" }) {
   const [open, setOpen] = useState(false);
   const titleId = useId();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!open) return;
@@ -31,7 +33,7 @@ export default function SizeGuide({ className = "" }) {
         onClick={() => setOpen(true)}
         className={`text-[11px] font-normal tracking-[0.12em] text-black/45 underline-offset-4 transition-colors hover:text-black/65 hover:underline ${className}`}
       >
-        Size chart
+        {t("product.sizeChart")}
       </button>
 
       {open && (
@@ -44,35 +46,35 @@ export default function SizeGuide({ className = "" }) {
           <button
             type="button"
             className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
-            aria-label="Close size guide"
+            aria-label={t("common.close")}
             onClick={() => setOpen(false)}
           />
           <div className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-2xl border border-[var(--color-line)] bg-[var(--color-cream)] shadow-2xl sm:max-h-[85vh] sm:rounded-2xl">
             <div className="flex items-center justify-between border-b border-[var(--color-line)] px-5 py-4">
               <h2 id={titleId} className="font-serif text-lg font-light tracking-[0.02em] text-[var(--color-black)]">
-                Size Guide
+                {t("product.sizeGuide")}
               </h2>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 className="rounded-full p-2 text-black/50 transition-colors hover:bg-black/5 hover:text-black"
-                aria-label="Close"
+                aria-label={t("common.close")}
               >
                 <X size={20} strokeWidth={1.8} />
               </button>
             </div>
             <div className="overflow-auto px-5 py-4">
               <p className="text-[12px] leading-relaxed text-black/55">
-                Body measurements in centimetres. For between sizes, size up for a relaxed fit.
+                {t("product.sizeGuideBody")}
               </p>
               <div className="mt-4 overflow-x-auto rounded-lg border border-[var(--color-line)] bg-white">
-                <table className="w-full min-w-[320px] text-left text-[12px]">
+                <table className="w-full min-w-[320px] text-start text-[12px]">
                   <thead>
                     <tr className="border-b border-[var(--color-line)] bg-[var(--color-sand)]/40 text-[10px] font-semibold uppercase tracking-[0.12em] text-black/55">
-                      <th className="px-3 py-2.5">Size</th>
-                      <th className="px-3 py-2.5">Bust (cm)</th>
-                      <th className="px-3 py-2.5">Waist (cm)</th>
-                      <th className="px-3 py-2.5">Hip (cm)</th>
+                      <th className="px-3 py-2.5">{t("product.thSize")}</th>
+                      <th className="px-3 py-2.5">{t("product.thBust")}</th>
+                      <th className="px-3 py-2.5">{t("product.thWaist")}</th>
+                      <th className="px-3 py-2.5">{t("product.thHip")}</th>
                     </tr>
                   </thead>
                   <tbody>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Error({
   error,
@@ -9,6 +10,8 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { t } = useLanguage();
+
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -38,12 +41,11 @@ export default function Error({
       </div>
 
       <p className="mt-5 text-[15px] font-medium tracking-[0.02em] text-[var(--color-black)]">
-        Something went wrong
+        {t("common.somethingWentWrong")}
       </p>
 
       <p className="mt-3 max-w-sm text-[13px] leading-relaxed text-[var(--color-muted)]">
-        An unexpected error occurred. Please try again, or return to the
-        homepage if the problem persists.
+        {t("common.errorOccurred")}
       </p>
 
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -51,13 +53,13 @@ export default function Error({
           onClick={reset}
           className="sami-btn-dark rounded-sm px-7 py-3 text-[11px] tracking-[0.14em]"
         >
-          Try Again
+          {t("common.tryAgain")}
         </button>
         <a
           href="/"
           className="sami-btn-light rounded-sm px-7 py-3 text-[11px] tracking-[0.14em]"
         >
-          Back to Home
+          {t("common.backToHome")}
         </a>
       </div>
     </div>

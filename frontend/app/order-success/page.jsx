@@ -1,16 +1,18 @@
 "use client";
 
-import Link from "next/link";
+import Link from "../../components/LocaleLink";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import api from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { getCustomerAuthHeaders } from "../../lib/customerAuth";
 import { formatSizeLabel } from "../../lib/sizeDisplay";
 
 function OrderSuccessInner() {
   const searchParams = useSearchParams();
   const { user: customerUser } = useAuth();
+  const { t } = useLanguage();
   const orderIdFromQuery = searchParams.get("orderId") || "";
   const emailFromQuery = searchParams.get("email") || "";
 
@@ -41,7 +43,7 @@ function OrderSuccessInner() {
         }
       } catch {
         if (!cancelled) {
-          setError("We could not load your order details, but your order has been placed.");
+          setError(t("orderSuccess.loadError"));
         }
       } finally {
         if (!cancelled) {
@@ -99,26 +101,25 @@ function OrderSuccessInner() {
             </div>
             <div>
               <h1 className="text-[20px] font-semibold tracking-[0.03em] sm:text-[22px]">
-                Thank you for your order, {customerName}!
+                {t("orderSuccess.thankYou", { name: customerName })}
               </h1>
               <p className="mt-2 text-[13px] leading-relaxed text-[var(--color-muted)]">
-                Your order has been placed successfully. We’re preparing your items and will send a
-                shipping update as soon as your package is on its way.
+                {t("orderSuccess.body")}
               </p>
             </div>
           </div>
 
           {shortOrderId && (
-            <div className="mt-2 rounded-2xl border border-[var(--color-line)] bg-[var(--color-sand)]/60 px-4 py-3 text-right text-xs sm:mt-0 sm:min-w-[210px]">
+            <div className="mt-2 rounded-2xl border border-[var(--color-line)] bg-[var(--color-sand)]/60 px-4 py-3 text-end text-xs sm:mt-0 sm:min-w-[210px]">
               <p className="font-medium tracking-[0.14em] text-black/55">
-                ORDER NUMBER
+                {t("orderSuccess.orderNumber")}
               </p>
               <p className="mt-1 font-mono text-sm font-semibold">
                 #ORD-{shortOrderId}
               </p>
               {maskedEmail && (
                 <p className="mt-1 text-[11px] text-[var(--color-muted)]">
-                  Confirmation sent to <span className="font-medium text-black/75">{maskedEmail}</span>
+                  {t("orderSuccess.confirmationSent", { email: maskedEmail })}
                 </p>
               )}
             </div>
@@ -128,7 +129,7 @@ function OrderSuccessInner() {
         {/* Loading / error states */}
         {loading && (
           <p className="mt-8 text-center text-sm text-[var(--color-muted)]">
-            Loading your order details...
+            {t("orderSuccess.loadingDetails")}
           </p>
         )}
 
@@ -140,8 +141,7 @@ function OrderSuccessInner() {
 
         {!loading && !order && !error && (
           <p className="mt-8 text-center text-sm text-[var(--color-muted)]">
-            We couldn&apos;t load your order details, but your order has been placed successfully.
-            Please check your email for the confirmation.
+            {t("orderSuccess.loadErrorFallback")}
           </p>
         )}
 
@@ -151,7 +151,7 @@ function OrderSuccessInner() {
             {/* Items */}
             <div>
               <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-                Order summary
+                {t("orderSuccess.orderSummary")}
               </h2>
               <div className="mt-3 divide-y divide-[var(--color-line)] rounded-2xl border border-[var(--color-line)] bg-white/80">
                 {items.map((item) => (
@@ -176,7 +176,7 @@ function OrderSuccessInner() {
                         </p>
                       )}
                       <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-black/55">
-                        {formatSizeLabel(item.size) || "-"} / {item.color || "-"} · QTY{" "}
+                        {formatSizeLabel(item.size) || "-"} / {item.color || "-"} · {t("orderSuccess.qty")}{" "}
                         {Number(item.quantity || 0)}
                       </p>
                     </div>
@@ -198,19 +198,19 @@ function OrderSuccessInner() {
               {/* Totals */}
               <div className="rounded-2xl border border-[var(--color-line)] bg-[var(--color-sand)]/60 p-4 sm:p-5">
                 <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-                  Payment summary
+                  {t("orderSuccess.paymentSummary")}
                 </h2>
                 <div className="mt-3 space-y-2 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-black/65">Subtotal</span>
+                    <span className="text-black/65">{t("common.subtotal")}</span>
                     <span>₼{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-black/65">Shipping</span>
+                    <span className="text-black/65">{t("common.shipping")}</span>
                     <span>₼{shippingCost.toFixed(2)}</span>
                   </div>
                   <div className="mt-2 flex items-center justify-between border-t border-[var(--color-line)] pt-2 text-[15px] font-semibold">
-                    <span>Total paid</span>
+                    <span>{t("orderSuccess.totalPaid")}</span>
                     <span>₼{total.toFixed(2)}</span>
                   </div>
                 </div>
@@ -219,11 +219,11 @@ function OrderSuccessInner() {
               {/* Shipping address */}
               <div className="rounded-2xl border border-[var(--color-line)] bg-white/90 p-4 sm:p-5">
                 <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-                  Shipping address
+                  {t("orderSuccess.shippingAddress")}
                 </h2>
                 <div className="mt-3 text-sm text-black/80">
                   <p className="font-medium">
-                    {(order.customerInfo?.name || "").trim() || "Customer"}
+                    {(order.customerInfo?.name || "").trim() || t("orderSuccess.customer")}
                   </p>
                   <p className="mt-1">
                     {order.customerInfo?.address}
@@ -234,7 +234,7 @@ function OrderSuccessInner() {
                   <p className="mt-1">{order.customerInfo?.country}</p>
                   {order.customerInfo?.phone && (
                     <p className="mt-1 text-sm text-black/70">
-                      Phone: {order.customerInfo.phone}
+                      {t("common.phone")}: {order.customerInfo.phone}
                     </p>
                   )}
                 </div>
@@ -243,22 +243,18 @@ function OrderSuccessInner() {
               {/* What happens next */}
               <div className="rounded-2xl border border-dashed border-[var(--color-line)] bg-[var(--color-cream)]/60 p-4 sm:p-5">
                 <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-black/55">
-                  What happens next
+                  {t("orderSuccess.whatsNext")}
                 </h2>
                 <ul className="mt-3 space-y-1.5 text-[12px] leading-relaxed text-[var(--color-muted)]">
+                  <li>• {t("orderSuccess.nextStep1")}</li>
                   <li>
-                    • We’ll send you a <span className="font-medium">shipping email</span> with a
-                    tracking number once your order leaves our warehouse.
+                    • {t("orderSuccess.nextStep2")}{" "}
+                    <span className="font-medium">{t("orderSuccess.nextStep2MyOrders")}</span>{" "}
+                    {t("orderSuccess.nextStep2Or")}{" "}
+                    <span className="font-medium">{t("orderSuccess.nextStep2TrackOrder")}</span>{" "}
+                    {t("orderSuccess.nextStep2Page")}
                   </li>
-                  <li>
-                    • You can follow your order status at any time from{" "}
-                    <span className="font-medium">My Orders</span> or the{" "}
-                    <span className="font-medium">Track Order</span> page.
-                  </li>
-                  <li>
-                    • If you receive a damaged, defective, or incorrect item, please contact us
-                    within 48 hours of delivery and we will be happy to help.
-                  </li>
+                  <li>• {t("orderSuccess.nextStep3")}</li>
                 </ul>
               </div>
             </div>
@@ -271,13 +267,13 @@ function OrderSuccessInner() {
             href="/products"
             className="sami-btn-dark inline-flex items-center justify-center rounded-full px-7 py-3 text-xs font-semibold tracking-[0.16em] uppercase"
           >
-            Continue Shopping
+            {t("common.continueShopping")}
           </Link>
           <Link
             href="/account?tab=orders"
             className="sami-btn-light inline-flex items-center justify-center rounded-full px-7 py-3 text-xs font-semibold tracking-[0.16em] uppercase"
           >
-            View My Orders
+            {t("orderSuccess.viewMyOrders")}
           </Link>
         </div>
       </div>
@@ -285,25 +281,27 @@ function OrderSuccessInner() {
   );
 }
 
+function OrderSuccessFallback() {
+  return (
+    <section className="flex w-full items-center justify-center py-10 sm:py-14">
+      <div className="sami-section w-full max-w-2xl px-6 py-10 text-center sm:px-10 sm:py-12">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-black/60">
+          Thank you
+        </p>
+        <h1 className="mt-3 text-2xl font-semibold tracking-[0.03em] sm:text-3xl">
+          Your order has been placed successfully
+        </h1>
+        <p className="mt-4 text-sm leading-7 text-[var(--color-muted)]">
+          Loading your order details...
+        </p>
+      </div>
+    </section>
+  );
+}
+
 export default function OrderSuccessPage() {
   return (
-    <Suspense
-      fallback={
-        <section className="flex w-full items-center justify-center py-10 sm:py-14">
-          <div className="sami-section w-full max-w-2xl px-6 py-10 text-center sm:px-10 sm:py-12">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-black/60">
-              Thank you
-            </p>
-            <h1 className="mt-3 text-2xl font-semibold tracking-[0.03em] sm:text-3xl">
-              Your order has been placed successfully
-            </h1>
-            <p className="mt-4 text-sm leading-7 text-[var(--color-muted)]">
-              Loading your order details...
-            </p>
-          </div>
-        </section>
-      }
-    >
+    <Suspense fallback={<OrderSuccessFallback />}>
       <OrderSuccessInner />
     </Suspense>
   );

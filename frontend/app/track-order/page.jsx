@@ -2,42 +2,34 @@
 
 import { useState } from "react";
 import api from "../../lib/api";
-
-const statusLabel = (status) => {
-  const value = String(status || "").toLowerCase();
-  if (value === "pending") return "Order received";
-  if (value === "paid") return "Payment confirmed";
-  if (value === "shipped") return "Shipped";
-  if (value === "delivered") return "Delivered";
-  if (value === "cancelled") return "Cancelled";
-  return "In progress";
-};
-
-const statusHelper = (status) => {
-  const value = String(status || "").toLowerCase();
-  if (value === "pending") {
-    return "We have received your order and are preparing it.";
-  }
-  if (value === "paid") {
-    return "Your payment is confirmed. Your order will be shipped soon.";
-  }
-  if (value === "shipped") {
-    return "Your order has left our warehouse and is on its way.";
-  }
-  if (value === "delivered") {
-    return "Your order has been delivered.";
-  }
-  if (value === "cancelled") {
-    return "This order has been cancelled.";
-  }
-  return "Your order is being processed.";
-};
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function TrackOrderPage() {
+  const { t } = useLanguage();
   const [orderId, setOrderId] = useState("");
   const [order, setOrder] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const statusLabel = (status) => {
+    const value = String(status || "").toLowerCase();
+    if (value === "pending") return t("tracking.received");
+    if (value === "paid") return t("tracking.paid");
+    if (value === "shipped") return t("tracking.shipped");
+    if (value === "delivered") return t("tracking.delivered");
+    if (value === "cancelled") return t("tracking.cancelled");
+    return t("tracking.inProgress");
+  };
+
+  const statusHelper = (status) => {
+    const value = String(status || "").toLowerCase();
+    if (value === "pending") return t("tracking.receivedDesc");
+    if (value === "paid") return t("tracking.paidDesc");
+    if (value === "shipped") return t("tracking.shippedDesc");
+    if (value === "delivered") return t("tracking.deliveredDesc");
+    if (value === "cancelled") return t("tracking.cancelledDesc");
+    return t("tracking.inProgressDesc");
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -46,7 +38,7 @@ export default function TrackOrderPage() {
 
     const trimmedOrderId = orderId.trim();
     if (!trimmedOrderId) {
-      setErrorMessage("Please enter Order ID");
+      setErrorMessage(t("tracking.enterOrderId"));
       return;
     }
 
@@ -55,7 +47,7 @@ export default function TrackOrderPage() {
       const { data } = await api.get(`/api/orders/${trimmedOrderId}`);
       setOrder(data);
     } catch {
-      setErrorMessage("Order not found");
+      setErrorMessage(t("tracking.notFound"));
     } finally {
       setIsLoading(false);
     }
@@ -64,9 +56,9 @@ export default function TrackOrderPage() {
   return (
     <section className="py-6">
       <div className="sami-section mx-auto w-full max-w-2xl p-6 sm:p-8">
-        <h1 className="sami-title">Track Order</h1>
+        <h1 className="sami-title">{t("tracking.title")}</h1>
         <p className="mt-2 text-sm text-[var(--color-muted)]">
-          Enter your Order ID to view current delivery information.
+          {t("tracking.subtitle")}
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -75,7 +67,7 @@ export default function TrackOrderPage() {
               htmlFor="orderId"
               className="mb-1 block text-xs uppercase tracking-[0.14em] text-black/70"
             >
-              Order ID
+              {t("tracking.orderIdLabel")}
             </label>
             <input
               id="orderId"
@@ -92,7 +84,7 @@ export default function TrackOrderPage() {
             disabled={isLoading}
             className="sami-btn-dark w-full px-4 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
-            {isLoading ? "Checking..." : "Track Order"}
+            {isLoading ? t("tracking.checking") : t("tracking.trackOrder")}
           </button>
         </form>
 
@@ -102,7 +94,7 @@ export default function TrackOrderPage() {
           <div className="mt-6 space-y-3 rounded-lg border border-[var(--color-line)] bg-[var(--color-sand)] p-4 text-sm">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="font-medium">
-                Order{" "}
+                {t("tracking.order")}{" "}
                 <span className="font-mono text-xs text-black/70">
                   #{String(order._id || "").slice(-8).toUpperCase()}
                 </span>
@@ -118,15 +110,15 @@ export default function TrackOrderPage() {
 
             <div className="mt-2 space-y-1">
               <p>
-                <span className="font-medium">Tracking number:</span>{" "}
-                {order.trackingNumber || "Not assigned yet"}
+                <span className="font-medium">{t("tracking.trackingNumber")}</span>{" "}
+                {order.trackingNumber || t("tracking.notAssigned")}
               </p>
               <p>
-                <span className="font-medium">Customer country:</span>{" "}
+                <span className="font-medium">{t("tracking.customerCountry")}</span>{" "}
                 {order.customerInfo?.country || "-"}
               </p>
               <p>
-                <span className="font-medium">Order date:</span>{" "}
+                <span className="font-medium">{t("tracking.orderDate")}</span>{" "}
                 {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "-"}
               </p>
             </div>

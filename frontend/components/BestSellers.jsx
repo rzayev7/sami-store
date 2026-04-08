@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import Link from "./LocaleLink";
 import { useEffect, useRef, useState } from "react";
 import api from "../lib/api";
 import ProductCarousel from "./ProductCarousel";
 import { useCurrency } from "../context/CurrencyContext";
+import { useLanguage } from "../context/LanguageContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 
@@ -112,6 +113,7 @@ export default function BestSellers() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const { formatPrice } = useCurrency();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const fetchBestSellers = async () => {
@@ -135,10 +137,10 @@ export default function BestSellers() {
     <section className="py-20 sm:py-28">
       <div className="text-center">
         <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-[var(--color-gold)]">
-          Most Loved
+          {t("home.mostLoved")}
         </p>
         <h2 className="mt-3 font-serif text-3xl font-light tracking-[0.04em] text-[var(--color-black)] sm:text-4xl">
-          Best Sellers
+          {t("home.bestSellers")}
         </h2>
       </div>
 
@@ -170,7 +172,7 @@ export default function BestSellers() {
           href="/products/best-sellers"
           className="inline-flex border-b border-[var(--color-black)] pb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-[var(--color-black)] transition-all hover:border-[var(--color-gold)] hover:text-[var(--color-gold)]"
         >
-          View All Best Sellers
+          {t("home.viewAllBestSellers")}
         </Link>
       </div>
     </section>

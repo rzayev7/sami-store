@@ -1,16 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import Link from "./LocaleLink";
 import { useRef } from "react";
 import { useCart } from "../context/CartContext";
 import { useCurrency } from "../context/CurrencyContext";
+import { useLanguage } from "../context/LanguageContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();
   const { formatPrice } = useCurrency();
+  const { t } = useLanguage();
   const videoRef = useRef(null);
   const hasVideo = Boolean(product?.cardVideoUrl);
 
@@ -105,7 +107,7 @@ export default function ProductCard({ product }) {
           onClick={handleQuickAdd}
           className="mt-1 inline-flex border border-[#1e1b17] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1e1b17] transition hover:bg-[#1e1b17] hover:text-[#f2e7d1]"
         >
-          Quick Add
+          {t("product.quickAdd")}
         </button>
       </div>
     </article>

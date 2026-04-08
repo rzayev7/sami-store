@@ -28,6 +28,53 @@
   --color-line: var(--color-line);
   --font-sans: var(--font-inter);
   --font-brand: var(--font-brand);
+  --font-arabic: var(--font-arabic);
+}
+
+[dir="rtl"] body {
+  font-family: var(--font-arabic), var(--font-inter), sans-serif;
+}
+
+[dir="rtl"] .sami-brand {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+[dir="rtl"] .rtl\:flip {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .sidebar-slide {
+  left: 0;
+  right: auto;
+  transform: translateX(-100%);
+}
+[dir="rtl"] .sidebar-slide.open {
+  transform: translateX(0);
+}
+
+[dir="rtl"] .cart-slide {
+  right: auto;
+  left: 0;
+}
+
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+}
+
+[dir="rtl"] input[type="email"],
+[dir="rtl"] input[type="tel"],
+[dir="rtl"] input[type="url"] {
+  direction: ltr;
+  text-align: right;
+}
+
+.full-bleed {
+  width: 100vw;
+  position: relative;
+  margin-inline-start: calc(-50vw + 50%);
 }
 
 *,
@@ -158,7 +205,7 @@ select {
 .sami-nav-link::after {
   content: "";
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   bottom: -0.38rem;
   width: 100%;
   height: 1px;
@@ -171,6 +218,14 @@ select {
 .sami-nav-link:hover::after {
   transform: scaleX(1);
   transform-origin: left;
+}
+
+[dir="rtl"] .sami-nav-link::after {
+  transform-origin: left;
+}
+
+[dir="rtl"] .sami-nav-link:hover::after {
+  transform-origin: right;
 }
 
 .sami-nav-link:hover {
@@ -204,7 +259,7 @@ select {
   display: inline-flex;
   align-items: center;
   padding: 0.5rem 0;
-  margin-right: 3rem;
+  margin-inline-end: 3rem;
   color: var(--color-gold);
   font-size: 0.65rem;
   font-weight: 500;
@@ -214,7 +269,7 @@ select {
 
 .sami-marquee-item::after {
   content: "·";
-  margin-left: 3rem;
+  margin-inline-start: 3rem;
   color: var(--color-gold-soft);
 }
 
