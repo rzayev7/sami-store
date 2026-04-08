@@ -14,6 +14,8 @@ const app = express();
 
 const defaultOrigins = [
   "https://sami-store.vercel.app",
+  "https://wearsamiofficial.com",
+  "https://www.wearsamiofficial.com",
   "http://localhost:3000",
   "http://127.0.0.1:3000",
 ];
