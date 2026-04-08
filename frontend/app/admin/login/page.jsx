@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import api from "../../../lib/api";
 import { checkAdminAuth } from "../../../lib/adminAuth";
 import { t } from "../../../lib/admin-i18n";
 
-export default function AdminLoginPage() {
+function AdminLoginInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get("redirect");
@@ -41,6 +41,7 @@ export default function AdminLoginPage() {
       });
 
       localStorage.setItem("adminToken", data.token);
+      document.cookie = `admin_token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
       router.replace(redirect);
     } catch {
       setErrorMessage(t.invalidCredentials);
@@ -110,5 +111,13 @@ export default function AdminLoginPage() {
         </form>
       </div>
     </section>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <AdminLoginInner />
+    </Suspense>
   );
 }

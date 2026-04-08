@@ -98,4 +98,10 @@ const productSchema = new mongoose.Schema({
   },
 });
 
+productSchema.index({ category: 1 });
+productSchema.index({ featured: 1 });
+productSchema.index({ isBestSeller: 1 });
+productSchema.index({ isNewArrival: 1 });
+productSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.model("Product", productSchema);

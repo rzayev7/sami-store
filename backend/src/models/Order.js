@@ -126,4 +126,9 @@ const orderSchema = new mongoose.Schema({
   },
 });
 
+orderSchema.index({ customerId: 1 });
+orderSchema.index({ "customerInfo.email": 1 });
+orderSchema.index({ createdAt: -1 });
+orderSchema.index({ status: 1 });
+
 module.exports = mongoose.model("Order", orderSchema);

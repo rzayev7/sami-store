@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
+const Coupon = require("../models/Coupon");
 const { sendWhatsAppOrderNotification } = require("../services/whatsappService");
 const {
   sendOrderConfirmationEmail,
@@ -23,27 +24,106 @@ const extractCustomerId = (req) => {
 const createOrder = async (req, res, next) => {
   try {
     const customerId = extractCustomerId(req);
+    const rawItems = Array.isArray(req.body?.items) ? req.body.items : [];
+
+    if (rawItems.length === 0) {
+      return res.status(400).json({ message: "Cart is empty" });
+    }
+
+    // ── 1. Re-read prices from database (never trust the client) ──
+
+    const productIds = rawItems
+      .map((i) => i?.productId)
+      .filter(Boolean);
+    const products = await Product.find({ _id: { $in: productIds } });
+    const productMap = new Map(products.map((p) => [String(p._id), p]));
+
+    const verifiedItems = [];
+    for (const item of rawItems) {
+      const pid = String(item?.productId || "");
+      const product = productMap.get(pid);
+      if (!product) {
+        return res.status(400).json({ message: `Product ${pid} not found` });
+      }
+
+      const qty = Math.max(1, Math.trunc(Number(item?.quantity || 1)));
+
+      const hasDiscount =
+        product.discountPriceUSD != null &&
+        Number(product.discountPriceUSD) > 0 &&
+        Number(product.discountPriceUSD) < Number(product.priceUSD);
+      const serverPrice = hasDiscount
+        ? Number(product.discountPriceUSD)
+        : Number(product.priceUSD);
+
+      verifiedItems.push({
+        productId: pid,
+        code: product.code || "",
+        name: product.name,
+        priceUSD: serverPrice,
+        quantity: qty,
+        size: item?.size || "",
+        color: item?.color || "",
+        image: item?.image || product.images?.[0] || "",
+      });
+    }
+
+    // ── 2. Atomic stock check & decrement ──
+
+    const stockRollbacks = [];
+    for (const item of verifiedItems) {
+      const result = await Product.updateOne(
+        { _id: item.productId, stock: { $gte: item.quantity } },
+        { $inc: { stock: -item.quantity } },
+      );
+      if (result.matchedCount === 0) {
+        // Rollback stock for items already decremented in this request
+        for (const rb of stockRollbacks) {
+          await Product.updateOne(
+            { _id: rb.productId },
+            { $inc: { stock: rb.quantity } },
+          );
+        }
+        return res.status(400).json({
+          message: `"${item.name}" is out of stock or insufficient quantity available`,
+        });
+      }
+      stockRollbacks.push({ productId: item.productId, quantity: item.quantity });
+    }
+
+    // ── 3. Re-validate coupon & compute total server-side ──
+
+    const subtotal = verifiedItems.reduce(
+      (sum, i) => sum + i.priceUSD * i.quantity,
+      0,
+    );
+
+    let discountAmount = 0;
+    let couponCode = null;
+    if (req.body?.couponCode) {
+      const code = String(req.body.couponCode).trim().toUpperCase();
+      const coupon = await Coupon.findOne({ code, isActive: true });
+      if (coupon && new Date(coupon.expiresAt) >= new Date()) {
+        discountAmount = (subtotal * coupon.discountPercentage) / 100;
+        couponCode = coupon.code;
+      }
+    }
+
+    const shippingCost = Number(req.body?.shippingCost || 0);
+    const serverTotal =
+      Math.round((subtotal - discountAmount + shippingCost) * 100) / 100;
+
+    // ── 4. Build & persist order ──
 
     const payload = {
       ...(customerId && { customerId }),
       customerInfo: req.body?.customerInfo || {},
-      items: Array.isArray(req.body?.items)
-        ? req.body.items.map((item) => ({
-            productId: item?.productId ? String(item.productId) : "",
-            code: item?.code || "",
-            name: item?.name || "",
-            priceUSD: Number(item?.priceUSD || 0),
-            quantity: Number(item?.quantity || 0),
-            size: item?.size || "",
-            color: item?.color || "",
-            image: item?.image || "",
-          }))
-        : [],
-      totalPriceUSD: Number(req.body?.totalPriceUSD || 0),
-      shippingCost: Number(req.body?.shippingCost || 0),
-      paymentStatus: String(req.body?.paymentStatus || "pending").toLowerCase(),
+      items: verifiedItems,
+      totalPriceUSD: serverTotal,
+      shippingCost,
+      paymentStatus: "pending",
       paymentMethod: String(req.body?.paymentMethod || "").toLowerCase(),
-      ...(req.body?.couponCode && { couponCode: String(req.body.couponCode).trim() }),
+      ...(couponCode && { couponCode }),
       ...(req.body?.orderNotes != null &&
         String(req.body.orderNotes).trim() && {
           orderNotes: String(req.body.orderNotes).trim(),
@@ -58,7 +138,6 @@ const createOrder = async (req, res, next) => {
       console.warn("WhatsApp order notification was not sent:", whatsappResult.reason);
     }
 
-    // Fire-and-forget style order confirmation email; do not block the response.
     try {
       const emailResult = await sendOrderConfirmationEmail(order);
       if (!emailResult.sent) {
@@ -224,32 +303,8 @@ const updateOrder = async (req, res, next) => {
       return res.status(400).json({ message: "No fields to update" });
     }
 
-    if (paymentJustConfirmed && Array.isArray(existingOrder.items)) {
-      for (const item of existingOrder.items) {
-        const productId = item?.productId;
-        const quantity = Number(item?.quantity || 0);
-
-        if (!productId || quantity <= 0) continue;
-
-        try {
-          const result = await Product.updateOne(
-            { _id: productId, stock: { $gte: quantity } },
-            { $inc: { stock: -quantity } }
-          );
-
-          if (result.matchedCount === 0) {
-            console.warn(
-              `Skipping stock decrement for product ${productId}: insufficient stock or product not found`
-            );
-          }
-        } catch (err) {
-          console.warn(
-            `Failed to decrement stock for product ${productId} on payment confirmation:`,
-            err?.message || err
-          );
-        }
-      }
-    }
+    // Stock is already decremented atomically at order creation time.
+    // No second decrement here — prevents double-counting.
 
     const order = await existingOrder.save();
 

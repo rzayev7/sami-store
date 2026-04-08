@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const rateLimit = require("express-rate-limit");
+const mongoSanitize = require("express-mongo-sanitize");
 
 const connectDB = require("./src/config/db");
 const { errorHandler } = require("./src/middleware/errorMiddleware");
@@ -48,6 +50,28 @@ app.use(
   })
 );
 app.use(express.json({ limit: "15mb" }));
+app.use(mongoSanitize());
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { message: "Too many attempts, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const orderLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { message: "Too many requests, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use("/api/admin/login", authLimiter);
+app.use("/api/customers/login", authLimiter);
+app.use("/api/customers/signup", authLimiter);
+app.use("/api/orders", orderLimiter);
 
 app.get("/", (req, res) => {
   res.send("Sami API is running");

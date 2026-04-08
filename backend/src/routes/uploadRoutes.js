@@ -1,9 +1,10 @@
 const express = require("express");
 const upload = require("../middleware/uploadMiddleware");
+const { protectAdmin } = require("../middleware/adminAuthMiddleware");
 
 const router = express.Router();
 
-router.post("/", upload.single("image"), (req, res) => {
+router.post("/", protectAdmin, upload.single("image"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "No image uploaded" });
   }

@@ -1,8 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
 import cloudinary from "../../../lib/cloudinary";
 
 export async function POST(request: NextRequest) {
   try {
+    const authHeader = request.headers.get("authorization") || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+
+    if (!token) {
+      return NextResponse.json(
+        { message: "Admin token required" },
+        { status: 401 },
+      );
+    }
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      return NextResponse.json(
+        { message: "JWT_SECRET is not configured on the server" },
+        { status: 500 },
+      );
+    }
+
+    try {
+      jwt.verify(token, secret);
+    } catch {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get("image") as File | null;
 

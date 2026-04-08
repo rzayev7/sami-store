@@ -217,6 +217,7 @@ function ProductCard({ product }) {
  * @param {function} [props.productFilter] - Optional predicate applied after
  *                                           fetching to narrow the product set
  * @param {string}   [props.initialSort]     - Default sort: featured | newest | price-low | ...
+ * @param {string}   [props.initialType]     - Pre-select a category/type filter on mount
  */
 export default function ProductListing({
   accentLabel = "Curated Selection",
@@ -224,6 +225,7 @@ export default function ProductListing({
   subtitle = "Timeless silhouettes crafted with intention. Find your next signature piece.",
   productFilter,
   initialSort = "featured",
+  initialType = "",
 }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -233,7 +235,7 @@ export default function ProductListing({
     cut: "all",
     fabric: "all",
     piece: "all",
-    type: "all",
+    type: initialType || "all",
     season: "all",
   });
   const [sortBy, setSortBy] = useState(initialSort);
@@ -244,7 +246,7 @@ export default function ProductListing({
     cut: false,
     fabric: false,
     piece: false,
-    type: false,
+    type: Boolean(initialType),
     season: false,
   });
 

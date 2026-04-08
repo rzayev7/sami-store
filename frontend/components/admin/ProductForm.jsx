@@ -25,13 +25,10 @@ import { normalizeVideoAdjustments } from "../../lib/videoAdjustments";
 
 const SIZE_SUGGESTIONS = ["XS", "S", "M", "L", "XL", "XXL", t.freeSize];
 const PRODUCT_CATEGORIES = [
-  "New In",
   "Sets",
   "Dresses",
-  "Tops",
-  "Bottoms",
-  "Blazers",
-  "Sale",
+  "Shirts & Blouses",
+  "Pants & Skirts",
 ];
 const ACCENT_GOLD = "#C8A96E";
 const MAX_IMAGE_LONG_EDGE = 1200;
@@ -838,7 +835,6 @@ export default function ProductForm({
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [fabricCare, setFabricCare] = useState("");
   const [price, setPrice] = useState("");
   const [discountPrice, setDiscountPrice] = useState("");
   const [allowSeparatePurchase, setAllowSeparatePurchase] = useState(false);
@@ -869,8 +865,6 @@ export default function ProductForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const [categories, setCategories] = useState([]);
-
   const isCreateMode = mode === "create";
 
   const [matchCandidates, setMatchCandidates] = useState([]);
@@ -881,25 +875,6 @@ export default function ProductForm({
   const submitLabel = mode === "edit" ? t.saveChanges : t.saveProduct;
 
   const hasHydrated = useRef(false);
-
-  useEffect(() => {
-    api
-      .get("/api/products")
-      .then(({ data }) => {
-        const cats = [
-          ...new Set(
-            [
-              ...PRODUCT_CATEGORIES,
-              ...(Array.isArray(data) ? data.map((p) => p?.category) : []),
-            ]
-              .map((value) => (typeof value === "string" ? value.trim() : ""))
-              .filter(Boolean)
-          ),
-        ];
-        setCategories(cats.sort());
-      })
-      .catch(() => {});
-  }, []);
 
   const selectedExisting = useMemo(() => {
     if (!selectedExistingId) return null;
@@ -1373,7 +1348,6 @@ export default function ProductForm({
         code: code.trim(),
         name: name.trim(),
         description: description.trim(),
-        fabricCare: fabricCare.trim() || "",
         priceUSD: priceNum,
         discountPriceUSD,
         allowSeparatePurchase,
@@ -1599,24 +1573,24 @@ export default function ProductForm({
                 <FieldLabel htmlFor="pf-category" required>
                   {t.category}
                 </FieldLabel>
-                <input
+                <select
                   id="pf-category"
-                  type="text"
                   required
-                  list="category-suggestions"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  placeholder={t.placeholderCategory}
-                  className="sami-input rounded-lg"
-                />
-                {categories.length > 0 && (
-                  <datalist id="category-suggestions">
-                    {categories.map((c) => (
-                      <option key={c} value={c} />
-                    ))}
-                  </datalist>
-                )}
+                  className={`sami-input rounded-lg ${!category ? "text-black/40" : ""}`}
+                >
+                  <option value="" disabled hidden>
+                    {t.placeholderCategory}
+                  </option>
+                  {PRODUCT_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
               </div>
+              
             </div>
 
             <div>
@@ -1634,17 +1608,6 @@ export default function ProductForm({
               />
             </div>
 
-            <div>
-              <FieldLabel htmlFor="pf-fabric-care">{t.fabricCare}</FieldLabel>
-              <textarea
-                id="pf-fabric-care"
-                rows={2}
-                value={fabricCare}
-                onChange={(e) => setFabricCare(e.target.value)}
-                placeholder={t.fabricCarePlaceholder}
-                className="sami-input resize-y rounded-lg"
-              />
-            </div>
           </div>
         </SectionCard>
 

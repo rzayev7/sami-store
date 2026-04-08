@@ -56,5 +56,6 @@ export function getAdminAuthHeaders() {
 export function clearAdminAuth() {
   if (typeof window !== "undefined") {
     localStorage.removeItem(ADMIN_TOKEN_KEY);
+    document.cookie = "admin_token=; path=/; max-age=0";
   }
 }

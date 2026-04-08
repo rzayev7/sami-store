@@ -203,55 +203,21 @@ export default function Navbar() {
             </p>
           </div>
           <div className="flex flex-col">
-            <Link
-              href="/products"
-              onClick={closeSidebar}
-              className="px-6 py-3.5 text-[14px] tracking-[0.02em] text-black/80 transition-colors hover:bg-[var(--color-cream)] hover:text-black"
-            >
-              New In
-            </Link>
-            <Link
-              href="/products"
-              onClick={closeSidebar}
-              className="px-6 py-3.5 text-[14px] tracking-[0.02em] text-black/80 transition-colors hover:bg-[var(--color-cream)] hover:text-black"
-            >
-              Dresses
-            </Link>
-            <Link
-              href="/products"
-              onClick={closeSidebar}
-              className="px-6 py-3.5 text-[14px] tracking-[0.02em] text-black/80 transition-colors hover:bg-[var(--color-cream)] hover:text-black"
-            >
-              Sets
-            </Link>
-            <Link
-              href="/products"
-              onClick={closeSidebar}
-              className="px-6 py-3.5 text-[14px] tracking-[0.02em] text-black/80 transition-colors hover:bg-[var(--color-cream)] hover:text-black"
-            >
-              Blazers
-            </Link>
-            <Link
-              href="/products"
-              onClick={closeSidebar}
-              className="px-6 py-3.5 text-[14px] tracking-[0.02em] text-black/80 transition-colors hover:bg-[var(--color-cream)] hover:text-black"
-            >
-              Tops
-            </Link>
-            <Link
-              href="/products"
-              onClick={closeSidebar}
-              className="px-6 py-3.5 text-[14px] tracking-[0.02em] text-black/80 transition-colors hover:bg-[var(--color-cream)] hover:text-black"
-            >
-              Bottoms
-            </Link>
-            <Link
-              href="/products"
-              onClick={closeSidebar}
-              className="px-6 py-3.5 text-[14px] tracking-[0.02em] text-black/80 transition-colors hover:bg-[var(--color-cream)] hover:text-black"
-            >
-              Sale
-            </Link>
+            {[
+              { label: "Sets", slug: "Sets" },
+              { label: "Dresses", slug: "Dresses" },
+              { label: "Shirts & Blouses", slug: "Shirts & Blouses" },
+              { label: "Pants & Skirts", slug: "Pants & Skirts" },
+            ].map(({ label, slug }) => (
+              <Link
+                key={slug}
+                href={`/products?category=${encodeURIComponent(slug)}`}
+                onClick={closeSidebar}
+                className="px-6 py-3.5 text-[14px] tracking-[0.02em] text-black/80 transition-colors hover:bg-[var(--color-cream)] hover:text-black"
+              >
+                {label}
+              </Link>
+            ))}
           </div>
 
           <div className="mx-6 my-3 border-t border-[var(--color-line)]" />

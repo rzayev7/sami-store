@@ -1,5 +1,7 @@
 const Product = require("../models/Product");
 
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 /** Cent rounding only — no FX; matches admin-entered values. */
 const roundPriceCents = (value) => {
   const x = Number(value);
@@ -60,7 +62,7 @@ const getProducts = async (req, res, next) => {
 
     const filter = {};
     if (search) {
-      filter.name = { $regex: search, $options: "i" };
+      filter.name = { $regex: escapeRegex(search), $options: "i" };
     }
 
     const totalProducts = await Product.countDocuments(filter);
