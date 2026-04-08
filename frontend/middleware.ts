@@ -11,8 +11,12 @@ function getLocaleFromPath(pathname: string): string | null {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // --- Admin auth (unchanged) ---
-  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
+  // --- Admin routes are intentionally NOT localized ---
+  if (pathname.startsWith("/admin")) {
+    if (pathname.startsWith("/admin/login")) {
+      return NextResponse.next();
+    }
+
     const token = request.cookies.get("admin_token")?.value;
     if (!token) {
       const loginUrl = new URL("/admin/login", request.url);
