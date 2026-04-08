@@ -32,7 +32,7 @@ const TABS = [
 export default function AccountPage() {
   const router = useRouter();
   const { user, loading: authLoading, logout, openAuthModal } = useAuth();
-  const { convertPrice, currency } = useCurrency();
+  const { formatPrice, currency } = useCurrency();
 
   const [activeTab, setActiveTab] = useState("orders");
   const [orders, setOrders] = useState([]);
@@ -291,7 +291,7 @@ export default function AccountPage() {
                         </div>
                         <div className="text-right">
                           <p className="text-[14px] font-medium">
-                            {convertPrice(order.totalPriceUSD)} {currency}
+                            {formatPrice(order.totalPriceUSD)} {currency}
                           </p>
                         </div>
                         <ChevronRight size={16} className="shrink-0 text-[var(--color-muted)]" />
@@ -546,7 +546,7 @@ export default function AccountPage() {
                               </p>
                             </Link>
                             <p className="mt-0.5 text-[13px] font-medium text-[var(--color-gold)]">
-                              {convertPrice(product.priceUSD)} {currency}
+                              {formatPrice(product.priceUSD)} {currency}
                             </p>
                           </div>
                           <button

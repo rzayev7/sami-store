@@ -109,7 +109,7 @@ const createOrder = async (req, res, next) => {
       }
     }
 
-    const shippingCost = Number(req.body?.shippingCost || 0);
+    const shippingCost = Math.max(0, Number(req.body?.shippingCost || 0));
     const serverTotal =
       Math.round((subtotal - discountAmount + shippingCost) * 100) / 100;
 

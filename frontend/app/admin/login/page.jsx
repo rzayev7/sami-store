@@ -41,7 +41,7 @@ function AdminLoginInner() {
       });
 
       localStorage.setItem("adminToken", data.token);
-      document.cookie = `admin_token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+      document.cookie = `admin_token=${data.token}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
       router.replace(redirect);
     } catch {
       setErrorMessage(t.invalidCredentials);

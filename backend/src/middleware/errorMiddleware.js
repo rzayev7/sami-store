@@ -9,14 +9,16 @@ const errorHandler = (err, req, res, next) => {
       ? fromErr
       : 500;
 
-  const message =
+  const rawMessage =
     (typeof err?.message === "string" && err.message) ||
     (err && String(err)) ||
     "Server error";
 
+  const isProduction = process.env.NODE_ENV === "production";
+
   res.status(statusCode).json({
-    message,
-    stack: process.env.NODE_ENV === "production" ? null : err.stack,
+    message: isProduction && statusCode === 500 ? "Internal server error" : rawMessage,
+    stack: isProduction ? null : err.stack,
   });
 };
 

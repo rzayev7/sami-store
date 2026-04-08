@@ -52,16 +52,19 @@ export default function Footer() {
           <ul className="mt-4 space-y-2 text-sm text-[#1a1a1a]/75">
             <li>
               <Link href="/shipping" className="transition-opacity hover:opacity-70">
-                Shipping &amp; Returns
+                Shipping
+              </Link>
+            </li>
+            <li>
+              <Link href="/returns" className="transition-opacity hover:opacity-70">
+                Returns Policy
               </Link>
             </li>
             <li>
               <Link href="/track-order" className="transition-opacity hover:opacity-70">Track Order</Link>
             </li>
             <li>
-              <a href={`mailto:${SUPPORT_EMAIL}`} className="transition-opacity hover:opacity-70">
-                Contact: {SUPPORT_EMAIL}
-              </a>
+              <Link href="/contact" className="transition-opacity hover:opacity-70">Contact</Link>
             </li>
           </ul>
         </div>
@@ -71,6 +74,12 @@ export default function Footer() {
           <ul className="mt-4 space-y-2 text-sm text-[#1a1a1a]/75">
             <li>
               <Link href="/about" className="transition-opacity hover:opacity-70">About</Link>
+            </li>
+            <li>
+              <Link href="/terms" className="transition-opacity hover:opacity-70">Terms &amp; Conditions</Link>
+            </li>
+            <li>
+              <Link href="/privacy" className="transition-opacity hover:opacity-70">Privacy Policy</Link>
             </li>
           </ul>
           <h4 className="mt-8 text-xs font-semibold uppercase tracking-[0.16em]">Social</h4>

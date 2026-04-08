@@ -256,8 +256,8 @@ function OrderSuccessInner() {
                     <span className="font-medium">Track Order</span> page.
                   </li>
                   <li>
-                    • If anything is not perfect when it arrives, our support team will be happy to
-                    help with returns or exchanges.
+                    • If you receive a damaged, defective, or incorrect item, please contact us
+                    within 48 hours of delivery and we will be happy to help.
                   </li>
                 </ul>
               </div>

@@ -51,6 +51,10 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
     const customer = await Customer.findOne({ email: email.toLowerCase() });
     const isMatch = customer ? await customer.matchPassword(password) : false;
 

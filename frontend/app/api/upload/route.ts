@@ -38,6 +38,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return NextResponse.json(
+        { message: "Only JPEG, PNG, and WebP images are allowed" },
+        { status: 400 },
+      );
+    }
+
+    const MAX_SIZE = 10 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json(
+        { message: "File must be under 10 MB" },
+        { status: 400 },
+      );
+    }
+
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 

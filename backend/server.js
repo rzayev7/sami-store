@@ -49,8 +49,12 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-app.use(express.json({ limit: "15mb" }));
-app.use(mongoSanitize());
+app.use(express.json({ limit: "2mb" }));
+
+app.use((req, res, next) => {
+  if (req.body) req.body = mongoSanitize.sanitize(req.body);
+  next();
+});
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -72,6 +76,15 @@ app.use("/api/admin/login", authLimiter);
 app.use("/api/customers/login", authLimiter);
 app.use("/api/customers/signup", authLimiter);
 app.use("/api/orders", orderLimiter);
+
+const couponLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: { message: "Too many coupon attempts, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use("/api/coupons/validate", couponLimiter);
 
 app.get("/", (req, res) => {
   res.send("Sami API is running");

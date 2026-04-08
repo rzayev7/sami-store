@@ -64,7 +64,6 @@ export default function ProductDetailPage() {
       const base = getApiBaseURL();
       try {
         const { data } = await api.get(`/api/products/${resolvedProductId}`);
-        console.log("[ProductDetail] product OK", { baseUrl: base, id: resolvedProductId });
         setProduct(data);
         setSelectedSize("");
         setSelectedTopSize("");

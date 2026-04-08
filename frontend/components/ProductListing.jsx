@@ -256,11 +256,6 @@ export default function ProductListing({
       try {
         const { data } = await api.get("/api/products");
         const list = Array.isArray(data) ? data : [];
-        console.log("[ProductListing] /api/products OK", {
-          baseUrl: base,
-          count: list.length,
-          sampleId: list[0]?._id,
-        });
         setProducts(list);
       } catch (err) {
         console.error("[ProductListing] /api/products failed", {
