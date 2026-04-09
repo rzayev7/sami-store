@@ -835,6 +835,7 @@ export default function ProductForm({
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [fabricCare, setFabricCare] = useState("");
   const [price, setPrice] = useState("");
   const [discountPrice, setDiscountPrice] = useState("");
   const [allowSeparatePurchase, setAllowSeparatePurchase] = useState(false);
@@ -1353,6 +1354,7 @@ export default function ProductForm({
         code: code.trim(),
         name: name.trim(),
         description: description.trim(),
+        fabricCare: fabricCare.trim(),
         priceUSD: priceNum,
         discountPriceUSD,
         allowSeparatePurchase,
@@ -1609,6 +1611,20 @@ export default function ProductForm({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={t.placeholderDescription}
+                className="sami-input resize-y rounded-lg"
+              />
+            </div>
+
+            <div>
+              <FieldLabel htmlFor="pf-fabric-care">
+                {t.fabricCare}
+              </FieldLabel>
+              <textarea
+                id="pf-fabric-care"
+                rows={3}
+                value={fabricCare}
+                onChange={(e) => setFabricCare(e.target.value)}
+                placeholder={t.fabricCarePlaceholder}
                 className="sami-input resize-y rounded-lg"
               />
             </div>
