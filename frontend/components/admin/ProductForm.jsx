@@ -1125,6 +1125,11 @@ export default function ProductForm({
       const xhr = new XMLHttpRequest();
       xhr.open("POST", "/api/upload");
 
+      const authHeaders = getAdminAuthHeaders();
+      if (authHeaders.Authorization) {
+        xhr.setRequestHeader("Authorization", authHeaders.Authorization);
+      }
+
       xhr.upload.addEventListener("progress", (e) => {
         if (e.lengthComputable) {
           const pct = Math.round((e.loaded / e.total) * 100);
