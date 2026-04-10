@@ -5,7 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { useCurrency } from "../context/CurrencyContext";
 import { CURRENCIES, getCurrencyInfo } from "../lib/currency";
 
-export default function CurrencySelector() {
+export default function CurrencySelector({ inverted = false, className = "" }) {
   const { currency, setCurrency } = useCurrency();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -19,15 +19,20 @@ export default function CurrencySelector() {
   }, []);
 
   const current = getCurrencyInfo(currency);
+  const showSymbol = !!current?.symbol && current.symbol !== current.code;
+
+  const buttonClassName = inverted
+    ? "flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium tracking-[0.06em] text-white/90 transition-colors hover:text-white [&_.currencySymbol]:text-white/75"
+    : "flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium tracking-[0.06em] text-black/70 transition-colors hover:text-[var(--color-black)] [&_.currencySymbol]:text-black/50";
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className={`relative ${className}`}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium tracking-[0.06em] text-[var(--color-muted)] transition-colors hover:text-[var(--color-black)]"
+        className={buttonClassName}
       >
-        <span>{current.flag}</span>
+        {showSymbol && <span className="currencySymbol">{current.symbol}</span>}
         <span>{current.code}</span>
         <ChevronDown size={12} strokeWidth={2} className={`transition-transform ${open ? "rotate-180" : ""}`} />
       </button>

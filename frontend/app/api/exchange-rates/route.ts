@@ -6,19 +6,11 @@ import { NextResponse } from "next/server";
  */
 const TARGET_CURRENCIES = [
   "EUR",
-  "GBP",
-  "CHF",
-  "SEK",
-  "NOK",
-  "PLN",
   "TRY",
   "AED",
   "SAR",
-  "CAD",
-  "AUD",
-  "JPY",
-  "INR",
-  "BRL",
+  "KZT",
+  "UZS",
   "AZN",
 ];
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour

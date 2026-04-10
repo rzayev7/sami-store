@@ -1,4 +1,5 @@
 const Product = require("../models/Product");
+const crypto = require("crypto");
 
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -38,14 +39,19 @@ const toNonNegativeInt = (value, fallback = 0) => {
   return Number.isFinite(parsed) ? Math.max(0, Math.trunc(parsed)) : fallback;
 };
 
-const generateProductCode = () => {
-  // Simple human-readable code, e.g. "PRD-20260316-AB12"
-  const date = new Date();
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return `PRD-${y}${m}${d}-${rand}`;
+const createShortCodeCandidate = () => {
+  // Example: "P7A3C1F" (7 chars total)
+  return `P${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
+};
+
+const generateUniqueShortProductCode = async () => {
+  // Retry a handful of times to avoid rare collisions.
+  for (let i = 0; i < 12; i += 1) {
+    const candidate = createShortCodeCandidate();
+    const exists = await Product.exists({ code: candidate });
+    if (!exists) return candidate;
+  }
+  throw new Error("Failed to generate unique product code");
 };
 
 const getProducts = async (req, res, next) => {
@@ -105,9 +111,9 @@ const createProduct = async (req, res, next) => {
       return res.status(400).json({ message: "Product name is required" });
     }
 
-    // If no code was provided, generate one automatically.
+    // If no code was provided, generate one automatically (short format).
     if (!payload.code || String(payload.code).trim() === "") {
-      payload.code = generateProductCode();
+      payload.code = await generateUniqueShortProductCode();
     }
 
     // Try to find an existing product by name (and optional category if provided).

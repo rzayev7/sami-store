@@ -12,7 +12,7 @@ import { LANGUAGES } from "../i18n";
 import CurrencySelector from "./CurrencySelector";
 import api from "../lib/api";
 
-function LanguageSwitcher({ className = "" }) {
+function LanguageSwitcher({ className = "", inverted = false }) {
   const { language, setLanguage } = useLanguage();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -25,12 +25,16 @@ function LanguageSwitcher({ className = "" }) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  const buttonClassName = inverted
+    ? "flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium tracking-[0.06em] text-white/90 transition-colors hover:text-white"
+    : "flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium tracking-[0.06em] text-black/70 transition-colors hover:text-[var(--color-black)]";
+
   return (
     <div ref={ref} className={`relative ${className}`}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium tracking-[0.06em] text-[var(--color-muted)] transition-colors hover:text-[var(--color-black)]"
+        className={buttonClassName}
       >
         <span>{language.toUpperCase()}</span>
         <ChevronDown size={12} strokeWidth={2} className={`transition-transform ${open ? "rotate-180" : ""}`} />
@@ -147,11 +151,11 @@ export default function Navbar() {
 
           <div className="flex items-center justify-end gap-1 sm:gap-2">
             <div className="hidden sm:block">
-              <LanguageSwitcher />
+              <LanguageSwitcher inverted={isTransparent} />
             </div>
 
             <div className="hidden sm:block">
-              <CurrencySelector />
+              <CurrencySelector inverted={isTransparent} />
             </div>
 
             <Link
@@ -273,6 +277,7 @@ export default function Navbar() {
               { key: "nav.dresses", slug: "Dresses" },
               { key: "nav.shirtsBlouses", slug: "Shirts & Blouses" },
               { key: "nav.pantsSkirts", slug: "Pants & Skirts" },
+              { key: "nav.jumpsuits", slug: "Jumpsuits" },
             ].map(({ key, slug }) => (
               <Link
                 key={slug}

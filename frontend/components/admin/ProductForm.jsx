@@ -25,10 +25,11 @@ import { normalizeVideoAdjustments } from "../../lib/videoAdjustments";
 
 const SIZE_SUGGESTIONS = ["XS", "S", "M", "L", "XL", "XXL", t.freeSize];
 const PRODUCT_CATEGORIES = [
-  "Sets",
-  "Dresses",
-  "Shirts & Blouses",
-  "Pants & Skirts",
+  { value: "Sets", label: "Костюмы" },
+  { value: "Dresses", label: "Платья" },
+  { value: "Shirts & Blouses", label: "Рубашки и блузки" },
+  { value: "Pants & Skirts", label: "Брюки и юбки" },
+  { value: "Jumpsuits", label: "Комбинезоны" },
 ];
 const ACCENT_GOLD = "#C8A96E";
 const MAX_IMAGE_LONG_EDGE = 1200;
@@ -1591,8 +1592,8 @@ export default function ProductForm({
                     {t.placeholderCategory}
                   </option>
                   {PRODUCT_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
+                    <option key={c.value} value={c.value}>
+                      {c.label}
                     </option>
                   ))}
                 </select>
