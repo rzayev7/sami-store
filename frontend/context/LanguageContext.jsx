@@ -17,23 +17,19 @@ export function LanguageProvider({ children }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const urlLang = langFromPath(typeof window !== "undefined" ? window.location.pathname : "");
-  const [language, setLanguageRaw] = useState(urlLang || DEFAULT_LANG);
+  const initialPathLang = langFromPath(pathname || "");
+  const [language, setLanguageRaw] = useState(initialPathLang || DEFAULT_LANG);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    const browserLang = langFromPath(window.location.pathname);
-    if (browserLang && browserLang !== language) {
-      setLanguageRaw(browserLang);
-    }
+    const pathLang = langFromPath(pathname || "");
+    if (pathLang && pathLang !== language) setLanguageRaw(pathLang);
     setHydrated(true);
-  }, []);
+  }, [pathname, language]);
 
   useEffect(() => {
-    const browserLang = langFromPath(window.location.pathname);
-    if (browserLang && browserLang !== language) {
-      setLanguageRaw(browserLang);
-    }
+    const pathLang = langFromPath(pathname || "");
+    if (pathLang && pathLang !== language) setLanguageRaw(pathLang);
   }, [pathname]);
 
   useEffect(() => {
