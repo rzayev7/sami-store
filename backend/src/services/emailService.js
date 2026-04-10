@@ -119,6 +119,7 @@ const formatMoney = (value, localeMeta) => {
   const aznPerUsd = localeMeta?.aznPerUsd || 1.7;
   const rate = localeMeta?.currencyRate || (currency === "USD" ? 1 : 0);
   const amountUSD = numAZN / aznPerUsd;
+  if (currency === "AZN") return `₼${numAZN.toFixed(2)}`;
   if (currency === "USD" || !rate) return `$${amountUSD.toFixed(2)}`;
   const converted = amountUSD * rate;
   if (currency === "AED" || currency === "SAR") return `${currency} ${converted.toFixed(2)}`;
@@ -310,6 +311,7 @@ const sendAdminNewOrderNotificationEmail = async (order) => {
   const items = Array.isArray(order.items) ? order.items : [];
   const itemsCount = items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
   const paymentMethod = String(order.paymentMethod || "-").toUpperCase();
+  const adminLocale = { currency: "AZN", currencyRate: 1, aznPerUsd: 1, copy: EMAIL_I18N.en };
 
   const subject = `New order received #${orderIdShort}`;
 
@@ -323,7 +325,7 @@ const sendAdminNewOrderNotificationEmail = async (order) => {
           <p style="margin:0 0 4px; font-size:13px;"><strong>Order ID:</strong> #${orderIdShort}</p>
           <p style="margin:0 0 4px; font-size:13px;"><strong>Created:</strong> ${new Date(order.createdAt || Date.now()).toLocaleString()}</p>
           <p style="margin:0 0 4px; font-size:13px;"><strong>Payment:</strong> ${paymentMethod}</p>
-          <p style="margin:0; font-size:13px;"><strong>Total:</strong> ${formatMoney(order.totalPriceUSD || 0)}</p>
+          <p style="margin:0; font-size:13px;"><strong>Total:</strong> ${formatMoney(order.totalPriceUSD || 0, adminLocale)}</p>
         </div>
 
         <div style="margin:0 0 16px; padding:12px 14px; background:#f9fafb; border-radius:10px; border:1px solid #e5e7eb;">
@@ -333,7 +335,7 @@ const sendAdminNewOrderNotificationEmail = async (order) => {
         </div>
 
         <p style="margin:0 0 6px; font-size:13px;"><strong>Items (${itemsCount}):</strong></p>
-        ${buildOrderLinesHtml(order)}
+        ${buildOrderLinesHtml(order, adminLocale)}
       </div>
     </div>
   `;
