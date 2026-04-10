@@ -33,16 +33,30 @@ const notoArabic = Noto_Sans_Arabic({
 
 export const metadata: Metadata = {
   title: "SAMÍ",
-  description: "Womenswear from Baku. Worn everywhere.",
-  icons: {
-    icon: [
-      { url: "/favicon.ico?v=2" },
-      { url: "/favicon-32x32.png?v=2", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-16x16.png?v=2", sizes: "16x16", type: "image/png" },
+  description: "Elegant women's fashion - premium sets, dresses, and modern style.",
+  metadataBase: new URL("https://wearsamiofficial.com"),
+  manifest: "/site.webmanifest",
+  openGraph: {
+    title: "SAMÍ",
+    description: "Elegant women's fashion - premium sets, dresses, and modern style.",
+    url: "https://wearsamiofficial.com",
+    siteName: "SAMÍ",
+    type: "website",
+    images: [
+      {
+        url: "https://wearsamiofficial.com/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "SAMÍ - Elegant women's fashion",
+      },
     ],
-    apple: [{ url: "/apple-touch-icon.png?v=2", sizes: "180x180", type: "image/png" }],
   },
-  manifest: "/site.webmanifest?v=2",
+  twitter: {
+    card: "summary_large_image",
+    title: "SAMÍ",
+    description: "Elegant women's fashion - premium sets, dresses, and modern style.",
+    images: ["https://wearsamiofficial.com/og-image.jpg"],
+  },
 };
 
 export default function RootLayout({
