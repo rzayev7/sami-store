@@ -28,9 +28,11 @@ const orderSchema = new mongoose.Schema({
     },
     postalCode: {
       type: String,
+      required: true,
     },
     city: {
       type: String,
+      required: true,
     },
     state: {
       type: String,
@@ -110,8 +112,18 @@ const orderSchema = new mongoose.Schema({
     lastCheckedAt: { type: Date },
     verifiedAt: { type: Date },
   },
+  customerLocale: {
+    language: { type: String, default: "en" },
+    currency: { type: String, default: "USD" },
+    currencyRate: { type: Number, default: 1 },
+    aznPerUsd: { type: Number, default: 1.7 },
+  },
   trackingNumber: {
     type: String,
+  },
+  trackingUrl: {
+    type: String,
+    default: "",
   },
   timeline: [
     {

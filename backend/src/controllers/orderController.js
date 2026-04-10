@@ -9,6 +9,7 @@ const {
   sendShippingEmail,
   sendDeliveryEmail,
 } = require("../services/emailService");
+const AZERPOST_TRACKING_URL = "https://www.azerpost.az/en/services/tracking-of-shipments";
 
 const extractCustomerId = (req) => {
   try {
@@ -26,9 +27,27 @@ const createOrder = async (req, res, next) => {
   try {
     const customerId = extractCustomerId(req);
     const rawItems = Array.isArray(req.body?.items) ? req.body.items : [];
+    const customerInfo = req.body?.customerInfo || {};
+    const rawLocale = req.body?.customerLocale || {};
 
     if (rawItems.length === 0) {
       return res.status(400).json({ message: "Cart is empty" });
+    }
+
+    const requiredCustomerFields = [
+      "name",
+      "email",
+      "phone",
+      "country",
+      "address",
+      "city",
+      "postalCode",
+    ];
+    const missingField = requiredCustomerFields.find(
+      (field) => !String(customerInfo?.[field] || "").trim(),
+    );
+    if (missingField) {
+      return res.status(400).json({ message: `Missing required field: ${missingField}` });
     }
 
     // ── 1. Re-read prices from database (never trust the client) ──
@@ -118,7 +137,13 @@ const createOrder = async (req, res, next) => {
 
     const payload = {
       ...(customerId && { customerId }),
-      customerInfo: req.body?.customerInfo || {},
+      customerInfo,
+      customerLocale: {
+        language: String(rawLocale.language || "en").toLowerCase(),
+        currency: String(rawLocale.currency || "USD").toUpperCase(),
+        currencyRate: Math.max(0, Number(rawLocale.currencyRate || 0)),
+        aznPerUsd: Math.max(0, Number(rawLocale.aznPerUsd || 0)) || 1.7,
+      },
       items: verifiedItems,
       totalPriceUSD: serverTotal,
       shippingCost,
@@ -210,6 +235,7 @@ const getOrderById = async (req, res, next) => {
         _id: order._id,
         status: order.status,
         trackingNumber: order.trackingNumber || "",
+        trackingUrl: order.trackingUrl || "",
         createdAt: order.createdAt,
         customerInfo: {
           country: order.customerInfo?.country || "",
@@ -277,6 +303,7 @@ const updateOrder = async (req, res, next) => {
     if (trackingNumber !== undefined) {
       const trimmed = String(trackingNumber).trim();
       existingOrder.trackingNumber = trimmed;
+      existingOrder.trackingUrl = trimmed ? AZERPOST_TRACKING_URL : "";
       timelineEntries.push({
         event: "tracking_added",
         timestamp: new Date(),
@@ -296,6 +323,7 @@ const updateOrder = async (req, res, next) => {
       nextStatus === "shipped" && (existingOrder.trackingNumber || trackingNumber);
     const willBeDelivered = nextStatus === "delivered";
     const trackingJustAdded = !previousTracking && existingOrder.trackingNumber;
+    const shouldSendShippingEmail = (willBeShipped && previousStatus !== "shipped") || trackingJustAdded;
     const paymentJustConfirmed =
       previousPaymentStatus !== "paid" && nextPaymentStatus === "paid";
 
@@ -320,7 +348,7 @@ const updateOrder = async (req, res, next) => {
 
     // Trigger professional emails based on transitions
     try {
-      if (willBeShipped && previousStatus !== "shipped") {
+      if (shouldSendShippingEmail) {
         const emailResult = await sendShippingEmail(order);
         if (!emailResult.sent) {
           console.warn("Shipping email was not sent:", emailResult.reason);

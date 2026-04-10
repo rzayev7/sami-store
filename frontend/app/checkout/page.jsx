@@ -39,9 +39,9 @@ const FREE_SHIPPING_THRESHOLD_AZN = 150 * AZN_PER_USD; // $150 equivalent
 export default function CheckoutPage() {
   const router = useRouter();
   const { cartItems, clearCart, hasHydratedCart } = useCart();
-  const { formatPrice } = useCurrency();
+  const { formatPrice, currency, rates, aznPerUsd } = useCurrency();
   const { user: customerUser } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const localePath = useLocalePath();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -137,6 +137,12 @@ export default function CheckoutPage() {
       paymentMethod: "bank_transfer",
       ...(orderNotesRaw.trim() && { orderNotes: orderNotesRaw.trim() }),
       ...(appliedCoupon && { couponCode: appliedCoupon.code }),
+      customerLocale: {
+        language,
+        currency,
+        currencyRate: Number(rates?.[currency] || (currency === "USD" ? 1 : 0)),
+        aznPerUsd: Number(aznPerUsd || 1.7),
+      },
     };
 
     try {
@@ -225,7 +231,7 @@ export default function CheckoutPage() {
 
             <div className="grid gap-3 sm:grid-cols-2">
               <input name="city" type="text" required autoComplete="address-level2" placeholder={t("checkout.cityPlaceholder")} className="sami-input" />
-              <input name="postalCode" type="text" autoComplete="postal-code" placeholder={t("checkout.postalCodePlaceholder")} className="sami-input" />
+              <input name="postalCode" type="text" required autoComplete="postal-code" placeholder={t("checkout.postalCodePlaceholder")} className="sami-input" />
             </div>
 
             <input

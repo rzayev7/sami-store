@@ -10,6 +10,7 @@ const CurrencyContext = createContext({
   currency: "USD",
   setCurrency: () => {},
   rates: {},
+  aznPerUsd: DEFAULT_AZN_PER_USD,
   formatPrice: () => "",
 });
 
@@ -53,7 +54,7 @@ export function CurrencyProvider({ children }) {
   );
 
   return (
-    <CurrencyContext.Provider value={{ currency, setCurrency, rates, formatPrice }}>
+    <CurrencyContext.Provider value={{ currency, setCurrency, rates, aznPerUsd, formatPrice }}>
       {children}
     </CurrencyContext.Provider>
   );
