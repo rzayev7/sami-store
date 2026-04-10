@@ -11,7 +11,8 @@ import { useLanguage } from "../context/LanguageContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import { formatSizeLabel } from "../lib/sizeDisplay";
 
-const FREE_SHIPPING_THRESHOLD = 150;
+const AZN_PER_USD = 1.7;
+const FREE_SHIPPING_THRESHOLD = 150 * AZN_PER_USD; // $150 equivalent
 
 function QuantityStepper({ quantity, onDecrement, onIncrement, t }) {
   return (

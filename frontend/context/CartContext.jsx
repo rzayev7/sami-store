@@ -138,6 +138,7 @@ export function CartProvider({ children }) {
 
   const value = {
     cartItems,
+    hasHydratedCart,
     addToCart,
     removeFromCart,
     updateQuantity,

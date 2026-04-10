@@ -32,9 +32,13 @@ const COUNTRIES = [
   "Uruguay","Uzbekistan","Venezuela","Vietnam",
 ];
 
+const AZN_PER_USD = 1.7;
+const WORLDWIDE_SHIPPING_FEE_AZN = 18 * AZN_PER_USD; // $18 equivalent
+const FREE_SHIPPING_THRESHOLD_AZN = 150 * AZN_PER_USD; // $150 equivalent
+
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cartItems, clearCart } = useCart();
+  const { cartItems, clearCart, hasHydratedCart } = useCart();
   const { formatPrice } = useCurrency();
   const { user: customerUser } = useAuth();
   const { t } = useLanguage();
@@ -46,6 +50,7 @@ export default function CheckoutPage() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState("");
   const [hasPlacedOrder, setHasPlacedOrder] = useState(false);
+  const [openPaymentSection, setOpenPaymentSection] = useState("");
 
   const subtotal = useMemo(() => {
     return cartItems.reduce(
@@ -54,8 +59,10 @@ export default function CheckoutPage() {
     );
   }, [cartItems]);
   const discountAmount = appliedCoupon ? (subtotal * appliedCoupon.discountPercentage) / 100 : 0;
-  const shippingCost = 0;
-  const totalPrice = subtotal - discountAmount + shippingCost;
+  const discountedSubtotal = Math.max(0, subtotal - discountAmount);
+  const shippingCost =
+    discountedSubtotal >= FREE_SHIPPING_THRESHOLD_AZN ? 0 : WORLDWIDE_SHIPPING_FEE_AZN;
+  const totalPrice = discountedSubtotal + shippingCost;
 
   const handleApplyCoupon = async () => {
     const code = String(couponCode || "").trim().toUpperCase();
@@ -82,10 +89,11 @@ export default function CheckoutPage() {
   };
 
   useEffect(() => {
+    if (!hasHydratedCart) return;
     if (cartItems.length === 0 && !hasPlacedOrder) {
       router.replace(localePath("/products"));
     }
-  }, [cartItems, router, hasPlacedOrder]);
+  }, [cartItems, router, hasPlacedOrder, hasHydratedCart, localePath]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -154,6 +162,10 @@ export default function CheckoutPage() {
       setIsPlacingOrder(false);
     }
   };
+
+  if (!hasHydratedCart) {
+    return null;
+  }
 
   if (cartItems.length === 0 && !hasPlacedOrder) {
     return null;
@@ -248,22 +260,54 @@ export default function CheckoutPage() {
           <fieldset className="space-y-3 rounded-xl border border-[var(--color-line)] bg-white p-5">
             <legend className="px-2 text-sm font-semibold uppercase tracking-[0.12em]">{t("checkout.payment")}</legend>
 
-            <div className="rounded-lg border border-[var(--color-line)] bg-[var(--color-sand)]/40 px-3 py-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-sm font-medium">{t("checkout.creditCard")}</span>
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900">
+              <p className="font-semibold">Shipping: $18 worldwide</p>
+              <p className="mt-0.5 text-xs text-emerald-800">Free shipping on orders over $150</p>
+            </div>
+
+            <div className="rounded-lg border border-[var(--color-line)] bg-[var(--color-sand)]/30">
+              <button
+                type="button"
+                onClick={() =>
+                  setOpenPaymentSection((prev) => (prev === "card" ? "" : "card"))
+                }
+                className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
+                aria-expanded={openPaymentSection === "card"}
+              >
+                <span className="text-sm font-semibold">{t("checkout.creditCard")}</span>
                 <div className="flex items-center gap-2">
                   <VisaMark className="h-6 w-auto" />
                   <MastercardMark className="h-6 w-auto" />
                 </div>
-              </div>
-              <p className="mt-2 text-xs text-[var(--color-muted)]">
-                {t("checkout.cardNotAvailable")}
-              </p>
+              </button>
+              {openPaymentSection === "card" && (
+                <div className="border-t border-[var(--color-line)] px-3 pb-3 pt-2">
+                  <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900">
+                    {t("checkout.cardNotAvailable")}
+                  </p>
+                </div>
+              )}
             </div>
 
-            <div>
-              <p className="mb-2 text-sm font-medium">{t("checkout.bankTransfer")}</p>
-              <BankTransferDetails />
+            <div className="rounded-lg border border-[var(--color-line)] bg-white">
+              <button
+                type="button"
+                onClick={() =>
+                  setOpenPaymentSection((prev) => (prev === "bank" ? "" : "bank"))
+                }
+                className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
+                aria-expanded={openPaymentSection === "bank"}
+              >
+                <span className="text-sm font-semibold">{t("checkout.bankTransfer")}</span>
+                <span className="text-xs font-medium uppercase tracking-[0.08em] text-black/55">
+                  {openPaymentSection === "bank" ? "Hide" : "Open"}
+                </span>
+              </button>
+              {openPaymentSection === "bank" && (
+                <div className="border-t border-[var(--color-line)] px-3 pb-3 pt-3">
+                  <BankTransferDetails />
+                </div>
+              )}
             </div>
           </fieldset>
         </form>
@@ -342,7 +386,7 @@ export default function CheckoutPage() {
             )}
             <div className="flex items-center justify-between">
               <span>{t("common.shipping")}</span>
-              <span>{shippingCost > 0 ? formatPrice(shippingCost) : t("checkout.calculatedAtDelivery")}</span>
+              <span>{shippingCost > 0 ? formatPrice(shippingCost) : "Free"}</span>
             </div>
             <div className="flex items-center justify-between pt-1 text-base font-semibold">
               <span>{t("common.total")}</span>

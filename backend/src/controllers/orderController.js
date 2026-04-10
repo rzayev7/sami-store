@@ -5,6 +5,7 @@ const Coupon = require("../models/Coupon");
 const { sendWhatsAppOrderNotification } = require("../services/whatsappService");
 const {
   sendOrderConfirmationEmail,
+  sendAdminNewOrderNotificationEmail,
   sendShippingEmail,
   sendDeliveryEmail,
 } = require("../services/emailService");
@@ -145,6 +146,15 @@ const createOrder = async (req, res, next) => {
       }
     } catch (err) {
       console.warn("Failed to send order confirmation email:", err?.message || err);
+    }
+
+    try {
+      const adminEmailResult = await sendAdminNewOrderNotificationEmail(order);
+      if (!adminEmailResult.sent) {
+        console.warn("Admin order notification email was not sent:", adminEmailResult.reason);
+      }
+    } catch (err) {
+      console.warn("Failed to send admin order notification email:", err?.message || err);
     }
 
     res.status(201).json(order);

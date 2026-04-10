@@ -214,7 +214,7 @@
     "phoneLabel": "Phone / WhatsApp number *",
     "phoneHint": "We may contact you on WhatsApp regarding your order and delivery details.",
     "creditCard": "Credit / Debit Card",
-    "cardNotAvailable": "Online card payments are not available at this time. Please pay by bank transfer below.",
+    "cardNotAvailable": "Card payments are not available yet. For international orders, please use bank transfer below.",
     "bankTransfer": "Bank transfer",
     "orderSummary": "Order Summary",
     "discountCode": "Discount code",

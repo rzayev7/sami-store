@@ -5,7 +5,7 @@ if (process.env.RESEND_API_KEY) {
   resend = new Resend(process.env.RESEND_API_KEY);
 }
 
-const safeSendMail = async ({ from, to, subject, html }) => {
+const safeSendMail = async ({ from, to, subject, html, replyTo }) => {
   if (!resend) {
     console.log("[emailService] RESEND_API_KEY not configured, skipping email send.");
     return { sent: false, reason: "resend_not_configured" };
@@ -15,6 +15,7 @@ const safeSendMail = async ({ from, to, subject, html }) => {
     await resend.emails.send({
       from: from || process.env.EMAIL_FROM || "onboarding@resend.dev",
       to,
+      ...(replyTo ? { reply_to: replyTo } : {}),
       subject,
       html,
     });
@@ -187,6 +188,54 @@ const sendOrderConfirmationEmail = async (order) => {
   return safeSendMail({
     from: process.env.EMAIL_FROM,
     to: order.customerInfo.email,
+    replyTo: supportEmail,
+    subject,
+    html,
+  });
+};
+
+const sendAdminNewOrderNotificationEmail = async (order) => {
+  const supportEmail = process.env.SUPPORT_EMAIL || "samistore.support@gmail.com";
+  if (!order || !supportEmail) {
+    return { sent: false, reason: "missing_order_or_support_email" };
+  }
+
+  const orderIdShort = String(order._id || "").slice(-8).toUpperCase();
+  const customer = order.customerInfo || {};
+  const items = Array.isArray(order.items) ? order.items : [];
+  const itemsCount = items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+  const paymentMethod = String(order.paymentMethod || "-").toUpperCase();
+
+  const subject = `New order received #${orderIdShort}`;
+
+  const html = `
+    <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color:#111; padding:16px; background:#f7f5f0;">
+      <div style="max-width:700px; margin:0 auto; background:#ffffff; border-radius:12px; padding:24px 24px 28px; box-shadow:0 8px 30px rgba(15,23,42,0.08);">
+        <h1 style="font-size:22px; font-weight:600; margin:0 0 6px;">New Order Alert</h1>
+        <p style="margin:0 0 18px; font-size:13px; color:#6b7280;">A customer has placed a new order on your store.</p>
+
+        <div style="margin:0 0 16px; padding:12px 14px; background:#f9fafb; border-radius:10px; border:1px solid #e5e7eb;">
+          <p style="margin:0 0 4px; font-size:13px;"><strong>Order ID:</strong> #${orderIdShort}</p>
+          <p style="margin:0 0 4px; font-size:13px;"><strong>Created:</strong> ${new Date(order.createdAt || Date.now()).toLocaleString()}</p>
+          <p style="margin:0 0 4px; font-size:13px;"><strong>Payment:</strong> ${paymentMethod}</p>
+          <p style="margin:0; font-size:13px;"><strong>Total:</strong> ${formatMoney(order.totalPriceUSD || 0)}</p>
+        </div>
+
+        <div style="margin:0 0 16px; padding:12px 14px; background:#f9fafb; border-radius:10px; border:1px solid #e5e7eb;">
+          <p style="margin:0 0 4px; font-size:13px;"><strong>Customer:</strong> ${customer.name || "-"}</p>
+          <p style="margin:0 0 4px; font-size:13px;"><strong>Email:</strong> ${customer.email || "-"}</p>
+          <p style="margin:0; font-size:13px;"><strong>Phone:</strong> ${customer.phone || "-"}</p>
+        </div>
+
+        <p style="margin:0 0 6px; font-size:13px;"><strong>Items (${itemsCount}):</strong></p>
+        ${buildOrderLinesHtml(order)}
+      </div>
+    </div>
+  `;
+
+  return safeSendMail({
+    from: process.env.EMAIL_FROM,
+    to: supportEmail,
     subject,
     html,
   });
@@ -254,6 +303,7 @@ const sendShippingEmail = async (order) => {
   return safeSendMail({
     from: process.env.EMAIL_FROM,
     to: order.customerInfo.email,
+    replyTo: process.env.SUPPORT_EMAIL || "samistore.support@gmail.com",
     subject,
     html,
   });
@@ -300,6 +350,7 @@ const sendDeliveryEmail = async (order) => {
   return safeSendMail({
     from: process.env.EMAIL_FROM,
     to: order.customerInfo.email,
+    replyTo: process.env.SUPPORT_EMAIL || "samistore.support@gmail.com",
     subject,
     html,
   });
@@ -307,6 +358,7 @@ const sendDeliveryEmail = async (order) => {
 
 module.exports = {
   sendOrderConfirmationEmail,
+  sendAdminNewOrderNotificationEmail,
   sendShippingEmail,
   sendDeliveryEmail,
 };
