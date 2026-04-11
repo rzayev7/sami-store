@@ -84,6 +84,25 @@ const EMAIL_I18N = {
     subtotal: "Sous-total",
     shipping: "Livraison",
   },
+  az: {
+    orderConfirmation: "Sifarişin təsdiqi",
+    thankYou: "Sifarişiniz üçün təşəkkür edirik.",
+    receivedText:
+      "Sifarişiniz qəbul edildi və hazırlanır. Bağlamanız yola düşən kimi çatdırılma yeniləməsi alacaqsınız.",
+    order: "Sifariş",
+    total: "Cəmi",
+    items: "Məhsullar",
+    shippingAddress: "Çatdırılma ünvanı",
+    trackAnytime: "Sifariş statusunu istənilən vaxt izləyə bilərsiniz:",
+    trackOrder: "Sifarişi izlə",
+    invoiceLine: "Bu e-poçt həm də alış təsdiqi və hesab-faktura hesab olunur.",
+    supportLine: "Suallarınız varsa, bizimlə əlaqə saxlayın:",
+    product: "Məhsul",
+    qty: "Miq.",
+    price: "Qiymət",
+    subtotal: "Ara cəm",
+    shipping: "Çatdırılma",
+  },
   ar: {
     orderConfirmation: "تأكيد الطلب",
     thankYou: "شكرا لطلبك.",
@@ -108,7 +127,9 @@ const getLocaleMeta = (order = {}) => {
   const rawLang = String(order.customerLocale?.language || "en").toLowerCase();
   const language = EMAIL_I18N[rawLang] ? rawLang : "en";
   const currency = String(order.customerLocale?.currency || "USD").toUpperCase();
-  const currencyRate = Number(order.customerLocale?.currencyRate || (currency === "USD" ? 1 : 0));
+  const currencyRate = Number(
+    order.customerLocale?.currencyRate ?? (currency === "USD" || currency === "AZN" ? 1 : 0),
+  );
   const aznPerUsd = Number(order.customerLocale?.aznPerUsd || 1.7) || 1.7;
   return { language, currency, currencyRate, aznPerUsd, copy: EMAIL_I18N[language] };
 };
@@ -297,6 +318,7 @@ const languageSubject = (language, orderIdShort) => {
   if (language === "ru") return `Ваш заказ Sami ${orderIdShort} получен`;
   if (language === "fr") return `Votre commande Sami ${orderIdShort} est confirmee`;
   if (language === "ar") return `تم استلام طلبك من Sami ${orderIdShort}`;
+  if (language === "az") return `Sami sifarişiniz ${orderIdShort} qəbul edildi`;
   return `Your Sami order ${orderIdShort} has been received`;
 };
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "../../components/LocaleLink";
+import StoreLocations from "../../components/StoreLocations";
 import { SUPPORT_EMAIL } from "../../lib/sitePublic";
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -24,6 +25,8 @@ export default function ContactPage() {
       <p className="mt-8 text-[15px] leading-[1.85] text-black/70">
         {t("contact.intro")}
       </p>
+
+      <StoreLocations variant="page" />
 
       <section className="mt-10 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-black)]">

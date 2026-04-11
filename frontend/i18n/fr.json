@@ -562,6 +562,14 @@
     "businessBody": "Pour les demandes de vente en gros, de presse ou de collaboration, veuillez nous envoyer un e-mail avec l'objet « Demande professionnelle » et nous vous répondrons."
   },
 
+  "stores": {
+    "title": "Nos boutiques",
+    "may28": "Boutique 28 Mai",
+    "may28Address": "Şamil Əzizbəyov 205, Baku, Azerbaijan",
+    "ahmedli": "Boutique Əhmədli",
+    "ahmedliAddress": "Sarayevo 113C, Baku, Azerbaijan"
+  },
+
   "notFound": {
     "title": "Page introuvable",
     "body": "La page que vous recherchez a peut-être été déplacée ou n'existe plus."

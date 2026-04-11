@@ -140,7 +140,9 @@ export default function CheckoutPage() {
       customerLocale: {
         language,
         currency,
-        currencyRate: Number(rates?.[currency] || (currency === "USD" ? 1 : 0)),
+        currencyRate: Number(
+          currency === "AZN" ? 1 : rates?.[currency] ?? (currency === "USD" ? 1 : 0),
+        ),
         aznPerUsd: Number(aznPerUsd || 1.7),
       },
     };

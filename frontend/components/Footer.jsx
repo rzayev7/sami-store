@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "./LocaleLink";
-import { SUPPORT_EMAIL } from "../lib/sitePublic";
+import StoreLocations from "./StoreLocations";
 import { useLanguage } from "../context/LanguageContext";
 
 export default function Footer() {
@@ -20,6 +20,9 @@ export default function Footer() {
           <p className="mt-4 text-xs uppercase tracking-[0.14em] text-[#1a1a1a]/55">
             {t("footer.worldwideShipping")}
           </p>
+          <div className="mt-6 max-w-sm">
+            <StoreLocations variant="footer" />
+          </div>
         </div>
 
         <div>
@@ -71,6 +74,11 @@ export default function Footer() {
             <li>
               <Link href="/contact" className="transition-opacity hover:opacity-70">{t("footer.contact")}</Link>
             </li>
+            <li>
+              <Link href="/contact#our-stores" className="transition-opacity hover:opacity-70">
+                {t("stores.title")}
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -102,6 +110,7 @@ export default function Footer() {
           </ul>
         </div>
       </div>
+
       <div className="border-t border-black/10 px-4 py-4 text-center text-[11px] uppercase tracking-[0.14em] text-[#1a1a1a]/55 sm:px-6 lg:px-12">
         {t("footer.copyright", { year: new Date().getFullYear() })}
       </div>

@@ -572,6 +572,14 @@
     "businessBody": "For wholesale, press, or collaboration requests, please email us with the subject line \"Business Inquiry\" and we will get back to you."
   },
 
+  "stores": {
+    "title": "Our Stores",
+    "may28": "28 May branch",
+    "may28Address": "Şamil Əzizbəyov 205, Baku, Azerbaijan",
+    "ahmedli": "Əhmədli branch",
+    "ahmedliAddress": "Sarayevo 113C, Baku, Azerbaijan"
+  },
+
   "notFound": {
     "title": "Page not found",
     "body": "The page you are looking for may have been moved or no longer exists."

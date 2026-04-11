@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 
 /**
- * Rates per 1 USD from open.er-api. AZN is fetched only to convert stored base amounts → USD.
- * Display currencies: no AZN in the storefront selector.
+ * Rates per 1 USD from open.er-api. AZN is fetched for aznPerUsd; storefront can display base amounts in AZN (₼) without a USD rate.
  */
 const TARGET_CURRENCIES = [
   "EUR",

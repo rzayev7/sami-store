@@ -562,6 +562,14 @@
     "businessBody": "لطلبات الجملة أو الإعلام أو التعاون، يرجى مراسلتنا بعنوان \"استفسار أعمال\" وسنعود إليك."
   },
 
+  "stores": {
+    "title": "متاجرنا",
+    "may28": "فرع 28 مايو",
+    "may28Address": "Şamil Əzizbəyov 205, Baku, Azerbaijan",
+    "ahmedli": "فرع أحمدلي",
+    "ahmedliAddress": "Sarayevo 113C, Baku, Azerbaijan"
+  },
+
   "notFound": {
     "title": "الصفحة غير موجودة",
     "body": "الصفحة التي تبحث عنها ربما تم نقلها أو لم تعد موجودة."

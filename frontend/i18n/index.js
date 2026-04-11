@@ -2,17 +2,19 @@
 
 import en from "./en.json";
 import ar from "./ar.json";
+import az from "./az.json";
 import fr from "./fr.json";
 import ru from "./ru.json";
 
 export const LANGUAGES = [
   { code: "en", label: "English", dir: "ltr" },
   { code: "ar", label: "العربية", dir: "rtl" },
+  { code: "az", label: "Azərbaycan", dir: "ltr" },
   { code: "fr", label: "Français", dir: "ltr" },
   { code: "ru", label: "Русский", dir: "ltr" },
 ];
 
-const dictionaries = { en, ar, fr, ru };
+const dictionaries = { en, ar, az, fr, ru };
 
 function resolve(obj, path) {
   return path.split(".").reduce((acc, key) => acc?.[key], obj);
