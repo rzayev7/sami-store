@@ -144,7 +144,7 @@ const formatMoney = (value, localeMeta) => {
   if (currency === "USD" || !rate) return `$${amountUSD.toFixed(2)}`;
   const converted = amountUSD * rate;
   if (currency === "AED" || currency === "SAR") return `${currency} ${converted.toFixed(2)}`;
-  const symbols = { EUR: "€", TRY: "₺", KZT: "₸", UZS: "soʻm " };
+  const symbols = { EUR: "€", RUB: "₽", TRY: "₺", KZT: "₸", UZS: "soʻm " };
   return `${symbols[currency] || "$"}${converted.toFixed(2)}`;
 };
 

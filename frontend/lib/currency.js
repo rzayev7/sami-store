@@ -10,6 +10,7 @@ export const CURRENCIES = [
   { code: "USD", symbol: "$", name: "United States", flag: "🇺🇸", decimals: 2 },
   { code: "AZN", symbol: "₼", name: "Azerbaijan", flag: "🇦🇿", decimals: 2 },
   { code: "EUR", symbol: "€", name: "Eurozone", flag: "🇪🇺", decimals: 2 },
+  { code: "RUB", symbol: "₽", name: "Russia", flag: "🇷🇺", decimals: 2 },
   { code: "TRY", symbol: "₺", name: "Türkiye", flag: "🇹🇷", decimals: 2 },
   { code: "AED", symbol: "AED", name: "United Arab Emirates", flag: "🇦🇪", decimals: 2 },
   { code: "SAR", symbol: "SAR", name: "Saudi Arabia", flag: "🇸🇦", decimals: 2 },
@@ -67,6 +68,8 @@ export function formatPrice(amountAZN, currencyCode = "USD", rates = {}, aznPerU
 const LOCALE_TO_CURRENCY = {
   "az-AZ": "AZN",
   az: "AZN",
+  "ru-RU": "RUB",
+  ru: "RUB",
   "ar-SA": "SAR",
   "ar-AE": "AED",
   "tr-TR": "TRY",

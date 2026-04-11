@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
  */
 const TARGET_CURRENCIES = [
   "EUR",
+  "RUB",
   "TRY",
   "AED",
   "SAR",
