@@ -36,16 +36,6 @@ export default function StoreLocations({ variant = "page" }) {
             </address>
           </article>
         </li>
-        <li>
-          <article>
-            <h3 className="text-[11px] font-medium uppercase tracking-[0.12em] text-[#1a1a1a]/50">
-              {t("stores.ahmedli")}
-            </h3>
-            <address className="not-italic mt-1 text-sm leading-[1.65] text-[#1a1a1a]/75">
-              {t("stores.ahmedliAddress")}
-            </address>
-          </article>
-        </li>
       </ul>
     </section>
   );

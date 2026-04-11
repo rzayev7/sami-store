@@ -8,7 +8,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "prices:+17": "node scripts/increaseAllPricesByAzn.js",
+    "prices:+17:dry": "node scripts/increaseAllPricesByAzn.js --dry-run"
   },
   "keywords": [],
   "author": "",
