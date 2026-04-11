@@ -33,7 +33,7 @@ const COUNTRIES = [
 ];
 
 const AZN_PER_USD = 1.7;
-const WORLDWIDE_SHIPPING_FEE_AZN = 18 * AZN_PER_USD; // $18 equivalent
+const WORLDWIDE_SHIPPING_FEE_AZN = 8 * AZN_PER_USD; // $8 equivalent
 const FREE_SHIPPING_THRESHOLD_AZN = 150 * AZN_PER_USD; // $150 equivalent
 
 export default function CheckoutPage() {
@@ -269,7 +269,7 @@ export default function CheckoutPage() {
             <legend className="px-2 text-sm font-semibold uppercase tracking-[0.12em]">{t("checkout.payment")}</legend>
 
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900">
-              <p className="font-semibold">Shipping: $18 worldwide</p>
+              <p className="font-semibold">Shipping: $8 worldwide</p>
               <p className="mt-0.5 text-xs text-emerald-800">Free shipping on orders over $150</p>
             </div>
 
