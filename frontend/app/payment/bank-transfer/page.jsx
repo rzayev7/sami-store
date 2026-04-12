@@ -9,13 +9,15 @@ import { useLanguage } from "../../../context/LanguageContext";
 import { useCurrency } from "../../../context/CurrencyContext";
 import { getCustomerAuthHeaders } from "../../../lib/customerAuth";
 import { SUPPORT_EMAIL } from "../../../lib/sitePublic";
-import { WesternUnionMark } from "../../../components/CardBrandLogos";
+import { WesternUnionMark, ZolotayaKoronaMark } from "../../../components/CardBrandLogos";
 
 const WHATSAPP_E164 = "994554737996";
 const IBAN = "AZ28AIIB38817944006860051100";
 const SWIFT = "AIIBAZ2X";
 const ACCOUNT_NAME = "Samira Rzayeva";
 const WU_LOCATION = "Baku, Azerbaijan";
+const KORONA_NAME = "Sahib Rzayev";
+const KORONA_PHONE_DISPLAY = "+994554737996";
 
 function shortOrderRef(orderId) {
   const s = String(orderId || "").trim();
@@ -126,6 +128,27 @@ function BankTransferInner() {
             </p>
             <p>
               <span className="text-black/50">{t("bankTransfer.recipientLocation")}</span> {WU_LOCATION}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 border-t border-[var(--color-line)] pt-6">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <ZolotayaKoronaMark className="h-8 w-auto max-w-[10rem] shrink-0" />
+            <p className="min-w-0 text-sm font-semibold leading-snug text-black/90">{t("checkout.zolotayaKorona")}</p>
+          </div>
+          <div className="mt-3 space-y-2.5 text-sm text-black/90">
+            <p>
+              <span className="text-black/50">{t("bankTransfer.name")}</span> {KORONA_NAME}
+            </p>
+            <p>
+              <span className="text-black/50">{t("bankTransfer.recipientPhone")}</span>{" "}
+              <a
+                href="tel:+994554737996"
+                className="font-medium text-black underline underline-offset-2 hover:text-black/80"
+              >
+                {KORONA_PHONE_DISPLAY}
+              </a>
             </p>
           </div>
         </div>

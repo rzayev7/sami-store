@@ -10,8 +10,9 @@ import api from "../../lib/api";
 import { getCustomerAuthHeaders } from "../../lib/customerAuth";
 import BankTransferDetails from "../../components/BankTransferDetails";
 import WesternUnionDetails from "../../components/WesternUnionDetails";
+import ZolotayaKoronaDetails from "../../components/ZolotayaKoronaDetails";
 import { formatSizeLabel } from "../../lib/sizeDisplay";
-import { MastercardMark, VisaMark, WesternUnionMark } from "../../components/CardBrandLogos";
+import { MastercardMark, VisaMark, WesternUnionMark, ZolotayaKoronaMark } from "../../components/CardBrandLogos";
 
 const COUNTRIES = [
   "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia",
@@ -339,6 +340,30 @@ export default function CheckoutPage() {
               {openPaymentSection === "wu" && (
                 <div className="border-t border-[var(--color-line)] px-3 pb-3 pt-3">
                   <WesternUnionDetails />
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-lg border border-[var(--color-line)] bg-white">
+              <button
+                type="button"
+                onClick={() =>
+                  setOpenPaymentSection((prev) => (prev === "korona" ? "" : "korona"))
+                }
+                className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
+                aria-expanded={openPaymentSection === "korona"}
+              >
+                <span className="text-sm font-semibold">{t("checkout.zolotayaKorona")}</span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <ZolotayaKoronaMark className="h-6 w-auto max-w-[7rem]" />
+                  <span className="text-xs font-medium uppercase tracking-[0.08em] text-black/55">
+                    {openPaymentSection === "korona" ? "Hide" : "Open"}
+                  </span>
+                </div>
+              </button>
+              {openPaymentSection === "korona" && (
+                <div className="border-t border-[var(--color-line)] px-3 pb-3 pt-3">
+                  <ZolotayaKoronaDetails />
                 </div>
               )}
             </div>

@@ -56,3 +56,17 @@ export function WesternUnionMark({ className = "h-8 w-auto max-w-[10rem] shrink-
     />
   );
 }
+
+/** Zolotaya Korona logo from `public/korona-1-816x518.jpg`. */
+export function ZolotayaKoronaMark({ className = "h-8 w-auto max-w-[9rem] shrink-0 object-contain object-left" }) {
+  return (
+    <img
+      src="/korona-1-816x518.jpg"
+      alt="Zolotaya Korona"
+      width={200}
+      height={127}
+      className={className}
+      decoding="async"
+    />
+  );
+}
