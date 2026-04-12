@@ -163,7 +163,7 @@ function ProductCard({ product }) {
           )}
 
           {!isOutOfStock && (
-            <div className="absolute inset-x-0 bottom-0 flex translate-y-full items-center justify-center pb-4 transition-transform duration-300 ease-out group-hover:translate-y-0">
+            <div className="absolute inset-x-0 bottom-0 flex translate-y-full items-center justify-center px-3 pb-3 transition-transform duration-300 ease-out group-hover:translate-y-0">
               <button
                 type="button"
                 onClick={(e) => {
@@ -171,7 +171,7 @@ function ProductCard({ product }) {
                   e.stopPropagation();
                   addToCart(product, preferredSize);
                 }}
-                className="rounded-full bg-white/95 px-5 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-black shadow-lg backdrop-blur-sm transition-all hover:bg-black hover:text-white"
+                className="max-w-[min(10.5rem,calc(100%-0.5rem))] rounded-full bg-white/95 px-3 py-1.5 text-center text-[9px] font-semibold uppercase leading-tight tracking-[0.1em] text-black shadow-md backdrop-blur-sm transition-all hover:bg-black hover:text-white"
               >
                 {t("product.quickAdd")}
               </button>
