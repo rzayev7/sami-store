@@ -9,8 +9,9 @@ import { useLanguage, useLocalePath } from "../../context/LanguageContext";
 import api from "../../lib/api";
 import { getCustomerAuthHeaders } from "../../lib/customerAuth";
 import BankTransferDetails from "../../components/BankTransferDetails";
+import WesternUnionDetails from "../../components/WesternUnionDetails";
 import { formatSizeLabel } from "../../lib/sizeDisplay";
-import { MastercardMark, VisaMark } from "../../components/CardBrandLogos";
+import { MastercardMark, VisaMark, WesternUnionMark } from "../../components/CardBrandLogos";
 
 const COUNTRIES = [
   "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia",
@@ -314,6 +315,30 @@ export default function CheckoutPage() {
               {openPaymentSection === "bank" && (
                 <div className="border-t border-[var(--color-line)] px-3 pb-3 pt-3">
                   <BankTransferDetails />
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-lg border border-[var(--color-line)] bg-white">
+              <button
+                type="button"
+                onClick={() =>
+                  setOpenPaymentSection((prev) => (prev === "wu" ? "" : "wu"))
+                }
+                className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
+                aria-expanded={openPaymentSection === "wu"}
+              >
+                <span className="text-sm font-semibold">{t("checkout.westernUnion")}</span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <WesternUnionMark className="h-6 w-auto max-w-[8.25rem]" />
+                  <span className="text-xs font-medium uppercase tracking-[0.08em] text-black/55">
+                    {openPaymentSection === "wu" ? "Hide" : "Open"}
+                  </span>
+                </div>
+              </button>
+              {openPaymentSection === "wu" && (
+                <div className="border-t border-[var(--color-line)] px-3 pb-3 pt-3">
+                  <WesternUnionDetails />
                 </div>
               )}
             </div>

@@ -42,3 +42,17 @@ export function MastercardMark({ className = "h-8 w-[3.25rem] shrink-0" }) {
     </svg>
   );
 }
+
+/** Western Union wordmark from `public/Western_Union_logo.svg.png`. */
+export function WesternUnionMark({ className = "h-8 w-auto max-w-[10rem] shrink-0 object-contain object-left" }) {
+  return (
+    <img
+      src="/Western_Union_logo.svg.png"
+      alt="Western Union"
+      width={220}
+      height={72}
+      className={className}
+      decoding="async"
+    />
+  );
+}

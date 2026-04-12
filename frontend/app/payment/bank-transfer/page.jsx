@@ -9,11 +9,13 @@ import { useLanguage } from "../../../context/LanguageContext";
 import { useCurrency } from "../../../context/CurrencyContext";
 import { getCustomerAuthHeaders } from "../../../lib/customerAuth";
 import { SUPPORT_EMAIL } from "../../../lib/sitePublic";
+import { WesternUnionMark } from "../../../components/CardBrandLogos";
 
 const WHATSAPP_E164 = "994554737996";
 const IBAN = "AZ28AIIB38817944006860051100";
 const SWIFT = "AIIBAZ2X";
 const ACCOUNT_NAME = "Samira Rzayeva";
+const WU_LOCATION = "Baku, Azerbaijan";
 
 function shortOrderRef(orderId) {
   const s = String(orderId || "").trim();
@@ -109,6 +111,21 @@ function BankTransferInner() {
             <p>
               <span className="text-black/50">{t("bankTransfer.swift")}</span>{" "}
               <span className="font-mono text-sm font-medium tracking-wide">{SWIFT}</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 border-t border-[var(--color-line)] pt-6">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <WesternUnionMark className="h-8 w-auto max-w-[11rem] shrink-0" />
+            <p className="min-w-0 text-sm font-semibold leading-snug text-black/90">{t("checkout.westernUnion")}</p>
+          </div>
+          <div className="mt-3 space-y-2.5 text-sm text-black/90">
+            <p>
+              <span className="text-black/50">{t("bankTransfer.name")}</span> {ACCOUNT_NAME}
+            </p>
+            <p>
+              <span className="text-black/50">{t("bankTransfer.recipientLocation")}</span> {WU_LOCATION}
             </p>
           </div>
         </div>
