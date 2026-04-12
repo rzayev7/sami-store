@@ -1,5 +1,6 @@
-export const GA_MEASUREMENT_ID =
-  process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "";
+export const GA_MEASUREMENT_ID = (
+  process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? ""
+).trim();
 
 declare global {
   interface Window {
@@ -17,9 +18,9 @@ export function sendPageView(pathWithQuery: string) {
     ? pathWithQuery
     : `/${pathWithQuery}`;
 
-  gtag("event", "page_view", {
+  gtag("config", GA_MEASUREMENT_ID, {
     page_path: pagePath,
+    page_location: window.location.href,
     page_title: document.title,
-    page_location: `${window.location.origin}${pagePath}`,
   });
 }
