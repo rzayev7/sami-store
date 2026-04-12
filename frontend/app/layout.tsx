@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Cinzel, Inter, Noto_Sans_Arabic } from "next/font/google";
 import AnnouncementBars from "../components/AnnouncementBars";
+import GoogleAnalyticsPageView from "../components/GoogleAnalyticsPageView";
+import GoogleAnalyticsScripts from "../components/GoogleAnalyticsScripts";
 import Footer from "../components/Footer";
 import WhatsAppFloat from "../components/WhatsAppFloat";
 import Navbar from "../components/Navbar";
@@ -75,10 +78,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
+      <head>
+        <GoogleAnalyticsScripts />
+      </head>
       <body
         suppressHydrationWarning
         className={`${inter.variable} ${cinzel.variable} ${notoArabic.variable} antialiased`}
       >
+        <Suspense fallback={null}>
+          <GoogleAnalyticsPageView />
+        </Suspense>
         <LanguageProvider>
           <AuthProvider>
             <CurrencyProvider>
