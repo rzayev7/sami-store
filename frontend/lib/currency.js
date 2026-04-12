@@ -73,6 +73,7 @@ const LOCALE_TO_CURRENCY = {
   "ar-SA": "SAR",
   "ar-AE": "AED",
   "tr-TR": "TRY",
+  tr: "TRY",
   "kk-KZ": "KZT",
   "uz-UZ": "UZS",
   ar: "AED",

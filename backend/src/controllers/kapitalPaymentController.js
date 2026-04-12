@@ -91,12 +91,16 @@ const initKapitalTestPayment = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid order amount" });
     }
 
-    const returnPath = process.env.KAPITAL_TEST_RETURN_PATH || "/api/payments/kapital/return";
+    const returnBase =
+      process.env.KAPITAL_TEST_RETURN_BASE_PATH ||
+      process.env.KAPITAL_TEST_RETURN_PATH ||
+      "/api/payments/kapital/return";
+    const returnBaseNormalized = String(returnBase).replace(/\/+$/, "");
     const callbackPath = process.env.KAPITAL_TEST_CALLBACK_PATH || "/api/payments/kapital/callback";
     const apiBaseUrl = getApiBaseUrl();
-    const approveUrl = buildUrl(apiBaseUrl, returnPath, { orderId: order._id, flow: "success" });
-    const declineUrl = buildUrl(apiBaseUrl, returnPath, { orderId: order._id, flow: "fail" });
-    const cancelUrl = buildUrl(apiBaseUrl, returnPath, { orderId: order._id, flow: "cancel" });
+    const approveUrl = buildUrl(apiBaseUrl, `${returnBaseNormalized}/success`, { orderId: order._id });
+    const declineUrl = buildUrl(apiBaseUrl, `${returnBaseNormalized}/failure`, { orderId: order._id });
+    const cancelUrl = buildUrl(apiBaseUrl, `${returnBaseNormalized}/cancel`, { orderId: order._id });
     const callbackUrl = buildUrl(apiBaseUrl, callbackPath, { orderId: order._id });
 
     const gatewayOrder = await createOrder({

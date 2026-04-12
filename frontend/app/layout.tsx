@@ -13,6 +13,7 @@ import { CartProvider } from "../context/CartContext";
 import { CurrencyProvider } from "../context/CurrencyContext";
 import { AuthProvider } from "../context/AuthContext";
 import { LanguageProvider } from "../context/LanguageContext";
+import FirstVisitLanguageModal from "../components/FirstVisitLanguageModal";
 import "./globals.css";
 
 const inter = Inter({
@@ -89,6 +90,7 @@ export default function RootLayout({
           <GoogleAnalyticsPageView />
         </Suspense>
         <LanguageProvider>
+          <FirstVisitLanguageModal />
           <AuthProvider>
             <CurrencyProvider>
               <CartProvider>
