@@ -100,7 +100,7 @@ app.use("/api/upload", require("./src/routes/uploadRoutes"));
 app.use("/api/categories", require("./src/routes/categoryRoutes"));
 app.use("/api/coupons", require("./src/routes/couponRoutes"));
 app.use("/api/customers", require("./src/routes/customerRoutes"));
-app.use("/api/payments/kapital", require("./src/routes/kapitalPaymentRoutes"));
+app.use("/api/payments/epoint", require("./src/routes/epointPaymentRoutes"));
 
 app.use(errorHandler);
 

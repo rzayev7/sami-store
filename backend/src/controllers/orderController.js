@@ -142,7 +142,6 @@ const createOrder = async (req, res, next) => {
         language: String(rawLocale.language || "en").toLowerCase(),
         currency: String(rawLocale.currency || "USD").toUpperCase(),
         currencyRate: Math.max(0, Number(rawLocale.currencyRate || 0)),
-        aznPerUsd: Math.max(0, Number(rawLocale.aznPerUsd || 0)) || 1.7,
       },
       items: verifiedItems,
       totalPriceUSD: serverTotal,
