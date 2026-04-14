@@ -217,8 +217,20 @@ export default function AdminLayout({ children }) {
           />
         </aside>
 
-        {/* ---- Content area (dashboard only, no top navbar) ---- */}
+        {/* ---- Content area ---- */}
         <div className="min-w-0">
+          <div className="flex items-center justify-between border-b border-[var(--color-line)] bg-white px-4 py-3 lg:hidden">
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              aria-label={t.openMenu}
+              className="inline-flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm font-medium text-black/70 transition-colors hover:bg-black/5 hover:text-black"
+            >
+              <Menu size={18} strokeWidth={1.8} />
+              {t.openMenu}
+            </button>
+            <p className="truncate text-sm font-semibold text-black/75">{pageTitle}</p>
+          </div>
           <section className="p-4 sm:p-6 lg:p-8">{children}</section>
         </div>
       </div>
