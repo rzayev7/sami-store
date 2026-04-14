@@ -160,10 +160,9 @@ const createOrder = async (req, res, next) => {
 
     console.log(`[createOrder] orderId=${order._id} paymentMethod="${order.paymentMethod}"`);
 
-    const createTimeNotificationMethods = new Set(["bank_transfer", "cod"]);
-    const shouldNotifyOnCreate = createTimeNotificationMethods.has(
-      String(order.paymentMethod || "").toLowerCase(),
-    );
+    // Fail-safe: do not send confirmation notifications at order creation time.
+    // Payment-linked notifications are sent from gateway/status flows after confirmation.
+    const shouldNotifyOnCreate = false;
     if (shouldNotifyOnCreate) {
       const whatsappResult = await sendWhatsAppOrderNotification(order);
       if (!whatsappResult.sent) {
