@@ -158,7 +158,10 @@ const createOrder = async (req, res, next) => {
 
     const order = await Order.create(payload);
 
-    const shouldNotifyOnCreate = String(order.paymentMethod || "").toLowerCase() !== "card";
+    const createTimeNotificationMethods = new Set(["bank_transfer", "cod"]);
+    const shouldNotifyOnCreate = createTimeNotificationMethods.has(
+      String(order.paymentMethod || "").toLowerCase(),
+    );
     if (shouldNotifyOnCreate) {
       const whatsappResult = await sendWhatsAppOrderNotification(order);
       if (!whatsappResult.sent) {
