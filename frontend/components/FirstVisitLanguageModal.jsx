@@ -43,6 +43,12 @@ function isAdminPath(pathname) {
   return Boolean(pathname?.startsWith("/admin"));
 }
 
+function getCookie(name) {
+  if (typeof document === "undefined") return "";
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : "";
+}
+
 /** True when URL shows an explicit non-default locale (/tr, /uz, …) — not middleware’s usual /en/… */
 function isExplicitNonEnglishPath(pathLang) {
   return pathLang != null && pathLang !== "en";
@@ -82,6 +88,12 @@ export default function FirstVisitLanguageModal() {
     }
 
     try {
+      const cookieLang = getCookie("sami_lang");
+      if (MODAL_LANG_CODES.includes(cookieLang)) {
+        window.localStorage.setItem(STORAGE_KEY, cookieLang);
+        setOpen(false);
+        return;
+      }
       if (typeof window !== "undefined" && window.localStorage.getItem(STORAGE_KEY)) {
         setOpen(false);
         return;

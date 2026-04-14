@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { DEFAULT_LANG, LANGUAGES, getDirection, translate } from "../i18n";
 
 const LANG_CODES = LANGUAGES.map((l) => l.code);
+const FIRST_VISIT_LANG_STORAGE_KEY = "userLanguagePreference";
 
 function langFromPath(pathname) {
   const first = pathname?.split("/")[1];
@@ -43,6 +44,11 @@ export function LanguageProvider({ children }) {
       if (!LANG_CODES.includes(code)) return;
       setLanguageRaw(code);
       document.cookie = `sami_lang=${code}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+      try {
+        window.localStorage.setItem(FIRST_VISIT_LANG_STORAGE_KEY, code);
+      } catch {
+        // ignore private mode / quota issues
+      }
       const current = window.location.pathname;
       const curLang = langFromPath(current);
       let newPath;

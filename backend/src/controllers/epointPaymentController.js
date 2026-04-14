@@ -12,6 +12,14 @@ const epointService = new EpointService();
 const getStoreBaseUrl = () => (process.env.STORE_BASE_URL || "http://localhost:3000").replace(/\/+$/, "");
 const getApiBaseUrl = () =>
   (process.env.BACKEND_BASE_URL || `http://localhost:${process.env.PORT || 5000}`).replace(/\/+$/, "");
+const isLocalhostUrl = (value) => {
+  try {
+    const u = new URL(value);
+    return ["localhost", "127.0.0.1", "::1"].includes(String(u.hostname || "").toLowerCase());
+  } catch {
+    return false;
+  }
+};
 
 const buildUrl = (base, path, query = {}) => {
   const url = new URL(path, `${base}/`);
@@ -116,6 +124,15 @@ const applyGatewayResultToOrder = async (order, gatewayData) => {
 
 const initiateEpointPayment = async (req, res, next) => {
   try {
+    const apiBase = getApiBaseUrl();
+    const isProd = process.env.NODE_ENV === "production";
+    if (isProd && isLocalhostUrl(apiBase)) {
+      return res.status(500).json({
+        message:
+          "BACKEND_BASE_URL must be a public HTTPS URL in production. Current value resolves to localhost.",
+      });
+    }
+
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ message: "Order not found" });
     if (order.paymentStatus === "paid") return res.status(400).json({ message: "Order is already paid" });
@@ -125,7 +142,6 @@ const initiateEpointPayment = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid order amount" });
     }
 
-    const apiBase = getApiBaseUrl();
     const successRedirectUrl = buildUrl(apiBase, process.env.EPOINT_SUCCESS_PATH || "/api/payments/epoint/return/success", {
       orderId: order._id,
     });
