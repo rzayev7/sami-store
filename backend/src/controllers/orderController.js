@@ -158,27 +158,30 @@ const createOrder = async (req, res, next) => {
 
     const order = await Order.create(payload);
 
-    const whatsappResult = await sendWhatsAppOrderNotification(order);
-    if (!whatsappResult.sent) {
-      console.warn("WhatsApp order notification was not sent:", whatsappResult.reason);
-    }
-
-    try {
-      const emailResult = await sendOrderConfirmationEmail(order);
-      if (!emailResult.sent) {
-        console.warn("Order confirmation email was not sent:", emailResult.reason);
+    const shouldNotifyOnCreate = String(order.paymentMethod || "").toLowerCase() !== "card";
+    if (shouldNotifyOnCreate) {
+      const whatsappResult = await sendWhatsAppOrderNotification(order);
+      if (!whatsappResult.sent) {
+        console.warn("WhatsApp order notification was not sent:", whatsappResult.reason);
       }
-    } catch (err) {
-      console.warn("Failed to send order confirmation email:", err?.message || err);
-    }
 
-    try {
-      const adminEmailResult = await sendAdminNewOrderNotificationEmail(order);
-      if (!adminEmailResult.sent) {
-        console.warn("Admin order notification email was not sent:", adminEmailResult.reason);
+      try {
+        const emailResult = await sendOrderConfirmationEmail(order);
+        if (!emailResult.sent) {
+          console.warn("Order confirmation email was not sent:", emailResult.reason);
+        }
+      } catch (err) {
+        console.warn("Failed to send order confirmation email:", err?.message || err);
       }
-    } catch (err) {
-      console.warn("Failed to send admin order notification email:", err?.message || err);
+
+      try {
+        const adminEmailResult = await sendAdminNewOrderNotificationEmail(order);
+        if (!adminEmailResult.sent) {
+          console.warn("Admin order notification email was not sent:", adminEmailResult.reason);
+        }
+      } catch (err) {
+        console.warn("Failed to send admin order notification email:", err?.message || err);
+      }
     }
 
     res.status(201).json(order);

@@ -1,6 +1,11 @@
 const Order = require("../models/Order");
 const { EpointService } = require("../services/epointService");
 const { verifySignature, decodeData } = require("../utils/epointSignature");
+const { sendWhatsAppOrderNotification } = require("../services/whatsappService");
+const {
+  sendOrderConfirmationEmail,
+  sendAdminNewOrderNotificationEmail,
+} = require("../services/emailService");
 
 const epointService = new EpointService();
 
@@ -47,6 +52,7 @@ const upsertPaymentTimeline = (order, event, note = "") => {
 };
 
 const applyGatewayResultToOrder = async (order, gatewayData) => {
+  const wasPaid = order.paymentStatus === "paid";
   const mapped = mapEpointStatus(gatewayData?.status);
   const bankCode = String(gatewayData?.code || "");
   const bankCodeMessage = epointService.describeBankCode(bankCode);
@@ -74,6 +80,37 @@ const applyGatewayResultToOrder = async (order, gatewayData) => {
   );
 
   await order.save();
+
+  // Card orders should send confirmation/alerts only after gateway confirms payment.
+  if (!wasPaid && mapped.paymentStatus === "paid") {
+    try {
+      const whatsappResult = await sendWhatsAppOrderNotification(order);
+      if (!whatsappResult.sent) {
+        console.warn("WhatsApp order notification was not sent:", whatsappResult.reason);
+      }
+    } catch (err) {
+      console.warn("Failed to send WhatsApp order notification:", err?.message || err);
+    }
+
+    try {
+      const emailResult = await sendOrderConfirmationEmail(order);
+      if (!emailResult.sent) {
+        console.warn("Order confirmation email was not sent:", emailResult.reason);
+      }
+    } catch (err) {
+      console.warn("Failed to send order confirmation email:", err?.message || err);
+    }
+
+    try {
+      const adminEmailResult = await sendAdminNewOrderNotificationEmail(order);
+      if (!adminEmailResult.sent) {
+        console.warn("Admin order notification email was not sent:", adminEmailResult.reason);
+      }
+    } catch (err) {
+      console.warn("Failed to send admin order notification email:", err?.message || err);
+    }
+  }
+
   return mapped;
 };
 
