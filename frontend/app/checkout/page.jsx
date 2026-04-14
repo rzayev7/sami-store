@@ -53,7 +53,7 @@ export default function CheckoutPage() {
   const [couponError, setCouponError] = useState("");
   const [hasPlacedOrder, setHasPlacedOrder] = useState(false);
   const [openPaymentSection, setOpenPaymentSection] = useState("");
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank_transfer");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
 
   const subtotal = useMemo(() => {
     return cartItems.reduce(
@@ -114,6 +114,7 @@ export default function CheckoutPage() {
     const email = val("email");
     const postalCode = val("postalCode");
     const orderNotesRaw = (fd.get("orderNotes") ?? "").toString();
+    const normalizedPaymentMethod = selectedPaymentMethod === "card" ? "card" : "bank_transfer";
 
     const orderPayload = {
       customerInfo: {
@@ -148,7 +149,7 @@ export default function CheckoutPage() {
         ),
         aznPerUsd: Number(aznPerUsd || 1.7),
       },
-      paymentMethod: selectedPaymentMethod,
+      paymentMethod: normalizedPaymentMethod,
     };
 
     try {
@@ -282,9 +283,9 @@ export default function CheckoutPage() {
           <fieldset className="space-y-3 rounded-xl border border-[var(--color-line)] bg-white p-5">
             <legend className="px-2 text-sm font-semibold uppercase tracking-[0.12em]">{t("checkout.payment")}</legend>
 
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900">
+            <div className="px-1 py-1 text-sm text-[var(--color-text)]">
               <p className="font-semibold">Shipping: $8 worldwide</p>
-              <p className="mt-0.5 text-xs text-emerald-800">Free shipping on orders over $150</p>
+              <p className="mt-0.5 text-xs text-[var(--color-muted)]">Free shipping on orders over $150</p>
             </div>
 
             <div className="rounded-lg border border-[var(--color-line)] bg-[var(--color-sand)]/30">
@@ -297,25 +298,34 @@ export default function CheckoutPage() {
                     return next;
                   })
                 }
-                className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
+                className={`flex w-full items-center justify-between gap-3 px-3 py-3 text-left transition hover:bg-black/[0.03] ${
+                  selectedPaymentMethod === "card"
+                    ? "bg-emerald-50 ring-1 ring-emerald-300"
+                    : ""
+                }`}
                 aria-expanded={openPaymentSection === "card"}
               >
-                <span className="text-sm font-semibold">
-                  {t("checkout.creditCard")}
-                  {selectedPaymentMethod === "card" ? " (Selected)" : ""}
+                <span className="flex items-center gap-2 text-sm font-semibold">
+                  {selectedPaymentMethod === "card" && (
+                    <span
+                      className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1 text-[11px] font-bold text-white"
+                      aria-hidden="true"
+                    >
+                      ✓
+                    </span>
+                  )}
+                  <span>{t("checkout.creditCard")}</span>
+                  {selectedPaymentMethod === "card" && (
+                    <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white">
+                      Selected
+                    </span>
+                  )}
                 </span>
                 <div className="flex items-center gap-2">
                   <VisaMark className="h-6 w-auto" />
                   <MastercardMark className="h-6 w-auto" />
                 </div>
               </button>
-              {openPaymentSection === "card" && (
-                <div className="border-t border-[var(--color-line)] px-3 pb-3 pt-2">
-                  <p className="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-900">
-                    Card payment is active. After placing the order, you will be redirected to Epoint secure checkout.
-                  </p>
-                </div>
-              )}
             </div>
 
             <div className="rounded-lg border border-[var(--color-line)] bg-white">
@@ -328,12 +338,28 @@ export default function CheckoutPage() {
                     return next;
                   })
                 }
-                className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
+                className={`flex w-full items-center justify-between gap-3 px-3 py-3 text-left transition hover:bg-black/[0.03] ${
+                  selectedPaymentMethod === "bank_transfer"
+                    ? "bg-emerald-50 ring-1 ring-emerald-300"
+                    : ""
+                }`}
                 aria-expanded={openPaymentSection === "bank"}
               >
-                <span className="text-sm font-semibold">
-                  {t("checkout.bankTransfer")}
-                  {selectedPaymentMethod === "bank_transfer" ? " (Selected)" : ""}
+                <span className="flex items-center gap-2 text-sm font-semibold">
+                  {selectedPaymentMethod === "bank_transfer" && (
+                    <span
+                      className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1 text-[11px] font-bold text-white"
+                      aria-hidden="true"
+                    >
+                      ✓
+                    </span>
+                  )}
+                  <span>{t("checkout.bankTransfer")}</span>
+                  {selectedPaymentMethod === "bank_transfer" && (
+                    <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white">
+                      Selected
+                    </span>
+                  )}
                 </span>
                 <span className="text-xs font-medium uppercase tracking-[0.08em] text-black/55">
                   {openPaymentSection === "bank" ? "Hide" : "Open"}
@@ -350,12 +376,35 @@ export default function CheckoutPage() {
               <button
                 type="button"
                 onClick={() =>
-                  setOpenPaymentSection((prev) => (prev === "wu" ? "" : "wu"))
+                  setOpenPaymentSection((prev) => {
+                    const next = prev === "wu" ? "" : "wu";
+                    if (next === "wu") setSelectedPaymentMethod("western_union");
+                    return next;
+                  })
                 }
-                className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
+                className={`flex w-full items-center justify-between gap-3 px-3 py-3 text-left transition hover:bg-black/[0.03] ${
+                  selectedPaymentMethod === "western_union"
+                    ? "bg-emerald-50 ring-1 ring-emerald-300"
+                    : ""
+                }`}
                 aria-expanded={openPaymentSection === "wu"}
               >
-                <span className="text-sm font-semibold">{t("checkout.westernUnion")}</span>
+                <span className="flex items-center gap-2 text-sm font-semibold">
+                  {selectedPaymentMethod === "western_union" && (
+                    <span
+                      className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1 text-[11px] font-bold text-white"
+                      aria-hidden="true"
+                    >
+                      ✓
+                    </span>
+                  )}
+                  <span>{t("checkout.westernUnion")}</span>
+                  {selectedPaymentMethod === "western_union" && (
+                    <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white">
+                      Selected
+                    </span>
+                  )}
+                </span>
                 <div className="flex shrink-0 items-center gap-2">
                   <WesternUnionMark className="h-6 w-auto max-w-[8.25rem]" />
                   <span className="text-xs font-medium uppercase tracking-[0.08em] text-black/55">
@@ -374,12 +423,35 @@ export default function CheckoutPage() {
               <button
                 type="button"
                 onClick={() =>
-                  setOpenPaymentSection((prev) => (prev === "korona" ? "" : "korona"))
+                  setOpenPaymentSection((prev) => {
+                    const next = prev === "korona" ? "" : "korona";
+                    if (next === "korona") setSelectedPaymentMethod("zolotaya_korona");
+                    return next;
+                  })
                 }
-                className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
+                className={`flex w-full items-center justify-between gap-3 px-3 py-3 text-left transition hover:bg-black/[0.03] ${
+                  selectedPaymentMethod === "zolotaya_korona"
+                    ? "bg-emerald-50 ring-1 ring-emerald-300"
+                    : ""
+                }`}
                 aria-expanded={openPaymentSection === "korona"}
               >
-                <span className="text-sm font-semibold">{t("checkout.zolotayaKorona")}</span>
+                <span className="flex items-center gap-2 text-sm font-semibold">
+                  {selectedPaymentMethod === "zolotaya_korona" && (
+                    <span
+                      className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1 text-[11px] font-bold text-white"
+                      aria-hidden="true"
+                    >
+                      ✓
+                    </span>
+                  )}
+                  <span>{t("checkout.zolotayaKorona")}</span>
+                  {selectedPaymentMethod === "zolotaya_korona" && (
+                    <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white">
+                      Selected
+                    </span>
+                  )}
+                </span>
                 <div className="flex shrink-0 items-center gap-2">
                   <ZolotayaKoronaMark className="h-6 w-auto max-w-[7rem]" />
                   <span className="text-xs font-medium uppercase tracking-[0.08em] text-black/55">
@@ -481,7 +553,7 @@ export default function CheckoutPage() {
           <button
             type="submit"
             form="checkout-form"
-            disabled={isPlacingOrder}
+            disabled={isPlacingOrder || !selectedPaymentMethod}
             className="sami-btn-dark mt-5 w-full px-4 py-3.5 text-sm"
           >
             {isPlacingOrder ? t("common.processing") : t("checkout.placeOrder")}
