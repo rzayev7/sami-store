@@ -53,6 +53,7 @@ export default function CheckoutPage() {
   const [couponError, setCouponError] = useState("");
   const [hasPlacedOrder, setHasPlacedOrder] = useState(false);
   const [openPaymentSection, setOpenPaymentSection] = useState("");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank_transfer");
 
   const subtotal = useMemo(() => {
     return cartItems.reduce(
@@ -147,6 +148,7 @@ export default function CheckoutPage() {
         ),
         aznPerUsd: Number(aznPerUsd || 1.7),
       },
+      paymentMethod: selectedPaymentMethod,
     };
 
     try {
@@ -158,6 +160,16 @@ export default function CheckoutPage() {
 
       setHasPlacedOrder(true);
       clearCart();
+      if (selectedPaymentMethod === "card") {
+        const paymentInit = await api.post(`/api/payments/epoint/init/${encodeURIComponent(String(orderId))}`);
+        const paymentUrl = paymentInit?.data?.paymentUrl;
+        if (!paymentUrl) {
+          throw new Error("Epoint payment initialized but no payment URL returned");
+        }
+        window.location.assign(paymentUrl);
+        return;
+      }
+
       router.replace(
         localePath(`/payment/bank-transfer?orderId=${encodeURIComponent(String(orderId))}&email=${encodeURIComponent(
           email
@@ -279,12 +291,19 @@ export default function CheckoutPage() {
               <button
                 type="button"
                 onClick={() =>
-                  setOpenPaymentSection((prev) => (prev === "card" ? "" : "card"))
+                  setOpenPaymentSection((prev) => {
+                    const next = prev === "card" ? "" : "card";
+                    if (next === "card") setSelectedPaymentMethod("card");
+                    return next;
+                  })
                 }
                 className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
                 aria-expanded={openPaymentSection === "card"}
               >
-                <span className="text-sm font-semibold">{t("checkout.creditCard")}</span>
+                <span className="text-sm font-semibold">
+                  {t("checkout.creditCard")}
+                  {selectedPaymentMethod === "card" ? " (Selected)" : ""}
+                </span>
                 <div className="flex items-center gap-2">
                   <VisaMark className="h-6 w-auto" />
                   <MastercardMark className="h-6 w-auto" />
@@ -292,8 +311,8 @@ export default function CheckoutPage() {
               </button>
               {openPaymentSection === "card" && (
                 <div className="border-t border-[var(--color-line)] px-3 pb-3 pt-2">
-                  <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900">
-                    {t("checkout.cardNotAvailable")}
+                  <p className="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-900">
+                    Card payment is active. After placing the order, you will be redirected to Epoint secure checkout.
                   </p>
                 </div>
               )}
@@ -303,12 +322,19 @@ export default function CheckoutPage() {
               <button
                 type="button"
                 onClick={() =>
-                  setOpenPaymentSection((prev) => (prev === "bank" ? "" : "bank"))
+                  setOpenPaymentSection((prev) => {
+                    const next = prev === "bank" ? "" : "bank";
+                    if (next === "bank") setSelectedPaymentMethod("bank_transfer");
+                    return next;
+                  })
                 }
                 className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
                 aria-expanded={openPaymentSection === "bank"}
               >
-                <span className="text-sm font-semibold">{t("checkout.bankTransfer")}</span>
+                <span className="text-sm font-semibold">
+                  {t("checkout.bankTransfer")}
+                  {selectedPaymentMethod === "bank_transfer" ? " (Selected)" : ""}
+                </span>
                 <span className="text-xs font-medium uppercase tracking-[0.08em] text-black/55">
                   {openPaymentSection === "bank" ? "Hide" : "Open"}
                 </span>
