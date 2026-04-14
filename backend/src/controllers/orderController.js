@@ -158,6 +158,8 @@ const createOrder = async (req, res, next) => {
 
     const order = await Order.create(payload);
 
+    console.log(`[createOrder] orderId=${order._id} paymentMethod="${order.paymentMethod}"`);
+
     const createTimeNotificationMethods = new Set(["bank_transfer", "cod"]);
     const shouldNotifyOnCreate = createTimeNotificationMethods.has(
       String(order.paymentMethod || "").toLowerCase(),

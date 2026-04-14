@@ -138,7 +138,7 @@ export default function CheckoutPage() {
       })),
       totalPriceUSD: Number(totalPrice.toFixed(2)),
       shippingCost,
-      paymentMethod: "bank_transfer",
+      paymentMethod: normalizedPaymentMethod,
       ...(orderNotesRaw.trim() && { orderNotes: orderNotesRaw.trim() }),
       ...(appliedCoupon && { couponCode: appliedCoupon.code }),
       customerLocale: {
@@ -149,7 +149,6 @@ export default function CheckoutPage() {
         ),
         aznPerUsd: Number(aznPerUsd || 1.7),
       },
-      paymentMethod: normalizedPaymentMethod,
     };
 
     try {
