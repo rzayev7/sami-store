@@ -288,7 +288,7 @@ export default function CheckoutPage() {
               <p className="mt-0.5 text-xs text-[var(--color-muted)]">Free shipping on orders over $150</p>
             </div>
 
-            <div className="rounded-lg border border-[var(--color-line)] bg-[var(--color-sand)]/30">
+            <div className="rounded-lg border border-[var(--color-line)] bg-white">
               <button
                 type="button"
                 onClick={() =>
