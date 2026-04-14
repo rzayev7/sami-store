@@ -42,16 +42,15 @@ const mapEpointStatus = (status) => {
 };
 
 const getOrderAmountAzn = (order) => {
-  const aznPerUsd = Number(process.env.AZN_PER_USD || 1.7);
-  const amountUsd = Number(order?.totalPriceUSD || 0);
-  if (!amountUsd || amountUsd <= 0) {
-    throw new Error(`Order ${order._id} has no valid totalPriceUSD for AZN conversion`);
+  // Checkout totals are already stored in AZN, despite the legacy field name `totalPriceUSD`.
+  const amountAzn = Math.round(Number(order?.totalPriceUSD || 0) * 100) / 100;
+  if (!amountAzn || amountAzn <= 0) {
+    throw new Error(`Order ${order._id} has no valid stored total amount`);
   }
-  const azn = Math.round(amountUsd * aznPerUsd * 100) / 100;
-  if (azn < 0.5) {
-    throw new Error(`Converted AZN amount ${azn} is below Epoint minimum (0.50 AZN)`);
+  if (amountAzn < 0.5) {
+    throw new Error(`Order amount ${amountAzn} is below Epoint minimum (0.50 AZN)`);
   }
-  return azn;
+  return amountAzn;
 };
 
 const upsertPaymentTimeline = (order, event, note = "") => {
