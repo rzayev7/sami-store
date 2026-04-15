@@ -34,9 +34,7 @@ const COUNTRIES = [
   "Uruguay","Uzbekistan","Venezuela","Vietnam",
 ];
 
-const AZN_PER_USD = 1.7;
-const WORLDWIDE_SHIPPING_FEE_AZN = 0;
-const FREE_SHIPPING_THRESHOLD_AZN = 150 * AZN_PER_USD; // $150 equivalent
+const WORLDWIDE_SHIPPING_FEE_AZN = 8;
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -63,8 +61,7 @@ export default function CheckoutPage() {
   }, [cartItems]);
   const discountAmount = appliedCoupon ? (subtotal * appliedCoupon.discountPercentage) / 100 : 0;
   const discountedSubtotal = Math.max(0, subtotal - discountAmount);
-  const shippingCost =
-    discountedSubtotal >= FREE_SHIPPING_THRESHOLD_AZN ? 0 : WORLDWIDE_SHIPPING_FEE_AZN;
+  const shippingCost = WORLDWIDE_SHIPPING_FEE_AZN;
   const totalPrice = discountedSubtotal + shippingCost;
 
   const handleApplyCoupon = async () => {
@@ -283,8 +280,8 @@ export default function CheckoutPage() {
             <legend className="px-2 text-sm font-semibold uppercase tracking-[0.12em]">{t("checkout.payment")}</legend>
 
             <div className="px-1 py-1 text-sm text-[var(--color-text)]">
-              <p className="font-semibold">Shipping: $0 worldwide</p>
-              <p className="mt-0.5 text-xs text-[var(--color-muted)]">Free shipping for all orders</p>
+              <p className="font-semibold">Shipping: $8 worldwide</p>
+              <p className="mt-0.5 text-xs text-[var(--color-muted)]">Flat delivery fee applied at checkout</p>
             </div>
 
             <div className="rounded-lg border border-[var(--color-line)] bg-white">
