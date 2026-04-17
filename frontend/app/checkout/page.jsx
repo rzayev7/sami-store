@@ -62,7 +62,7 @@ export default function CheckoutPage() {
   }, [cartItems]);
   const discountAmount = appliedCoupon ? (subtotal * appliedCoupon.discountPercentage) / 100 : 0;
   const discountedSubtotal = Math.max(0, subtotal - discountAmount);
-  const shippingCost = WORLDWIDE_SHIPPING_FEE_USD;
+  const shippingCost = Number((WORLDWIDE_SHIPPING_FEE_USD * Number(aznPerUsd || 1.7)).toFixed(2));
   const totalPrice = discountedSubtotal + shippingCost;
 
   const handleApplyCoupon = async () => {
