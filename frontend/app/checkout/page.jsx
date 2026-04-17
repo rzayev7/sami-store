@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { MessageCircle } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 import { useCurrency } from "../../context/CurrencyContext";
 import { useAuth } from "../../context/AuthContext";
@@ -34,7 +35,7 @@ const COUNTRIES = [
   "Uruguay","Uzbekistan","Venezuela","Vietnam",
 ];
 
-const WORLDWIDE_SHIPPING_FEE_AZN = 8;
+const WORLDWIDE_SHIPPING_FEE_USD = 8;
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -61,7 +62,7 @@ export default function CheckoutPage() {
   }, [cartItems]);
   const discountAmount = appliedCoupon ? (subtotal * appliedCoupon.discountPercentage) / 100 : 0;
   const discountedSubtotal = Math.max(0, subtotal - discountAmount);
-  const shippingCost = WORLDWIDE_SHIPPING_FEE_AZN;
+  const shippingCost = WORLDWIDE_SHIPPING_FEE_USD;
   const totalPrice = discountedSubtotal + shippingCost;
 
   const handleApplyCoupon = async () => {
@@ -280,8 +281,30 @@ export default function CheckoutPage() {
             <legend className="px-2 text-sm font-semibold uppercase tracking-[0.12em]">{t("checkout.payment")}</legend>
 
             <div className="px-1 py-1 text-sm text-[var(--color-text)]">
-              <p className="font-semibold">Shipping: $8 worldwide</p>
+              <p className="font-semibold">Delivery: 8 USD worldwide</p>
               <p className="mt-0.5 text-xs text-[var(--color-muted)]">Flat delivery fee applied at checkout</p>
+            </div>
+
+            <div className="rounded-md border border-[var(--color-line)] bg-[var(--color-sand)]/35 px-3 py-2.5">
+              <p className="text-xs font-medium text-[var(--color-text)]">
+                If you have problems regarding payment, please reach out:
+              </p>
+              <p className="mt-1 text-xs text-[var(--color-muted)]">
+                <a href="mailto:samistore.support@gmail.com" className="underline underline-offset-2">
+                  samistore.support@gmail.com
+                </a>
+              </p>
+              <p className="text-xs text-[var(--color-muted)]">
+                <a
+                  href="https://wa.me/994554737996"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 underline underline-offset-2"
+                >
+                  <MessageCircle size={14} />
+                  +994554737996
+                </a>
+              </p>
             </div>
 
             <div className="rounded-lg border border-[var(--color-line)] bg-white">
