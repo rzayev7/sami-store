@@ -36,6 +36,7 @@ const COUNTRIES = [
 ];
 
 const WORLDWIDE_SHIPPING_FEE_USD = 8;
+const FREE_SHIPPING_THRESHOLD_USD = 150;
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -51,8 +52,8 @@ export default function CheckoutPage() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState("");
   const [hasPlacedOrder, setHasPlacedOrder] = useState(false);
-  const [openPaymentSection, setOpenPaymentSection] = useState("");
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
+  const [openPaymentSection, setOpenPaymentSection] = useState("card");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("card");
 
   const subtotal = useMemo(() => {
     return cartItems.reduce(
@@ -62,7 +63,11 @@ export default function CheckoutPage() {
   }, [cartItems]);
   const discountAmount = appliedCoupon ? (subtotal * appliedCoupon.discountPercentage) / 100 : 0;
   const discountedSubtotal = Math.max(0, subtotal - discountAmount);
-  const shippingCost = Number((WORLDWIDE_SHIPPING_FEE_USD * Number(aznPerUsd || 1.7)).toFixed(2));
+  const freeShippingThreshold = FREE_SHIPPING_THRESHOLD_USD * Number(aznPerUsd || 1.7);
+  const amountToFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
+  const shippingCost = subtotal >= freeShippingThreshold
+    ? 0
+    : Number((WORLDWIDE_SHIPPING_FEE_USD * Number(aznPerUsd || 1.7)).toFixed(2));
   const totalPrice = discountedSubtotal + shippingCost;
 
   const handleApplyCoupon = async () => {
@@ -279,10 +284,15 @@ export default function CheckoutPage() {
           {/* Payment */}
           <fieldset className="space-y-3 rounded-xl border border-[var(--color-line)] bg-white p-5">
             <legend className="px-2 text-sm font-semibold uppercase tracking-[0.12em]">{t("checkout.payment")}</legend>
+            <p className="text-xs text-[var(--color-muted)] px-1">Select a payment method below to place your order.</p>
 
             <div className="px-1 py-1 text-sm text-[var(--color-text)]">
-              <p className="font-semibold">Delivery: 8 USD worldwide</p>
-              <p className="mt-0.5 text-xs text-[var(--color-muted)]">Flat delivery fee applied at checkout</p>
+              <p className="font-semibold">Delivery: {shippingCost === 0 ? "Free" : "8 USD"} worldwide</p>
+              <p className="mt-0.5 text-xs text-[var(--color-muted)]">
+                {shippingCost === 0
+                  ? "Free shipping applied — order over $150"
+                  : "Free shipping on orders over $150 · Spend " + formatPrice(amountToFreeShipping) + " more to qualify"}
+              </p>
             </div>
 
             <div className="rounded-md border border-[var(--color-line)] bg-[var(--color-sand)]/35 px-3 py-2.5">
@@ -575,8 +585,16 @@ export default function CheckoutPage() {
             disabled={isPlacingOrder || !selectedPaymentMethod}
             className="sami-btn-dark mt-5 w-full px-4 py-3.5 text-sm"
           >
-            {isPlacingOrder ? t("common.processing") : t("checkout.placeOrder")}
+            {isPlacingOrder
+              ? t("common.processing")
+              : `${t("checkout.placeOrder")} — ${formatPrice(totalPrice)}`}
           </button>
+
+          <div className="mt-3 flex items-center justify-center gap-4 text-[11px] text-[var(--color-muted)]">
+            <span>🔒 Secure Checkout</span>
+            <span>↩ Easy Returns</span>
+            <span>📦 Tracked Shipping</span>
+          </div>
 
           {errorMessage && (
             <p className="mt-3 text-sm text-red-600" role="alert">

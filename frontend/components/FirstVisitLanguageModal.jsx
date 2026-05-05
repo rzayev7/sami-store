@@ -102,8 +102,8 @@ export default function FirstVisitLanguageModal() {
       return;
     }
 
-    setOpen(true);
     const pathLang = modalLangFromPath(pathname);
+    const openTimer = setTimeout(() => setOpen(true), 4000);
     if (isExplicitNonEnglishPath(pathLang) && !userChangedSelection.current) {
       setSelected(pathLang);
     }
@@ -145,6 +145,7 @@ export default function FirstVisitLanguageModal() {
 
     return () => {
       cancelled = true;
+      clearTimeout(openTimer);
     };
   }, [pathname]);
 
