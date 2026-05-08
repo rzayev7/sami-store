@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { geolocation } from "@vercel/functions";
 
 const LOCALES = ["en", "ar", "ru", "uz"];
 const LEGACY_LOCALES = ["az", "fr", "tr", "kk"];
@@ -60,22 +61,22 @@ function isAccessRestrictedPath(pathname: string): boolean {
 function getCountryFromTrustedHeaders(
   request: NextRequest,
 ): { countryCode: string; source: CountryHeaderSource | "none" } {
-  // Trust infrastructure-managed country headers only.
   // Priority order:
-  // 1) Cloudflare: cf-ipcountry
-  // 2) Vercel edge: x-vercel-ip-country
-  // 3) AWS CloudFront: cloudfront-viewer-country
-  // 4) Optional custom edge header: x-country-code
-  // 5) Next.js geo fallback (when available)
+  // 1) @vercel/functions geolocation() — official Vercel API for Next.js 15/16 (request.geo removed)
+  // 2) Cloudflare: cf-ipcountry
+  // 3) Vercel header fallback: x-vercel-ip-country
+  // 4) AWS CloudFront: cloudfront-viewer-country
+  // 5) Optional custom edge header: x-country-code
+  const vercelGeo = geolocation(request);
+  if (vercelGeo?.country) {
+    return { countryCode: normalizeCountryCode(vercelGeo.country), source: "x-vercel-ip-country" };
+  }
+
   const candidates: Array<{ source: CountryHeaderSource; value: string | null }> = [
     { source: "cf-ipcountry", value: request.headers.get("cf-ipcountry") },
     { source: "x-vercel-ip-country", value: request.headers.get("x-vercel-ip-country") },
     { source: "cloudfront-viewer-country", value: request.headers.get("cloudfront-viewer-country") },
     { source: "x-country-code", value: request.headers.get("x-country-code") },
-    {
-      source: "request.geo",
-      value: (request as NextRequest & { geo?: { country?: string } }).geo?.country || null,
-    },
   ];
 
   for (const candidate of candidates) {
