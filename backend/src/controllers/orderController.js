@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
 const Coupon = require("../models/Coupon");
+const { deductStockForPaidOrder } = require("../services/orderStockService");
 const { sendWhatsAppOrderNotification } = require("../services/whatsappService");
 const {
   sendOrderConfirmationEmail,
@@ -89,30 +90,7 @@ const createOrder = async (req, res, next) => {
       });
     }
 
-    // ── 2. Atomic stock check & decrement ──
-
-    const stockRollbacks = [];
-    for (const item of verifiedItems) {
-      const result = await Product.updateOne(
-        { _id: item.productId, stock: { $gte: item.quantity } },
-        { $inc: { stock: -item.quantity } },
-      );
-      if (result.matchedCount === 0) {
-        // Rollback stock for items already decremented in this request
-        for (const rb of stockRollbacks) {
-          await Product.updateOne(
-            { _id: rb.productId },
-            { $inc: { stock: rb.quantity } },
-          );
-        }
-        return res.status(400).json({
-          message: `"${item.name}" is out of stock or insufficient quantity available`,
-        });
-      }
-      stockRollbacks.push({ productId: item.productId, quantity: item.quantity });
-    }
-
-    // ── 3. Re-validate coupon & compute total server-side ──
+    // ── 2. Re-validate coupon & compute total server-side ──
 
     const subtotal = verifiedItems.reduce(
       (sum, i) => sum + i.priceUSD * i.quantity,
@@ -134,7 +112,7 @@ const createOrder = async (req, res, next) => {
     const serverTotal =
       Math.round((subtotal - discountAmount + shippingCost) * 100) / 100;
 
-    // ── 4. Build & persist order ──
+    // ── 3. Build & persist order ──
 
     const normalizedPaymentMethod = String(req.body?.paymentMethod || "").toLowerCase();
     if (!ALLOWED_PAYMENT_METHODS.includes(normalizedPaymentMethod)) {
@@ -341,7 +319,7 @@ const updateOrder = async (req, res, next) => {
     const trackingJustAdded = !previousTracking && existingOrder.trackingNumber;
     const shouldSendShippingEmail = (willBeShipped && previousStatus !== "shipped") || trackingJustAdded;
     const paymentJustConfirmed =
-      previousPaymentStatus !== "paid" && nextPaymentStatus === "paid";
+      previousPaymentStatus !== "paid" && (nextPaymentStatus === "paid" || nextStatus === "paid");
 
     // Nothing to update
     if (
@@ -357,8 +335,10 @@ const updateOrder = async (req, res, next) => {
       return res.status(400).json({ message: "No fields to update" });
     }
 
-    // Stock is already decremented atomically at order creation time.
-    // No second decrement here — prevents double-counting.
+    if (paymentJustConfirmed && !existingOrder.stockDeductedAt) {
+      existingOrder.paymentStatus = "paid";
+      await deductStockForPaidOrder(existingOrder);
+    }
 
     const order = await existingOrder.save();
 

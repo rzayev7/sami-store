@@ -112,6 +112,10 @@ const orderSchema = new mongoose.Schema({
     lastCheckedAt: { type: Date },
     verifiedAt: { type: Date },
   },
+  stockDeductedAt: {
+    type: Date,
+    default: null,
+  },
   customerLocale: {
     language: { type: String, default: "en" },
     currency: { type: String, default: "USD" },

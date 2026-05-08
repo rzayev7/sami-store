@@ -1,6 +1,7 @@
 const Order = require("../models/Order");
 const { EpointService } = require("../services/epointService");
 const { verifySignature, decodeData } = require("../utils/epointSignature");
+const { deductStockForPaidOrder } = require("../services/orderStockService");
 const { sendWhatsAppOrderNotification } = require("../services/whatsappService");
 const {
   sendOrderConfirmationEmail,
@@ -85,6 +86,10 @@ const applyGatewayResultToOrder = async (order, gatewayData) => {
     mapped.paymentStatus === "paid" ? "payment_confirmed" : "payment_verification_checked",
     bankCode ? `${bankCode}: ${bankCodeMessage}` : String(gatewayData?.message || ""),
   );
+
+  if (!wasPaid && mapped.paymentStatus === "paid" && !order.stockDeductedAt) {
+    await deductStockForPaidOrder(order);
+  }
 
   await order.save();
 
