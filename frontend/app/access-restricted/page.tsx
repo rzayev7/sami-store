@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "Coming Soon | SAMÍ",
-  description: "We're preparing something special. Stay tuned.",
+  title: "Tezliklə | SAMÍ",
+  description: "Sizə daha keyfiyyətli xidmət təqdim etmək üçün veb saytımız hazırlanır.",
 };
 
 export default function AccessRestrictedPage() {
@@ -19,9 +19,17 @@ export default function AccessRestrictedPage() {
       <div className="mx-auto mt-6 h-px w-12 bg-[#a68b5b]" aria-hidden />
 
       {/* Headline */}
-      <h1 className="mt-8 max-w-xs font-serif text-[1.6rem] font-light leading-[1.25] tracking-[0.02em] text-[#1a1714] sm:max-w-sm sm:text-[2rem]">
-        Something special<br />is on its way.
+      <h1 className="mt-8 max-w-sm font-serif text-[1.5rem] font-light leading-[1.35] tracking-[0.02em] text-[#1a1714] sm:text-[1.85rem]">
+        Dəyərli müştərilər,
       </h1>
+
+      {/* Body */}
+      <p className="mx-auto mt-4 max-w-sm text-[14px] leading-[1.85] text-[#8a837a] sm:text-[15px]">
+        Sizə daha keyfiyyətli xidmət təqdim etmək üçün veb saytımız hazırlanır.
+      </p>
+      <p className="mx-auto mt-2 max-w-sm text-[14px] leading-[1.85] text-[#8a837a] sm:text-[15px]">
+        Çox yaxında xidmətinizdə olacağıq.
+      </p>
 
       {/* Separator dots */}
       <div className="mt-8 flex items-center gap-1.5" aria-hidden>
