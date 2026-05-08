@@ -5,7 +5,8 @@ const LOCALES = ["en", "ar", "ru", "uz"];
 const LEGACY_LOCALES = ["az", "fr", "tr", "kk"];
 const DEFAULT_LOCALE = "en";
 const BLOCKED_COUNTRY_CODES = new Set(["AZ"]);
-const ACCESS_RESTRICTED_PATH = "/access-restricted";
+/** Internal route: generic fake 404 (no branding). Only used via rewrite. */
+const REGION_BLOCK_GHOST_PATH = "/__region-404";
 
 type CountryHeaderSource =
   | "cf-ipcountry"
@@ -53,9 +54,9 @@ function isBypassIp(request: NextRequest): boolean {
   return getBypassIpAllowlist().has(clientIp);
 }
 
-function isAccessRestrictedPath(pathname: string): boolean {
-  if (pathname === ACCESS_RESTRICTED_PATH) return true;
-  return LOCALES.some((locale) => pathname === `/${locale}${ACCESS_RESTRICTED_PATH}`);
+function isRegionBlockGhostPath(pathname: string): boolean {
+  if (pathname === REGION_BLOCK_GHOST_PATH) return true;
+  return LOCALES.some((locale) => pathname === `/${locale}${REGION_BLOCK_GHOST_PATH}`);
 }
 
 function getCountryFromTrustedHeaders(
@@ -92,16 +93,17 @@ function shouldBlockRequest(countryCode: string): boolean {
 }
 
 function buildBlockedResponse(request: NextRequest) {
-  // Rewrite (not redirect) so the visitor's URL stays unchanged.
-  // They see the coming soon page but the address bar shows the page they requested.
+  // Rewrite (URL bar unchanged) but real HTTP 404 — looks like the site/page does not exist.
   const rewriteUrl = request.nextUrl.clone();
-  rewriteUrl.pathname = ACCESS_RESTRICTED_PATH;
+  rewriteUrl.pathname = REGION_BLOCK_GHOST_PATH;
   rewriteUrl.search = "";
   return NextResponse.rewrite(rewriteUrl, {
+    status: 404,
     headers: {
       "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
       Pragma: "no-cache",
       Expires: "0",
+      "X-Robots-Tag": "noindex, nofollow",
     },
   });
 }
@@ -114,8 +116,8 @@ export function middleware(request: NextRequest) {
   const bypassedByIp = isBypassIp(request);
 
   // Country block check is done before locale/admin logic for full-site protection.
-  // Access-restricted page itself is allowlisted to avoid redirect loops.
-  if (!isAccessRestrictedPath(pathname) && shouldBlockRequest(countryCode) && !bypassedByIp) {
+  // Ghost 404 route is allowlisted to avoid looping rewrites.
+  if (!isRegionBlockGhostPath(pathname) && shouldBlockRequest(countryCode) && !bypassedByIp) {
     console.warn(
       JSON.stringify({
         event: "country_access_blocked",
