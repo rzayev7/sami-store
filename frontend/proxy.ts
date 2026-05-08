@@ -83,7 +83,7 @@ function shouldBlockRequest(countryCode: string): boolean {
   return BLOCKED_COUNTRY_CODES.has(countryCode);
 }
 
-function buildBlockedResponse(request: NextRequest, countryCode: string, source: string) {
+function buildBlockedResponse(request: NextRequest) {
   const mode = String(process.env.COUNTRY_BLOCK_MODE || "redirect").toLowerCase();
   const responseHeaders = {
     "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
@@ -107,7 +107,7 @@ function buildBlockedResponse(request: NextRequest, countryCode: string, source:
   return NextResponse.redirect(redirectUrl, { headers: responseHeaders });
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const firstSegment = pathname.split("/")[1];
   const { countryCode, source } = getCountryFromTrustedHeaders(request);
@@ -129,7 +129,7 @@ export function middleware(request: NextRequest) {
         at: new Date().toISOString(),
       }),
     );
-    return buildBlockedResponse(request, countryCode, source);
+    return buildBlockedResponse(request);
   }
 
   if (shouldBlockRequest(countryCode) && bypassedByIp) {
