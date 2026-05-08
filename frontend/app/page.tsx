@@ -107,7 +107,7 @@ export default function Home() {
               href="https://www.instagram.com/sami_boutique_baku/"
               target="_blank"
               rel="noopener noreferrer"
-              className="group mx-auto mt-9 inline-flex min-h-[54px] items-center gap-2.5 rounded-full bg-gradient-to-r from-[#7f3db3] via-[#d72f76] to-[#f36d3f] px-10 py-3.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_10px_24px_rgba(225,48,108,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:brightness-[1.03]"
+              className="group mx-auto mt-9 inline-flex min-h-[50px] items-center gap-2 rounded-full border border-[var(--color-black)]/20 bg-white px-9 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-black)] transition-all duration-200 hover:border-[var(--color-black)]/45 hover:bg-[#faf8f5]"
             >
               <Image
                 src="/instagram.png"
@@ -115,7 +115,7 @@ export default function Home() {
                 aria-hidden
                 width={16}
                 height={16}
-                className="h-[16px] w-[16px] object-contain"
+                className="h-[15px] w-[15px] object-contain"
               />
               {followOnInstagram}
             </a>
