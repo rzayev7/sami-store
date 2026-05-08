@@ -296,7 +296,7 @@
 
   "tracking": {
     "title": "Track Order",
-    "subtitle": "Enter your Order ID to view current delivery information.",
+    "subtitle": "Enter your Order ID to view current delivery information. The tracking number will be available after your package is handed over to the shipment service.",
     "orderIdLabel": "Order ID",
     "checking": "Checking...",
     "trackOrder": "Track Order",
@@ -304,7 +304,7 @@
     "notFound": "Order not found",
     "order": "Order",
     "trackingNumber": "Tracking number:",
-    "notAssigned": "Not assigned yet",
+    "notAssigned": "Tracking number will be available after the package is handed over to the shipment service.",
     "customerCountry": "Customer country:",
     "orderDate": "Order date:",
     "received": "Order received",
