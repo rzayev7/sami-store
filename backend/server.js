@@ -88,14 +88,18 @@ const couponLimiter = rateLimit({
 });
 app.use("/api/coupons/validate", couponLimiter);
 
-const leadLimiter = rateLimit({
+const leadSubmitLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 5,
   message: { message: "Too many submissions, please try again later." },
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use("/api/leads", leadLimiter);
+// Only rate-limit the public POST (lead capture form), not the admin GET.
+app.use("/api/leads", (req, res, next) => {
+  if (req.method === "POST") return leadSubmitLimiter(req, res, next);
+  next();
+});
 
 app.get("/", (req, res) => {
   res.send("Sami API is running");

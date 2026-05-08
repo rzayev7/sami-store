@@ -11,8 +11,8 @@ const WELCOME_COUPON_CODE =
   process.env.NEXT_PUBLIC_WELCOME_COUPON_CODE || "WELCOME10";
 
 const STORAGE_KEY = "sami_lead_capture_v1";
-const DELAY_MS = 20_000;
-const SCROLL_THRESHOLD = 0.40;
+const DELAY_MS = 9_000;
+const SCROLL_THRESHOLD = 0.25;
 
 // Cloudinary portrait image with face-aware crop for the modal photo panel.
 const MODEL_IMAGE_URL =
