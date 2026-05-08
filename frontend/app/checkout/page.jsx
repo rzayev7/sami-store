@@ -14,6 +14,7 @@ import WesternUnionDetails from "../../components/WesternUnionDetails";
 import ZolotayaKoronaDetails from "../../components/ZolotayaKoronaDetails";
 import { formatSizeLabel } from "../../lib/sizeDisplay";
 import { MastercardMark, VisaMark, WesternUnionMark, ZolotayaKoronaMark } from "../../components/CardBrandLogos";
+import { productToItem, trackBeginCheckout, trackAddPaymentInfo } from "../../lib/gtag";
 
 const COUNTRIES = [
   "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia",
@@ -106,6 +107,19 @@ export default function CheckoutPage() {
   }, [cartItems, router, hasPlacedOrder, hasHydratedCart, localePath]);
 
   useEffect(() => {
+    if (!hasHydratedCart || cartItems.length === 0) return;
+    const items = cartItems.map((item, index) =>
+      productToItem(
+        { _id: item.productId, name: item.name, priceUSD: item.priceUSD },
+        { quantity: item.quantity, index }
+      )
+    );
+    trackBeginCheckout(items, subtotal);
+    // Only fire once per checkout mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasHydratedCart]);
+
+  useEffect(() => {
     let ignore = false;
     const loadStoreSettings = async () => {
       try {
@@ -179,6 +193,13 @@ export default function CheckoutPage() {
 
     try {
       setIsPlacingOrder(true);
+      const gaItems = cartItems.map((item, index) =>
+        productToItem(
+          { _id: item.productId, name: item.name, priceUSD: item.priceUSD },
+          { quantity: item.quantity, index }
+        )
+      );
+      trackAddPaymentInfo(gaItems, totalPrice, selectedPaymentMethod);
       const headers = customerUser ? getCustomerAuthHeaders() : {};
       const { data } = await api.post("/api/orders", orderPayload, { headers });
       const orderId = data?._id || data?.id || data?.order?._id;

@@ -17,6 +17,7 @@ import { useLanguage } from "../context/LanguageContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import { formatSizeLabel, normalizeSizeForFilter } from "../lib/sizeDisplay";
 import PortraitCoverVideo from "./PortraitCoverVideo";
+import { productToItem, trackSelectItem } from "../lib/gtag";
 
 const PAGE_SIZE = 20;
 const serializeQueryParams = (params = {}) => {
@@ -121,7 +122,11 @@ function ProductCard({ product }) {
 
   return (
     <article className="group">
-      <Link href={`/products/${product._id}`} className="block">
+      <Link
+        href={`/products/${product._id}`}
+        className="block"
+        onClick={() => trackSelectItem(productToItem(product))}
+      >
         <div
           className="relative aspect-[3/4] w-full overflow-hidden rounded-lg bg-[var(--color-sand)]/40"
           {...cardHoverMedia}

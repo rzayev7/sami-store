@@ -595,5 +595,21 @@
   "whatsapp": {
     "prefilledMessage": "Salom SAMÍ, buyurtma haqida savolim bor.",
     "ariaLabel": "WhatsAppda suhbatlashish"
+  },
+
+  "leadCapture": {
+    "headline": "Birinchi buyurtmangizga 10% chegirma",
+    "body": "Email yoki WhatsApp raqamingizni kiriting — chegirma kodini yuboramiz.",
+    "emailPlaceholder": "Email manzilingiz",
+    "whatsappPlaceholder": "WhatsApp (masalan, +998 90 000 00 00)",
+    "orDivider": "yoki",
+    "submitButton": "Chegirma olish",
+    "submitting": "Yuborilmoqda…",
+    "successTitle": "Mana kodingiz!",
+    "successBody": "Checkout paytida ushbu kodni kiriting. Birinchi buyurtmaga amal qiladi.",
+    "successCopy": "Kodni nusxalash",
+    "successCopied": "Nusxalandi!",
+    "successCta": "Xarid qilish",
+    "dismiss": "Yo'q, to'liq narxda to'layman"
   }
 }

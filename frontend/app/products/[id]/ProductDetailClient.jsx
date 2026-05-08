@@ -27,6 +27,11 @@ import { useLanguage, useLocalePath } from "../../../context/LanguageContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../../../lib/image";
 import { formatSizeLabel } from "../../../lib/sizeDisplay";
 import PortraitCoverVideo from "../../../components/PortraitCoverVideo";
+import {
+  productToItem,
+  trackViewItem,
+  trackAddToCart,
+} from "../../../lib/gtag";
 
 export default function ProductDetailClient({
   productId,
@@ -315,6 +320,11 @@ export default function ProductDetailClient({
     }
   }, [product]);
 
+  useEffect(() => {
+    if (!product?._id) return;
+    trackViewItem(productToItem(product));
+  }, [product?._id]);
+
   const commitAddToCart = () => {
     const activeBundle = isBundleProduct ? selectedBundle : "single";
     const hasSizes = Array.isArray(product?.sizes) && product.sizes.length > 0;
@@ -364,6 +374,7 @@ export default function ProductDetailClient({
     for (let i = 0; i < toAdd; i++) {
       addToCart(cartProduct, sizeForCart, selectedColor, { bundle: bundleLabelForCart });
     }
+    trackAddToCart(productToItem(cartProduct, { quantity: toAdd }));
     return true;
   };
 

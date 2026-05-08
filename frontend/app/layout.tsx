@@ -14,6 +14,7 @@ import { CurrencyProvider } from "../context/CurrencyContext";
 import { AuthProvider } from "../context/AuthContext";
 import { LanguageProvider } from "../context/LanguageContext";
 import FirstVisitLanguageModal from "../components/FirstVisitLanguageModal";
+import LeadCapture from "../components/LeadCapture";
 import "./globals.css";
 
 const inter = Inter({
@@ -105,6 +106,7 @@ export default function RootLayout({
                     </div>
                   </main>
                   <Footer />
+                  <LeadCapture />
                   <WhatsAppFloat />
                 </div>
               </CartProvider>

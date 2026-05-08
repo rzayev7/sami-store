@@ -88,6 +88,15 @@ const couponLimiter = rateLimit({
 });
 app.use("/api/coupons/validate", couponLimiter);
 
+const leadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: { message: "Too many submissions, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use("/api/leads", leadLimiter);
+
 app.get("/", (req, res) => {
   res.send("Sami API is running");
 });
@@ -102,6 +111,7 @@ app.use("/api/coupons", require("./src/routes/couponRoutes"));
 app.use("/api/customers", require("./src/routes/customerRoutes"));
 app.use("/api/payments/epoint", require("./src/routes/epointPaymentRoutes"));
 app.use("/api/store-settings", require("./src/routes/storeSettingsRoutes"));
+app.use("/api/leads", require("./src/routes/leadRoutes"));
 
 app.use(errorHandler);
 

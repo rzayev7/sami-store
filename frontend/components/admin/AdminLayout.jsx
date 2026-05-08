@@ -12,6 +12,7 @@ import {
   Ticket,
   BarChart3,
   Truck,
+  Mail,
   LogOut,
   Menu,
   X,
@@ -27,6 +28,7 @@ const navLinks = [
   { href: "/admin/customers", label: t.customers, icon: Users },
   { href: "/admin/coupons", label: t.coupons, icon: Ticket },
   { href: "/admin/analytics", label: t.analytics, icon: BarChart3 },
+  { href: "/admin/leads", label: t.leads, icon: Mail },
   { href: "/admin/shipping", label: t.shipping, icon: Truck },
 ];
 

@@ -296,6 +296,19 @@ export const t = {
   failedSaveSettings: "Не удалось сохранить настройки",
   invalidDeliveryFee: "Введите корректную стоимость доставки (0 или больше)",
 
+  // ── Leads page ──
+  leads: "Подписчики",
+  leadsSubtitle: "Email и WhatsApp адреса, собранные через форму подписки.",
+  exportCsv: "Экспорт CSV",
+  noLeadsYet: "Подписчиков пока нет.",
+  failedLoadLeads: "Не удалось загрузить подписчиков",
+  leadsTotal: (n) => `Всего: ${n}`,
+  whatsapp: "WhatsApp",
+  source: "Источник",
+  leadLanguage: "Язык",
+  leadPage: "Страница",
+  leadDate: "Дата",
+
   // ── Login page ──
   login: "Вход",
   password: "Пароль",

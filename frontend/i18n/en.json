@@ -604,5 +604,21 @@
   "whatsapp": {
     "prefilledMessage": "Hi SAMÍ, I have a question about an order.",
     "ariaLabel": "Chat on WhatsApp"
+  },
+
+  "leadCapture": {
+    "headline": "Enjoy 10% off your first order",
+    "body": "Enter your email or WhatsApp to receive your exclusive discount code.",
+    "emailPlaceholder": "Email address",
+    "whatsappPlaceholder": "WhatsApp (e.g. +1 555 000 0000)",
+    "orDivider": "or",
+    "submitButton": "Claim discount",
+    "submitting": "Sending…",
+    "successTitle": "Here's your code!",
+    "successBody": "Use this code at checkout. Valid on your first order.",
+    "successCopy": "Copy code",
+    "successCopied": "Copied!",
+    "successCta": "Shop now",
+    "dismiss": "No thanks, I'll pay full price"
   }
 }

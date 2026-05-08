@@ -8,6 +8,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { getCustomerAuthHeaders } from "../../lib/customerAuth";
 import { formatSizeLabel } from "../../lib/sizeDisplay";
+import { productToItem, trackPurchase } from "../../lib/gtag";
 
 function OrderSuccessInner() {
   const searchParams = useSearchParams();
@@ -40,6 +41,17 @@ function OrderSuccessInner() {
         );
         if (!cancelled) {
           setOrder(data);
+          const orderItems = Array.isArray(data?.items) ? data.items : [];
+          const gaItems = orderItems.map((item, index) =>
+            productToItem(
+              { _id: item.productId, name: item.name, priceUSD: item.priceUSD },
+              { quantity: item.quantity, index }
+            )
+          );
+          const orderTotal = Number(data?.totalPriceUSD || data?.totalPrice || 0);
+          const orderShipping = Number(data?.shippingCost || 0);
+          const orderId = String(data?._id || "");
+          trackPurchase(orderId, gaItems, orderTotal, orderShipping);
         }
       } catch {
         if (!cancelled) {

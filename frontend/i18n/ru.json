@@ -604,5 +604,21 @@
   "whatsapp": {
     "prefilledMessage": "Здравствуйте, SAMÍ, у меня вопрос о заказе.",
     "ariaLabel": "Написать в WhatsApp"
+  },
+
+  "leadCapture": {
+    "headline": "Скидка 10% на первый заказ",
+    "body": "Укажите e-mail или WhatsApp — отправим ваш персональный промокод.",
+    "emailPlaceholder": "Электронная почта",
+    "whatsappPlaceholder": "WhatsApp (например, +7 900 000 00 00)",
+    "orDivider": "или",
+    "submitButton": "Получить скидку",
+    "submitting": "Отправка…",
+    "successTitle": "Ваш промокод!",
+    "successBody": "Введите этот код при оформлении заказа. Действителен на первую покупку.",
+    "successCopy": "Скопировать",
+    "successCopied": "Скопировано!",
+    "successCta": "Перейти в магазин",
+    "dismiss": "Нет, спасибо, заплачу полную цену"
   }
 }

@@ -594,5 +594,21 @@
   "whatsapp": {
     "prefilledMessage": "مرحبًا SAMÍ، لدي سؤال بخصوص طلب.",
     "ariaLabel": "تحدّث عبر واتساب"
+  },
+
+  "leadCapture": {
+    "headline": "استمتعي بخصم 10% على أول طلب",
+    "body": "أدخلي بريدك الإلكتروني أو واتساب وسنرسل لكِ كود الخصم.",
+    "emailPlaceholder": "البريد الإلكتروني",
+    "whatsappPlaceholder": "واتساب (مثل +971 50 000 0000)",
+    "orDivider": "أو",
+    "submitButton": "احصلي على الخصم",
+    "submitting": "جارٍ الإرسال…",
+    "successTitle": "إليكِ كودكِ!",
+    "successBody": "استخدمي هذا الكود عند الدفع. صالح على أول طلب.",
+    "successCopy": "نسخ الكود",
+    "successCopied": "تم النسخ!",
+    "successCta": "تسوّقي الآن",
+    "dismiss": "لا شكراً، سأدفع السعر الكامل"
   }
 }
