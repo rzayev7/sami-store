@@ -13,6 +13,7 @@ function PaymentIcons() {
           alt="Visa accepted"
           className="h-5 w-auto object-contain sm:h-6"
           loading="lazy"
+          decoding="async"
         />
       </div>
       <span className="h-5 w-px bg-black/10" aria-hidden />
@@ -22,6 +23,7 @@ function PaymentIcons() {
           alt="Mastercard accepted"
           className="h-6 w-auto object-contain sm:h-7"
           loading="lazy"
+          decoding="async"
         />
       </div>
     </div>
