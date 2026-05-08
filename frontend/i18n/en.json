@@ -33,7 +33,11 @@
   },
 
   "announcement": {
-    "freeShipping": "Worldwide Shipping"
+    "freeShipping": "Worldwide Shipping",
+    "socialProof1": "Shipped to 30+ countries",
+    "socialProof2": "Free worldwide shipping over $150",
+    "socialProof3": "Womenswear from Baku",
+    "shopBestSellers": "Shop Best Sellers"
   },
 
   "nav": {
@@ -84,6 +88,7 @@
     "privacy": "Privacy Policy",
     "social": "Social",
     "instagram": "Instagram",
+    "paymentsAccepted": "Payments accepted",
     "copyright": "© {year} SAMÍ. All rights reserved."
   },
 
@@ -202,7 +207,11 @@
     "fabricCareDefault1": "Crafted from carefully selected natural and blended fabrics. Each piece is designed for comfort and durability.",
     "fabricCareDefault2": "Hand wash cold or machine wash on a delicate cycle. Lay flat to dry. Iron on low heat if needed.",
     "supportResponse": "Expect a response within 8 working hours.",
-    "supportOrDMs": "or slide into our DMs on"
+    "supportOrDMs": "or slide into our DMs on",
+    "customerReviews": "Customer reviews",
+    "verifiedPurchase": "Verified",
+    "customerSource": "Customer",
+    "noReviewsYet": "No reviews yet. We only publish real customer feedback."
   },
 
   "checkout": {

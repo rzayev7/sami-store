@@ -8,14 +8,11 @@ const DEFAULT_AZN_PER_USD = 1.7;
 /** @type {CurrencyDef[]} */
 export const CURRENCIES = [
   { code: "USD", symbol: "$", name: "United States", flag: "🇺🇸", decimals: 2 },
-  { code: "AZN", symbol: "₼", name: "Azerbaijan", flag: "🇦🇿", decimals: 2 },
-  { code: "EUR", symbol: "€", name: "Eurozone", flag: "🇪🇺", decimals: 2 },
-  { code: "RUB", symbol: "₽", name: "Russia", flag: "🇷🇺", decimals: 2 },
-  { code: "TRY", symbol: "₺", name: "Türkiye", flag: "🇹🇷", decimals: 2 },
   { code: "AED", symbol: "AED", name: "United Arab Emirates", flag: "🇦🇪", decimals: 2 },
   { code: "SAR", symbol: "SAR", name: "Saudi Arabia", flag: "🇸🇦", decimals: 2 },
-  { code: "KZT", symbol: "₸", name: "Kazakhstan", flag: "🇰🇿", decimals: 2 },
-  { code: "UZS", symbol: "soʻm ", name: "Uzbekistan", flag: "🇺🇿", decimals: 2 },
+  { code: "EUR", symbol: "€", name: "Eurozone", flag: "🇪🇺", decimals: 2 },
+  { code: "RUB", symbol: "₽", name: "Russia", flag: "🇷🇺", decimals: 2 },
+  { code: "UZS", symbol: "soʻm", name: "Uzbekistan", flag: "🇺🇿", decimals: 2 },
 ];
 
 const CURRENCY_MAP = Object.fromEntries(CURRENCIES.map((c) => [c.code, c]));
@@ -66,16 +63,14 @@ export function formatPrice(amountAZN, currencyCode = "USD", rates = {}, aznPerU
 }
 
 const LOCALE_TO_CURRENCY = {
-  "az-AZ": "AZN",
-  az: "AZN",
   "ru-RU": "RUB",
   ru: "RUB",
+  "kk-KZ": "RUB",
+  kk: "RUB",
+  "uz-UZ": "UZS",
+  uz: "UZS",
   "ar-SA": "SAR",
   "ar-AE": "AED",
-  "tr-TR": "TRY",
-  tr: "TRY",
-  "kk-KZ": "KZT",
-  "uz-UZ": "UZS",
   ar: "AED",
   de: "EUR",
   fr: "EUR",
@@ -83,8 +78,6 @@ const LOCALE_TO_CURRENCY = {
   es: "EUR",
   nl: "EUR",
   pt: "EUR",
-  kk: "KZT",
-  uz: "UZS",
 };
 
 export function detectCurrency() {

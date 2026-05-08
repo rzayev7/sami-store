@@ -14,6 +14,7 @@ import {
   Play,
   Pause,
   Heart,
+  Star,
 } from "lucide-react";
 import api, { getApiBaseURL } from "../../../lib/api";
 import { SUPPORT_EMAIL } from "../../../lib/sitePublic";
@@ -33,7 +34,7 @@ export default function ProductDetailClient({
   initialRelatedProducts = [],
 }) {
   const { addToCart, cartItems } = useCart();
-  const { formatPrice } = useCurrency();
+  const { formatPrice, aznPerUsd } = useCurrency();
   const { user, requireAuth } = useAuth();
   const { t } = useLanguage();
   const localePath = useLocalePath();
@@ -453,6 +454,40 @@ export default function ProductDetailClient({
       d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
     return `${fmt(from)} – ${fmt(to)}`;
   }, []);
+
+  const productReviews = useMemo(() => {
+    const raw = Array.isArray(product?.reviews) ? product.reviews : [];
+    return raw
+      .map((review) => {
+        const ratingNumber = Number(review?.rating);
+        const rating = Number.isFinite(ratingNumber)
+          ? Math.max(1, Math.min(5, Math.round(ratingNumber * 10) / 10))
+          : 5;
+        const author = String(review?.author || "").trim();
+        const comment = String(review?.comment || "").trim();
+        if (!author || !comment) return null;
+        return {
+          author,
+          comment,
+          title: String(review?.title || "").trim(),
+          source: String(review?.source || "").trim(),
+          verified: Boolean(review?.verified),
+          rating,
+        };
+      })
+      .filter(Boolean)
+      .slice(0, 10);
+  }, [product?.reviews]);
+
+  const reviewSummary = useMemo(() => {
+    if (!productReviews.length) return null;
+    const total = productReviews.reduce((sum, review) => sum + Number(review.rating || 0), 0);
+    const average = Math.round((total / productReviews.length) * 10) / 10;
+    return {
+      count: productReviews.length,
+      average,
+    };
+  }, [productReviews]);
 
   if (loading) {
     return (
@@ -1103,7 +1138,9 @@ export default function ProductDetailClient({
               </div>
 
               <p className="text-center text-[11px] leading-relaxed tracking-[0.04em] text-black/32 lg:text-start">
-                {t("product.taxIncluded", { amount: formatPrice(150) })}
+                {t("product.taxIncluded", {
+                  amount: formatPrice(150 * Number(aznPerUsd || 1.7)),
+                })}
               </p>
 
               {/* Description & Fabric & care */}
@@ -1200,6 +1237,77 @@ export default function ProductDetailClient({
                     </p>
                     <p className="mt-2">{t("product.supportCommitment")}</p>
                   </div>
+                )}
+              </div>
+
+              <div className="border-t border-black/[0.08] pt-4" data-testid="product-reviews">
+                <div className="mb-3 flex items-end justify-between gap-3">
+                  <h3 className="font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-black/55">
+                    {t("product.customerReviews")}
+                  </h3>
+                  {reviewSummary ? (
+                    <div className="text-[12px] text-black/50">
+                      <span className="font-semibold text-black/75">
+                        {reviewSummary.average.toFixed(1)}
+                      </span>{" "}
+                      / 5 ({reviewSummary.count})
+                    </div>
+                  ) : null}
+                </div>
+                {productReviews.length > 0 ? (
+                  <div className="space-y-3">
+                    {productReviews.map((review, index) => (
+                      <article
+                        key={`${review.author}-${index}`}
+                        className="rounded-md border border-black/[0.08] bg-white/50 px-3 py-2.5"
+                      >
+                        <div className="mb-1.5 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: 5 }).map((_, starIndex) => (
+                              <Star
+                                key={`${review.author}-${index}-star-${starIndex}`}
+                                size={13}
+                                strokeWidth={1.8}
+                                className={
+                                  starIndex < Math.round(review.rating)
+                                    ? "text-[#C8A96E]"
+                                    : "text-black/14"
+                                }
+                                fill={
+                                  starIndex < Math.round(review.rating)
+                                    ? "currentColor"
+                                    : "none"
+                                }
+                              />
+                            ))}
+                          </div>
+                          <span className="text-[10px] uppercase tracking-[0.1em] text-black/35">
+                            {review.source || t("product.customerSource")}
+                          </span>
+                        </div>
+                        <p className="text-[12px] font-medium text-black/75">
+                          {review.author}
+                          {review.verified ? (
+                            <span className="ms-2 text-[10px] uppercase tracking-[0.08em] text-[var(--color-gold)]">
+                              {t("product.verifiedPurchase")}
+                            </span>
+                          ) : null}
+                        </p>
+                        {review.title ? (
+                          <p className="mt-1 text-[12px] font-medium text-black/70">
+                            {review.title}
+                          </p>
+                        ) : null}
+                        <p className="mt-1 text-[12px] leading-[1.55] text-black/52">
+                          {review.comment}
+                        </p>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[12px] leading-relaxed text-black/42">
+                    {t("product.noReviewsYet")}
+                  </p>
                 )}
               </div>
 

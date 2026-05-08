@@ -39,6 +39,44 @@ const toNonNegativeInt = (value, fallback = 0) => {
   return Number.isFinite(parsed) ? Math.max(0, Math.trunc(parsed)) : fallback;
 };
 
+const normalizeProductReviews = (payload) => {
+  if (!payload || typeof payload !== "object") return;
+  if (payload.reviews === undefined) return;
+  if (!Array.isArray(payload.reviews)) {
+    payload.reviews = [];
+    return;
+  }
+
+  payload.reviews = payload.reviews
+    .slice(0, 24)
+    .map((raw) => {
+      const author = String(raw?.author || "").trim();
+      const title = String(raw?.title || "").trim();
+      const comment = String(raw?.comment || "").trim();
+      const source = String(raw?.source || "customer").trim();
+      const ratingNumber = Number(raw?.rating);
+      const rating = Number.isFinite(ratingNumber)
+        ? Math.max(1, Math.min(5, Math.round(ratingNumber * 10) / 10))
+        : 5;
+      const createdAtRaw = raw?.createdAt ? new Date(raw.createdAt) : null;
+      const createdAt =
+        createdAtRaw && !Number.isNaN(createdAtRaw.getTime())
+          ? createdAtRaw
+          : new Date();
+
+      return {
+        author,
+        title,
+        comment,
+        source: source || "customer",
+        rating,
+        verified: Boolean(raw?.verified),
+        createdAt,
+      };
+    })
+    .filter((review) => review.author && review.comment);
+};
+
 const isTruthyQueryParam = (value) => {
   if (value == null) return false;
   const normalized = String(value).trim().toLowerCase();
@@ -220,6 +258,7 @@ const createProduct = async (req, res, next) => {
     }
 
     normalizeMoneyFields(payload);
+    normalizeProductReviews(payload);
     const product = await Product.create(payload);
     res.status(201).json(product);
   } catch (error) {
@@ -234,6 +273,7 @@ const updateProduct = async (req, res, next) => {
       payload.stock = toNonNegativeInt(payload.stock, 0);
     }
     normalizeMoneyFields(payload);
+    normalizeProductReviews(payload);
 
     let product = await Product.findByIdAndUpdate(req.params.id, payload, {
       new: true,

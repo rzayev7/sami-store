@@ -11,8 +11,7 @@ import { useLanguage } from "../context/LanguageContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import { formatSizeLabel } from "../lib/sizeDisplay";
 
-const AZN_PER_USD = 1.7;
-const FREE_SHIPPING_THRESHOLD = 150 * AZN_PER_USD; // $150 equivalent
+const FREE_SHIPPING_THRESHOLD_USD = 150;
 
 function QuantityStepper({ quantity, onDecrement, onIncrement, t }) {
   return (
@@ -144,7 +143,7 @@ export default function CartDrawer() {
   const pathname = usePathname();
   const { cartItems, isCartOpen, closeCart, removeFromCart, updateQuantity } =
     useCart();
-  const { formatPrice } = useCurrency();
+  const { formatPrice, aznPerUsd } = useCurrency();
   const { t } = useLanguage();
   const drawerRef = useRef(null);
 
@@ -163,11 +162,9 @@ export default function CartDrawer() {
     [cartItems]
   );
 
-  const shippingProgress = Math.min(
-    (subtotal / FREE_SHIPPING_THRESHOLD) * 100,
-    100
-  );
-  const amountToFreeShipping = Math.max(FREE_SHIPPING_THRESHOLD - subtotal, 0);
+  const freeShippingThreshold = FREE_SHIPPING_THRESHOLD_USD * Number(aznPerUsd || 1.7);
+  const shippingProgress = Math.min((subtotal / freeShippingThreshold) * 100, 100);
+  const amountToFreeShipping = Math.max(freeShippingThreshold - subtotal, 0);
 
   useEffect(() => {
     if (!isCartOpen) return;

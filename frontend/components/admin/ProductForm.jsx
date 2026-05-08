@@ -132,6 +132,22 @@ function newImageId() {
   return `img-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function newReviewId() {
+  return `review-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function createEmptyReview() {
+  return {
+    id: newReviewId(),
+    author: "",
+    rating: 5,
+    title: "",
+    comment: "",
+    source: "Instagram DM",
+    verified: true,
+  };
+}
+
 async function loadImageForCrop(src) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -850,6 +866,7 @@ export default function ProductForm({
   const [featured, setFeatured] = useState(false);
   const [isBestSeller, setIsBestSeller] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(false);
+  const [reviews, setReviews] = useState([]);
 
   const [imageItems, setImageItems] = useState([]);
   const [uploadProgress, setUploadProgress] = useState({});
@@ -952,6 +969,22 @@ export default function ProductForm({
     setFeatured(Boolean(product.featured));
     setIsBestSeller(Boolean(product.isBestSeller));
     setIsNewArrival(Boolean(product.isNewArrival));
+    setReviews(
+      Array.isArray(product.reviews)
+        ? product.reviews.map((review) => ({
+            id: newReviewId(),
+            author: String(review?.author || ""),
+            rating:
+              Number.isFinite(Number(review?.rating)) && Number(review?.rating) > 0
+                ? Math.min(5, Math.max(1, Number(review.rating)))
+                : 5,
+            title: String(review?.title || ""),
+            comment: String(review?.comment || ""),
+            source: String(review?.source || "Customer"),
+            verified: Boolean(review?.verified),
+          }))
+        : []
+    );
     const urls = Array.isArray(product.images) ? product.images : [];
     setImageItems(
       urls.map((url) => ({
@@ -1255,6 +1288,19 @@ export default function ProductForm({
   };
 
   /* ---------- Submit ---------- */
+  const addReview = () => {
+    setReviews((prev) => [...prev, createEmptyReview()]);
+  };
+
+  const removeReview = (id) => {
+    setReviews((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const updateReview = (id, field, value) => {
+    setReviews((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
 
   const toNonNegativeInt = (value, fallback = 0) => {
     const parsed = Number(value);
@@ -1351,6 +1397,26 @@ export default function ProductForm({
       const bundleBot = parseOptionalBundle(bundleBottomPrice, "bottom price");
       if (bundleBot === undefined) return;
 
+      const normalizedReviews = reviews
+        .map((review) => {
+          const author = String(review.author || "").trim();
+          const comment = String(review.comment || "").trim();
+          if (!author || !comment) return null;
+          const ratingNumber = Number(review.rating);
+          const rating = Number.isFinite(ratingNumber)
+            ? Math.min(5, Math.max(1, Math.round(ratingNumber * 10) / 10))
+            : 5;
+          return {
+            author,
+            comment,
+            rating,
+            title: String(review.title || "").trim(),
+            source: String(review.source || "Customer").trim(),
+            verified: Boolean(review.verified),
+          };
+        })
+        .filter(Boolean);
+
       const payload = {
         code: code.trim(),
         name: name.trim(),
@@ -1369,6 +1435,7 @@ export default function ProductForm({
         featured,
         isBestSeller,
         isNewArrival,
+        reviews: normalizedReviews,
         images,
         cardVideoUrl: cardVideoUrl.trim() || null,
         cardVideoAdjustments: {
@@ -1770,6 +1837,145 @@ export default function ProductForm({
               <FieldLabel>{t.colors}</FieldLabel>
               <TagInput tags={colors} setTags={setColors} placeholder={t.placeholderColor} />
             </div>
+          </div>
+        </CollapsibleCard>
+
+        <CollapsibleCard
+          title="Customer Reviews"
+          defaultOpen={false}
+          summaryRight={
+            reviews.length > 0
+              ? `${reviews.length} review${reviews.length > 1 ? "s" : ""}`
+              : "No reviews yet"
+          }
+        >
+          <div className="space-y-3">
+            <p className="text-[12px] leading-relaxed text-black/45">
+              Add only genuine customer feedback (Instagram DMs, WhatsApp, or verified buyers).
+            </p>
+            {reviews.length > 0 ? (
+              <div className="space-y-3">
+                {reviews.map((review, index) => (
+                  <div
+                    key={review.id}
+                    className="rounded-lg border border-[var(--color-line)] bg-white p-3"
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-black/45">
+                        Review #{index + 1}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => removeReview(review.id)}
+                        className="text-[11px] font-medium text-red-600 transition hover:underline"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <FieldLabel htmlFor={`review-author-${review.id}`} required>
+                          Customer name
+                        </FieldLabel>
+                        <input
+                          id={`review-author-${review.id}`}
+                          type="text"
+                          value={review.author}
+                          onChange={(event) =>
+                            updateReview(review.id, "author", event.target.value)
+                          }
+                          className="sami-input rounded-lg"
+                          placeholder="e.g. Aysel M."
+                        />
+                      </div>
+                      <div>
+                        <FieldLabel htmlFor={`review-source-${review.id}`}>
+                          Source
+                        </FieldLabel>
+                        <input
+                          id={`review-source-${review.id}`}
+                          type="text"
+                          value={review.source}
+                          onChange={(event) =>
+                            updateReview(review.id, "source", event.target.value)
+                          }
+                          className="sami-input rounded-lg"
+                          placeholder="Instagram DM / WhatsApp / Website"
+                        />
+                      </div>
+                      <div>
+                        <FieldLabel htmlFor={`review-rating-${review.id}`}>
+                          Rating
+                        </FieldLabel>
+                        <input
+                          id={`review-rating-${review.id}`}
+                          type="number"
+                          min="1"
+                          max="5"
+                          step="0.1"
+                          value={review.rating}
+                          onChange={(event) =>
+                            updateReview(review.id, "rating", event.target.value)
+                          }
+                          className="sami-input rounded-lg [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        />
+                      </div>
+                      <div className="flex items-end pb-1">
+                        <label className="flex cursor-pointer items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={review.verified}
+                            onChange={(event) =>
+                              updateReview(review.id, "verified", event.target.checked)
+                            }
+                            className="h-4 w-4 accent-[var(--color-green)]"
+                          />
+                          <span className="text-[12px] text-black/60">
+                            Mark as verified purchase
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <FieldLabel htmlFor={`review-title-${review.id}`}>Title</FieldLabel>
+                      <input
+                        id={`review-title-${review.id}`}
+                        type="text"
+                        value={review.title}
+                        onChange={(event) =>
+                          updateReview(review.id, "title", event.target.value)
+                        }
+                        className="sami-input rounded-lg"
+                        placeholder="Loved the fit"
+                      />
+                    </div>
+                    <div className="mt-3">
+                      <FieldLabel htmlFor={`review-comment-${review.id}`} required>
+                        Review text
+                      </FieldLabel>
+                      <textarea
+                        id={`review-comment-${review.id}`}
+                        rows={3}
+                        value={review.comment}
+                        onChange={(event) =>
+                          updateReview(review.id, "comment", event.target.value)
+                        }
+                        className="sami-input resize-y rounded-lg"
+                        placeholder="What did the customer like? Mention fit, fabric, delivery, etc."
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            <button
+              type="button"
+              onClick={addReview}
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-line)] bg-white px-3 py-2 text-[12px] font-medium text-black/60 transition hover:bg-black/[0.04]"
+            >
+              <Plus size={14} strokeWidth={2} />
+              Add review
+            </button>
           </div>
         </CollapsibleCard>
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const LOCALES = ["en", "ar", "az", "fr", "ru", "tr", "uz", "kk"];
+const LOCALES = ["en", "ar", "ru", "uz"];
+const LEGACY_LOCALES = ["az", "fr", "tr", "kk"];
 const DEFAULT_LOCALE = "en";
 
 function getLocaleFromPath(pathname: string): string | null {
@@ -10,6 +11,7 @@ function getLocaleFromPath(pathname: string): string | null {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const firstSegment = pathname.split("/")[1];
 
   // --- Admin routes are intentionally NOT localized ---
   if (pathname.startsWith("/admin")) {
@@ -30,6 +32,15 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
     return NextResponse.next();
+  }
+
+  // --- Legacy locale cleanup (removed language prefixes) ---
+  if (LEGACY_LOCALES.includes(firstSegment)) {
+    const stripped = "/" + pathname.split("/").slice(2).join("/");
+    const normalizedPath = stripped === "/" ? "" : stripped;
+    const url = request.nextUrl.clone();
+    url.pathname = `/${DEFAULT_LOCALE}${normalizedPath}`;
+    return NextResponse.redirect(url);
   }
 
   // --- Locale routing ---

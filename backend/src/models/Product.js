@@ -1,5 +1,49 @@
 const mongoose = require("mongoose");
 
+const productReviewSchema = new mongoose.Schema(
+  {
+    author: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 80,
+    },
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5,
+      default: 5,
+    },
+    title: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: 120,
+    },
+    comment: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 1200,
+    },
+    source: {
+      type: String,
+      default: "customer",
+      trim: true,
+      maxlength: 40,
+    },
+    verified: {
+      type: Boolean,
+      default: false,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false }
+);
+
 const productSchema = new mongoose.Schema({
   code: {
     type: String,
@@ -61,6 +105,10 @@ const productSchema = new mongoose.Schema({
       type: String,
     },
   ],
+  reviews: {
+    type: [productReviewSchema],
+    default: [],
+  },
   /** Optional short loop video for listing / product cards (Cloudinary URL). */
   cardVideoUrl: {
     type: String,

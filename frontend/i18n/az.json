@@ -32,7 +32,11 @@
     "errorOccurred": "Gözlənilməz xəta baş verdi. Zəhmət olmasa yenidən cəhd edin və ya problem davam edərsə ana səhifəyə qayıdın."
   },
   "announcement": {
-    "freeShipping": "Dünya üzrə çatdırılma"
+    "freeShipping": "Dünya üzrə çatdırılma",
+    "socialProof1": "30+ ölkəyə çatdırılma",
+    "socialProof2": "$150 üzəri sifarişlərə pulsuz dünya çatdırılması",
+    "socialProof3": "Bakıdan qadın geyimi",
+    "shopBestSellers": "Ən çox satılanlar"
   },
   "nav": {
     "openMenu": "Menyunu aç",

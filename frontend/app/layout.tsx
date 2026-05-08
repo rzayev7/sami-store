@@ -90,11 +90,11 @@ export default function RootLayout({
           <GoogleAnalyticsPageView />
         </Suspense>
         <LanguageProvider>
-          <FirstVisitLanguageModal />
           <AuthProvider>
             <CurrencyProvider>
               <CartProvider>
                 <div className="min-h-screen w-full bg-[var(--color-cream)] text-[var(--color-black)]">
+                  <FirstVisitLanguageModal />
                   <Navbar />
                   <AnnouncementBars />
                   <CartDrawer />
