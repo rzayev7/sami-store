@@ -93,7 +93,7 @@ function shouldBlockRequest(countryCode: string): boolean {
 }
 
 function buildBlockedResponse(request: NextRequest) {
-  // Default: explicit JSON 403 for blocked regions (e.g. AZ). Set REGION_BLOCK_RESPONSE=ghost404 for silent fake-404 HTML.
+  // Default: generic JSON “not found” for blocked regions (e.g. AZ) — does not reveal geo blocking.
   const mode = String(process.env.REGION_BLOCK_RESPONSE || "json_403").toLowerCase();
   const noStoreHeaders = {
     "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
@@ -101,14 +101,11 @@ function buildBlockedResponse(request: NextRequest) {
     Expires: "0",
   };
 
-  // Plain JSON — explicit “blocked”; good for debugging or API-like responses.
+  // Plain JSON — reads like a normal missing resource (404), not “restricted”.
   if (mode === "json" || mode === "json_403") {
     return NextResponse.json(
-      {
-        error: "access_restricted",
-        message: "Access to this website is restricted in your region.",
-      },
-      { status: 403, headers: { ...noStoreHeaders, "X-Robots-Tag": "noindex, nofollow" } },
+      { error: "not_found", message: "Not found" },
+      { status: 404, headers: { ...noStoreHeaders, "X-Robots-Tag": "noindex, nofollow" } },
     );
   }
 
