@@ -1,19 +1,56 @@
 export const metadata = {
-  title: "Access Restricted | SAMI",
+  title: "Coming Soon | SAMÍ",
+  description: "We're preparing something special. Stay tuned.",
 };
 
 export default function AccessRestrictedPage() {
   return (
-    <section className="mx-auto flex min-h-[56vh] w-full max-w-2xl items-center justify-center py-14">
-      <div className="w-full rounded-2xl border border-black/10 bg-white px-6 py-10 text-center shadow-sm sm:px-10 sm:py-12">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-black/45">403</p>
-        <h1 className="mt-3 font-serif text-3xl text-[var(--color-black)] sm:text-4xl">Access Restricted</h1>
-        <p className="mx-auto mt-4 max-w-md text-sm leading-7 text-black/70 sm:text-[15px]">
-          Access to this website is currently unavailable from your region. If you believe this is an error, please
-          contact support.
-        </p>
-        <p className="mt-6 text-xs text-black/45">support: samistore.support@gmail.com</p>
+    <div className="fixed inset-0 z-50 flex min-h-screen flex-col items-center justify-center bg-[#F6F3EE] px-6 text-center">
+
+      {/* Brand */}
+      <p
+        className="sami-brand text-[2.8rem] leading-none tracking-[0.08em] text-[#1a1714] sm:text-[3.5rem]"
+        aria-label="SAMÍ"
+      >
+        SAMÍ
+      </p>
+
+      {/* Gold divider */}
+      <div className="mx-auto mt-6 h-px w-12 bg-[#a68b5b]" aria-hidden />
+
+      {/* Headline */}
+      <h1 className="mt-8 max-w-xs font-serif text-[1.6rem] font-light leading-[1.25] tracking-[0.02em] text-[#1a1714] sm:max-w-sm sm:text-[2rem]">
+        Something special<br />is on its way.
+      </h1>
+
+      {/* Subtext */}
+      <p className="mx-auto mt-5 max-w-sm text-[14px] leading-[1.85] text-[#8a837a] sm:text-[15px]">
+        Our website is not yet available in your region.
+        We&rsquo;re working on it and will be with you soon.
+      </p>
+
+      {/* Separator dots */}
+      <div className="mt-8 flex items-center gap-1.5" aria-hidden>
+        <span className="h-1 w-1 rounded-full bg-[#a68b5b]/40" />
+        <span className="h-1 w-1 rounded-full bg-[#a68b5b]/70" />
+        <span className="h-1 w-1 rounded-full bg-[#a68b5b]/40" />
       </div>
-    </section>
+
+      {/* Contact */}
+      <p className="mt-8 text-[12px] uppercase tracking-[0.16em] text-[#1a1714]/40">
+        Questions?&nbsp;&nbsp;
+        <a
+          href="mailto:samistore.support@gmail.com"
+          className="underline underline-offset-4 transition-opacity hover:opacity-70"
+        >
+          samistore.support@gmail.com
+        </a>
+      </p>
+
+      {/* Subtle footer note */}
+      <p className="absolute bottom-6 text-[10px] uppercase tracking-[0.14em] text-[#1a1714]/25">
+        &copy; {new Date().getFullYear()} SAMÍ. All rights reserved.
+      </p>
+    </div>
   );
 }
