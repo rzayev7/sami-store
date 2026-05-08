@@ -39,7 +39,7 @@ export default function CollectionsStrip() {
   const { t } = useLanguage();
 
   return (
-    <section className="w-full bg-[var(--color-cream)] py-10 sm:py-14">
+    <section className="w-full bg-[var(--color-cream)] pt-20 pb-10 sm:pt-24 sm:pb-14">
       <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-12">
 
         {/* Section label */}
