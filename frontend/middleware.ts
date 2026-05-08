@@ -6,7 +6,12 @@ const DEFAULT_LOCALE = "en";
 const BLOCKED_COUNTRY_CODES = new Set(["AZ"]);
 const ACCESS_RESTRICTED_PATH = "/access-restricted";
 
-type CountryHeaderSource = "cf-ipcountry" | "x-vercel-ip-country" | "cloudfront-viewer-country" | "x-country-code" | "request.geo";
+type CountryHeaderSource =
+  | "cf-ipcountry"
+  | "x-vercel-ip-country"
+  | "cloudfront-viewer-country"
+  | "x-country-code"
+  | "request.geo";
 
 function getLocaleFromPath(pathname: string): string | null {
   const first = pathname.split("/")[1];
@@ -67,8 +72,10 @@ function getCountryFromTrustedHeaders(
     { source: "x-vercel-ip-country", value: request.headers.get("x-vercel-ip-country") },
     { source: "cloudfront-viewer-country", value: request.headers.get("cloudfront-viewer-country") },
     { source: "x-country-code", value: request.headers.get("x-country-code") },
-    // `geo` may be injected by hosting platform/runtime and is not always typed on NextRequest.
-    { source: "request.geo", value: (request as NextRequest & { geo?: { country?: string } }).geo?.country || null },
+    {
+      source: "request.geo",
+      value: (request as NextRequest & { geo?: { country?: string } }).geo?.country || null,
+    },
   ];
 
   for (const candidate of candidates) {
@@ -107,7 +114,7 @@ function buildBlockedResponse(request: NextRequest) {
   return NextResponse.redirect(redirectUrl, { headers: responseHeaders });
 }
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const firstSegment = pathname.split("/")[1];
   const { countryCode, source } = getCountryFromTrustedHeaders(request);
@@ -201,8 +208,7 @@ export function proxy(request: NextRequest) {
   }
 
   const saved = request.cookies.get("sami_lang")?.value;
-  const lang =
-    saved && LOCALES.includes(saved) ? saved : DEFAULT_LOCALE;
+  const lang = saved && LOCALES.includes(saved) ? saved : DEFAULT_LOCALE;
   const url = request.nextUrl.clone();
   url.pathname = `/${lang}${pathname}`;
   return NextResponse.redirect(url);
