@@ -31,11 +31,9 @@
     "somethingWentWrong": "Nimadir noto‘g‘ri ketdi",
     "errorOccurred": "Kutilmagan xato yuz berdi. Qayta urinib ko‘ring yoki muammo davom etsa bosh sahifaga qayting."
   },
-
   "announcement": {
     "freeShipping": "Butun dunyo bo‘ylab yetkazib berish"
   },
-
   "nav": {
     "openMenu": "Menyuni ochish",
     "closeMenu": "Menyuni yopish",
@@ -60,7 +58,6 @@
     "worldwideShipping": "Butun dunyo bo‘ylab yetkazib berish",
     "language": "Til"
   },
-
   "footer": {
     "tagline": "Bakudan ayollar kiyimi. Har yerda kiyiladi.",
     "worldwideShipping": "Butun dunyo bo‘ylab yetkazib berish",
@@ -86,7 +83,6 @@
     "instagram": "Instagram",
     "copyright": "© {year} SAMÍ. Barcha huquqlar himoyalangan."
   },
-
   "auth": {
     "welcome": "XUSH KELIBSIZ",
     "signInSubtitle": "Hisobingizga kiring",
@@ -114,7 +110,6 @@
     "hasAccount": "Allaqachon hisobingiz bormi?",
     "signOut": "Chiqish"
   },
-
   "cart": {
     "yourBag": "Sizning savatingiz",
     "closeCart": "Savatni yopish",
@@ -132,7 +127,6 @@
     "checkout": "To‘lov",
     "orContinue": "yoki xaridni davom ettiring"
   },
-
   "product": {
     "quickAdd": "Tez qo‘shish",
     "soldOut": "Tugagan",
@@ -204,7 +198,6 @@
     "supportResponse": "8 ish soati ichida javob kuting.",
     "supportOrDMs": "yoki DM yozing:"
   },
-
   "checkout": {
     "title": "To‘lov",
     "subtitle": "Buyurtmani rasmiylashtirish uchun ma’lumotlaringizni to‘ldiring.",
@@ -249,7 +242,6 @@
     "discount": "Chegirma",
     "couponValidationError": "Kuponni tekshirib bo‘lmadi. Qayta urinib ko‘ring."
   },
-
   "account": {
     "myAccount": "Mening hisobim",
     "welcomeBack": "Xush kelibsiz, {name}",
@@ -293,7 +285,6 @@
     "labelField": "Yorliq",
     "streetAddressPlaceholder": "Ko‘cha manzili"
   },
-
   "tracking": {
     "title": "Buyurtmani kuzatish",
     "subtitle": "Joriy yetkazib berish ma’lumotlari uchun Buyurtma raqamingizni kiriting.",
@@ -320,7 +311,6 @@
     "inProgress": "Jarayonda",
     "inProgressDesc": "Buyurtmangiz qayta ishlanmoqda."
   },
-
   "orderSuccess": {
     "thankYou": "Buyurtmangiz uchun rahmat, {name}!",
     "thankYouDefault": "Buyurtmangiz uchun rahmat!",
@@ -349,7 +339,6 @@
     "thankYouFallbackTitle": "Rahmat",
     "thankYouFallbackBody": "Buyurtmangiz muvaffaqiyatli qabul qilindi"
   },
-
   "bankTransfer": {
     "title": "To‘lovingizni yakunlang",
     "order": "Buyurtma",
@@ -372,7 +361,6 @@
     "continueShopping": "Xaridni davom ettirish",
     "whatsappMessage": "Salom, Buyurtma {ref} uchun to‘lovni yakunladim. Kvitansiyamni yuboryapman."
   },
-
   "home": {
     "threeWays": "Zarafatni uch usulda kiyish",
     "packaging": "Chiroyli qadoqlangan, o‘ylab yetkazilgan",
@@ -396,7 +384,6 @@
     "followUsDesc": "Yangi kelganlar, uslub g'oyalari va Boku studiyamiz ortidagi jarayonlarni ko'ring.",
     "followOnInstagram": "Instagramda kuzating"
   },
-
   "products": {
     "curatedSelection": "Tanlangan tanlov",
     "theCollection": "Kolleksiya",
@@ -452,14 +439,34 @@
     "seasonSpring": "Bahor",
     "seasonSummer": "Yoz",
     "seasonRamadan": "Ramazon",
-    "launchNotice": "Yangi boshlayapmiz — kolleksiyaga muntazam yangi buyumlar qo‘shiladi. Bugun qidirayotganingizni topmasangiz, keyinroq qayting."
+    "launchNotice": "Yangi boshlayapmiz — kolleksiyaga muntazam yangi buyumlar qo‘shiladi. Bugun qidirayotganingizni topmasangiz, keyinroq qayting.",
+    "filterColor": "Rang",
+    "allColors": "Barcha ranglar",
+    "filterAvailability": "Mavjudligi",
+    "onSale": "Chegirmada",
+    "newArrivals": "Yangi kelganlar",
+    "categoryAll": "Barchasi",
+    "categorySets": "To'plamlar",
+    "categoryDresses": "Liboslar",
+    "categoryTops": "Ust kiyim",
+    "categoryBottoms": "Pastki kiyim",
+    "categoryJumpsuits": "Kombinezonlar",
+    "categorySale": "Chegirma",
+    "trustShipping": "Butun dunyo bo'ylab kuzatuvli yetkazib berish",
+    "trustFreeShip": "$150 dan yuqori — bepul yetkazib berish",
+    "trustWhatsApp": "WhatsApp qo'llab-quvvatlash",
+    "trustMadeInBaku": "Bokuda dizayn qilingan",
+    "selectSize": "O'lcham tanlang",
+    "addedToBag": "Savatga qo'shildi",
+    "off": "CHEGIRMA",
+    "saveToWishlist": "Sevimlilarga qo'shish",
+    "removeFromWishlist": "Sevimlilardan olib tashlash",
+    "under": "Dan past"
   },
-
   "about": {
     "title": "SAMÍ haqida",
     "body": "SAMÍ — Bakudan ayollar kiyimi brendi. Biz sodd chiziqlar, o‘ylangan matolar va uzoq yil xizmat qiladigan siluetlar atrofida buyumlar yaratamiz. Har bir kolleksiya zamonaviy ayollar qanday kiyinishiga asoslangan: maqsad bilan, ortiqcha sa’y-sinuhsiz."
   },
-
   "shipping": {
     "title": "Yetkazib berish",
     "worldwideDelivery": "Butun dunyo bo‘ylab yetkazib berish",
@@ -475,7 +482,6 @@
     "returnsPolicyLink": "Qaytarish siyosati",
     "returnsBodyEnd": "keyingi qadamlar uchun."
   },
-
   "returns": {
     "title": "Qaytarish siyosati",
     "allSalesFinal": "Barcha sotuvlar yakuniy",
@@ -493,7 +499,6 @@
     "policyUpdates": "Siyosat yangilanishlari",
     "policyUpdatesBody": "SAMÍ o‘sib borishi bilan qaytarish imkoniyatlarini kengaytirishni rejalashtiramiz. Bu sahifa har doim eng so‘nggi siyosatni aks ettiradi."
   },
-
   "privacy": {
     "title": "Maxfiylik siyosati",
     "intro": "SAMÍ (\"biz\") shaxsiy ma’lumotlaringizni himoya qilishga intilamiz. Ushbu siyosat qanday ma’lumot to‘plashimiz, qanday ishlatishimiz va huquqlaringizni tushuntiradi.",
@@ -538,7 +543,6 @@
     "contact": "Aloqa",
     "contactBody": "Ushbu siyosat bo‘yicha savollar bo‘lsa, email yuboring:"
   },
-
   "terms": {
     "title": "Foydalanish shartlari",
     "intro": "SAMÍ veb-saytida buyurtma berganingizda quyidagi shartlarga rozilik bildirasiz. Xarid qilishdan oldin diqqat bilan o‘qing.",
@@ -566,7 +570,6 @@
     "contact": "Aloqa",
     "contactBody": "Ushbu shartlar bo‘yicha savollar bormi? Email yuboring:"
   },
-
   "contact": {
     "title": "Biz bilan bog‘laning",
     "intro": "Sizdan xabar kutamiz. Buyurtma, o‘lcham yordami yoki shunchaki salom — jamoamiz yordam berishga tayyor.",
@@ -580,18 +583,15 @@
     "businessInquiries": "Biznes so‘rovlari",
     "businessBody": "Ulgurji, matbuot yoki hamkorlik uchun mavzu qatoriga \"Biznes so‘rovi\" deb email yuboring; sizga qaytaramiz."
   },
-
   "stores": {
     "title": "Do‘konlarimiz",
     "may28": "28-may filiali",
     "may28Address": "Şamil Əzizbəyov 205, Boku, Ozarbayjon"
   },
-
   "notFound": {
     "title": "Sahifa topilmadi",
     "body": "Qidirayotgan sahifangiz ko‘chirilgan yoki endi mavjud bo‘lmasligi mumkin."
   },
-
   "whatsapp": {
     "prefilledMessage": "Salom SAMÍ, buyurtma haqida savolim bor.",
     "ariaLabel": "WhatsAppda suhbatlashish"

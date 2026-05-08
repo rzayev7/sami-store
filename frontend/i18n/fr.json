@@ -31,11 +31,9 @@
     "somethingWentWrong": "Une erreur est survenue",
     "errorOccurred": "Une erreur inattendue s'est produite. Veuillez réessayer ou retourner à la page d'accueil si le problème persiste."
   },
-
   "announcement": {
     "freeShipping": "Livraison dans le monde entier"
   },
-
   "nav": {
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
@@ -59,7 +57,6 @@
     "worldwideShipping": "Livraison internationale",
     "language": "Langue"
   },
-
   "footer": {
     "tagline": "Prêt-à-porter féminin de Bakou. Porté partout.",
     "worldwideShipping": "Livraison internationale",
@@ -85,7 +82,6 @@
     "instagram": "Instagram",
     "copyright": "© {year} SAMÍ. Tous droits réservés."
   },
-
   "auth": {
     "welcome": "BIENVENUE",
     "signInSubtitle": "Connectez-vous à votre compte",
@@ -113,7 +109,6 @@
     "hasAccount": "Vous avez déjà un compte ?",
     "signOut": "Se déconnecter"
   },
-
   "cart": {
     "yourBag": "Votre panier",
     "closeCart": "Fermer le panier",
@@ -131,7 +126,6 @@
     "checkout": "Passer la commande",
     "orContinue": "ou continuer mes achats"
   },
-
   "product": {
     "quickAdd": "Ajout rapide",
     "soldOut": "Épuisé",
@@ -194,7 +188,6 @@
     "supportResponse": "Réponse sous 8 heures ouvrées.",
     "supportOrDMs": "ou envoyez-nous un message sur"
   },
-
   "checkout": {
     "title": "Paiement",
     "subtitle": "Remplissez vos informations pour passer la commande.",
@@ -239,7 +232,6 @@
     "discount": "Réduction",
     "couponValidationError": "Impossible de valider le code promo. Réessayez."
   },
-
   "account": {
     "myAccount": "Mon compte",
     "welcomeBack": "Bon retour, {name}",
@@ -283,7 +275,6 @@
     "labelField": "Libellé",
     "streetAddressPlaceholder": "Adresse"
   },
-
   "tracking": {
     "title": "Suivre ma commande",
     "subtitle": "Entrez votre numéro de commande pour consulter les informations de livraison.",
@@ -310,7 +301,6 @@
     "inProgress": "En cours",
     "inProgressDesc": "Votre commande est en cours de traitement."
   },
-
   "orderSuccess": {
     "thankYou": "Merci pour votre commande, {name} !",
     "thankYouDefault": "Merci pour votre commande !",
@@ -339,7 +329,6 @@
     "thankYouFallbackTitle": "Merci",
     "thankYouFallbackBody": "Votre commande a été passée avec succès"
   },
-
   "bankTransfer": {
     "title": "Finalisez votre paiement",
     "order": "Commande",
@@ -362,7 +351,6 @@
     "continueShopping": "Continuer mes achats",
     "whatsappMessage": "Bonjour, j'ai effectué le paiement pour la commande {ref}. Je vous envoie mon reçu."
   },
-
   "home": {
     "threeWays": "Trois façons de porter l'élégance",
     "packaging": "Joliment emballé, livré avec soin",
@@ -386,7 +374,6 @@
     "followUsDesc": "Découvrez les nouveautés, des idées de style et les coulisses de notre studio à Bakou.",
     "followOnInstagram": "Suivre sur Instagram"
   },
-
   "products": {
     "curatedSelection": "Sélection soignée",
     "theCollection": "La Collection",
@@ -442,14 +429,34 @@
     "seasonSpring": "Printemps",
     "seasonSummer": "Été",
     "seasonRamadan": "Ramadan",
-    "launchNotice": "Nous ne faisons que commencer — de nouvelles pièces sont ajoutées régulièrement à la collection. Si vous ne trouvez pas ce que vous cherchez aujourd'hui, revenez bientôt."
+    "launchNotice": "Nous ne faisons que commencer — de nouvelles pièces sont ajoutées régulièrement à la collection. Si vous ne trouvez pas ce que vous cherchez aujourd'hui, revenez bientôt.",
+    "filterColor": "Couleur",
+    "allColors": "Toutes les couleurs",
+    "filterAvailability": "Disponibilité",
+    "onSale": "En solde",
+    "newArrivals": "Nouveautés",
+    "categoryAll": "Tout",
+    "categorySets": "Ensembles",
+    "categoryDresses": "Robes",
+    "categoryTops": "Hauts",
+    "categoryBottoms": "Bas",
+    "categoryJumpsuits": "Combinaisons",
+    "categorySale": "Soldes",
+    "trustShipping": "Livraison mondiale suivie",
+    "trustFreeShip": "Livraison gratuite dès $150",
+    "trustWhatsApp": "Support WhatsApp",
+    "trustMadeInBaku": "Conçu à Bakou",
+    "selectSize": "Choisir la taille",
+    "addedToBag": "Ajouté au panier",
+    "off": "REMISE",
+    "saveToWishlist": "Ajouter aux favoris",
+    "removeFromWishlist": "Retirer des favoris",
+    "under": "Moins de"
   },
-
   "about": {
     "title": "À propos de SAMÍ",
     "body": "SAMÍ est une marque de prêt-à-porter féminin originaire de Bakou. Nous créons des pièces fondées sur la retenue — des lignes épurées, des tissus soigneusement choisis, des silhouettes durables. Chaque collection est pensée autour de la façon dont les femmes modernes s'habillent réellement : avec intention, sans effort."
   },
-
   "shipping": {
     "title": "Livraison",
     "worldwideDelivery": "Livraison internationale",
@@ -465,7 +472,6 @@
     "returnsPolicyLink": "Politique de retour",
     "returnsBodyEnd": "pour connaître la marche à suivre."
   },
-
   "returns": {
     "title": "Politique de retour",
     "allSalesFinal": "Toutes les ventes sont définitives",
@@ -483,7 +489,6 @@
     "policyUpdates": "Mises à jour de la politique",
     "policyUpdatesBody": "À mesure que SAMÍ grandit, nous prévoyons d'élargir nos options de retour. Cette page reflétera toujours la version la plus à jour de notre politique."
   },
-
   "privacy": {
     "title": "Politique de confidentialité",
     "intro": "SAMÍ (« nous », « notre ») s'engage à protéger vos informations personnelles. Cette politique explique quelles données nous collectons, comment nous les utilisons et quels sont vos droits.",
@@ -528,7 +533,6 @@
     "contact": "Contact",
     "contactBody": "Si vous avez des questions concernant cette politique, veuillez nous envoyer un e-mail à"
   },
-
   "terms": {
     "title": "Conditions générales",
     "intro": "En passant une commande sur le site SAMÍ, vous acceptez les conditions suivantes. Veuillez les lire attentivement avant d'acheter.",
@@ -556,7 +560,6 @@
     "contact": "Contact",
     "contactBody": "Des questions sur ces conditions ? Envoyez-nous un e-mail à"
   },
-
   "contact": {
     "title": "Contactez-nous",
     "intro": "Nous serions ravis d'avoir de vos nouvelles. Que vous ayez une question sur une commande, besoin d'aide pour choisir une taille, ou simplement envie de nous dire bonjour — notre équipe est là pour vous aider.",
@@ -570,18 +573,15 @@
     "businessInquiries": "Demandes professionnelles",
     "businessBody": "Pour les demandes de vente en gros, de presse ou de collaboration, veuillez nous envoyer un e-mail avec l'objet « Demande professionnelle » et nous vous répondrons."
   },
-
   "stores": {
     "title": "Nos boutiques",
     "may28": "Boutique 28 Mai",
     "may28Address": "Şamil Əzizbəyov 205, Baku, Azerbaijan"
   },
-
   "notFound": {
     "title": "Page introuvable",
     "body": "La page que vous recherchez a peut-être été déplacée ou n'existe plus."
   },
-
   "whatsapp": {
     "prefilledMessage": "Bonjour SAMÍ, j'ai une question concernant une commande.",
     "ariaLabel": "Discuter sur WhatsApp"

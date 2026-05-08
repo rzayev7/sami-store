@@ -35,7 +35,7 @@ const COUNTRIES = [
   "Uruguay","Uzbekistan","Venezuela","Vietnam",
 ];
 
-const WORLDWIDE_SHIPPING_FEE_USD = 8;
+const WORLDWIDE_SHIPPING_FEE_USD = 1;
 const FREE_SHIPPING_THRESHOLD_USD = 150;
 
 export default function CheckoutPage() {
@@ -287,7 +287,7 @@ export default function CheckoutPage() {
             <p className="text-xs text-[var(--color-muted)] px-1">Select a payment method below to place your order.</p>
 
             <div className="px-1 py-1 text-sm text-[var(--color-text)]">
-              <p className="font-semibold">Delivery: {shippingCost === 0 ? "Free" : "8 USD"} worldwide</p>
+              <p className="font-semibold">Delivery: {shippingCost === 0 ? "Free" : "1 USD"} worldwide</p>
               <p className="mt-0.5 text-xs text-[var(--color-muted)]">
                 {shippingCost === 0
                   ? "Free shipping applied — order over $150"

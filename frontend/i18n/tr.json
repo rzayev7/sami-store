@@ -31,11 +31,9 @@
     "somethingWentWrong": "Bir şeyler ters gitti",
     "errorOccurred": "Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin veya sorun devam ederse ana sayfaya dönün."
   },
-
   "announcement": {
     "freeShipping": "Dünya Çapında Kargo"
   },
-
   "nav": {
     "openMenu": "Menüyü aç",
     "closeMenu": "Menüyü kapat",
@@ -60,7 +58,6 @@
     "worldwideShipping": "Dünya Çapında Kargo",
     "language": "Dil"
   },
-
   "footer": {
     "tagline": "Bakü'den kadın giyim. Her yerde giyilir.",
     "worldwideShipping": "Dünya çapında kargo",
@@ -86,7 +83,6 @@
     "instagram": "Instagram",
     "copyright": "© {year} SAMÍ. Tüm hakları saklıdır."
   },
-
   "auth": {
     "welcome": "HOŞ GELDİNİZ",
     "signInSubtitle": "Hesabınıza giriş yapın",
@@ -114,7 +110,6 @@
     "hasAccount": "Zaten hesabınız var mı?",
     "signOut": "Çıkış Yap"
   },
-
   "cart": {
     "yourBag": "Sepetiniz",
     "closeCart": "Sepeti kapat",
@@ -132,7 +127,6 @@
     "checkout": "Ödeme",
     "orContinue": "veya alışverişe devam edin"
   },
-
   "product": {
     "quickAdd": "Hızlı Ekle",
     "soldOut": "Tükendi",
@@ -204,7 +198,6 @@
     "supportResponse": "8 iş saati içinde yanıt bekleyin.",
     "supportOrDMs": "veya DM atın:"
   },
-
   "checkout": {
     "title": "Ödeme",
     "subtitle": "Siparişi tamamlamak için bilgilerinizi doldurun.",
@@ -249,7 +242,6 @@
     "discount": "İndirim",
     "couponValidationError": "Kupon doğrulanamadı. Tekrar deneyin."
   },
-
   "account": {
     "myAccount": "Hesabım",
     "welcomeBack": "Tekrar hoş geldiniz, {name}",
@@ -293,7 +285,6 @@
     "labelField": "Etiket",
     "streetAddressPlaceholder": "Sokak adresi"
   },
-
   "tracking": {
     "title": "Sipariş Takibi",
     "subtitle": "Güncel teslimat bilgileri için Sipariş numaranızı girin.",
@@ -320,7 +311,6 @@
     "inProgress": "İşleniyor",
     "inProgressDesc": "Siparişiniz işleniyor."
   },
-
   "orderSuccess": {
     "thankYou": "Siparişiniz için teşekkürler, {name}!",
     "thankYouDefault": "Siparişiniz için teşekkürler!",
@@ -349,7 +339,6 @@
     "thankYouFallbackTitle": "Teşekkürler",
     "thankYouFallbackBody": "Siparişiniz başarıyla alındı"
   },
-
   "bankTransfer": {
     "title": "Ödemenizi tamamlayın",
     "order": "Sipariş",
@@ -372,7 +361,6 @@
     "continueShopping": "Alışverişe devam et",
     "whatsappMessage": "Merhaba, Sipariş {ref} için ödemeyi tamamladım. Dekontumu gönderiyorum."
   },
-
   "home": {
     "threeWays": "Zarafeti Taşımanın Üç Yolu",
     "packaging": "Özenle paketlenmiş, düşünülerek teslim edilir",
@@ -396,7 +384,6 @@
     "followUsDesc": "Yeni gelenleri, stil fikirlerini ve Bakü stüdyomuzdan kamera arkası anları keşfedin.",
     "followOnInstagram": "Instagram'da Takip Et"
   },
-
   "products": {
     "curatedSelection": "Özenle Seçilmiş",
     "theCollection": "Koleksiyon",
@@ -452,14 +439,34 @@
     "seasonSpring": "İlkbahar",
     "seasonSummer": "Yaz",
     "seasonRamadan": "Ramazan",
-    "launchNotice": "Yeni başlıyoruz — koleksiyona düzenli olarak yeni parçalar ekleniyor. Bugün aradığınızı bulamazsanız, yakında tekrar bakın."
+    "launchNotice": "Yeni başlıyoruz — koleksiyona düzenli olarak yeni parçalar ekleniyor. Bugün aradığınızı bulamazsanız, yakında tekrar bakın.",
+    "filterColor": "Renk",
+    "allColors": "Tüm Renkler",
+    "filterAvailability": "Mevcudiyet",
+    "onSale": "İndirimde",
+    "newArrivals": "Yeni Gelenler",
+    "categoryAll": "Tümü",
+    "categorySets": "Takımlar",
+    "categoryDresses": "Elbiseler",
+    "categoryTops": "Üstler",
+    "categoryBottoms": "Altlar",
+    "categoryJumpsuits": "Tulumlar",
+    "categorySale": "İndirim",
+    "trustShipping": "Dünya çapında takipli kargo",
+    "trustFreeShip": "$150 üzeri ücretsiz kargo",
+    "trustWhatsApp": "WhatsApp desteği",
+    "trustMadeInBaku": "Bakü'de tasarlandı",
+    "selectSize": "Beden seçin",
+    "addedToBag": "Sepete eklendi",
+    "off": "İNDİRİM",
+    "saveToWishlist": "İstek listesine ekle",
+    "removeFromWishlist": "İstek listesinden çıkar",
+    "under": "Altında"
   },
-
   "about": {
     "title": "SAMÍ Hakkında",
     "body": "SAMÍ, Bakü merkezli bir kadın giyim markasıdır. Parçalarımızı sade çizgiler, özenle seçilmiş kumaşlar ve kalıcı silüetler etrafında kurgularız. Her koleksiyon, modern kadınların gerçekten nasıl giyindiğine odaklanır: kasıtlı, zahmetsiz."
   },
-
   "shipping": {
     "title": "Kargo",
     "worldwideDelivery": "Dünya Çapında Teslimat",
@@ -475,7 +482,6 @@
     "returnsPolicyLink": "İade Politikası",
     "returnsBodyEnd": "sonraki adımlar için."
   },
-
   "returns": {
     "title": "İade Politikası",
     "allSalesFinal": "Tüm Satışlar Kesindir",
@@ -493,7 +499,6 @@
     "policyUpdates": "Politika Güncellemeleri",
     "policyUpdatesBody": "SAMÍ büyüdükçe iade seçeneklerini genişletmeyi planlıyoruz. Bu sayfa her zaman güncel politikayı yansıtır."
   },
-
   "privacy": {
     "title": "Gizlilik Politikası",
     "intro": "SAMÍ (\"biz\") kişisel bilgilerinizi korumaya kararlıdır. Bu politika hangi verileri topladığımızı, nasıl kullandığımızı ve haklarınızı açıklar.",
@@ -538,7 +543,6 @@
     "contact": "İletişim",
     "contactBody": "Bu politika hakkında sorularınız için bize e-posta gönderin:"
   },
-
   "terms": {
     "title": "Şartlar ve Koşullar",
     "intro": "SAMÍ web sitesinde sipariş vererek aşağıdaki şartları kabul etmiş olursunuz. Satın almadan önce lütfen dikkatle okuyun.",
@@ -566,7 +570,6 @@
     "contact": "İletişim",
     "contactBody": "Bu şartlarla ilgili sorularınız için bize e-posta gönderin:"
   },
-
   "contact": {
     "title": "Bize Ulaşın",
     "intro": "Sizden haber almak isteriz. Sipariş, beden yardımı veya sadece merhaba demek için — ekibimiz yardımcı olmak için burada.",
@@ -580,18 +583,15 @@
     "businessInquiries": "İş Birlikleri",
     "businessBody": "Toptan satış, basın veya iş birliği talepleri için konu satırına \"İş Talebi\" yazarak e-posta gönderin; size dönüş yapacağız."
   },
-
   "stores": {
     "title": "Mağazalarımız",
     "may28": "28 Mayıs şubesi",
     "may28Address": "Şamil Əzizbəyov 205, Bakü, Azerbaycan"
   },
-
   "notFound": {
     "title": "Sayfa bulunamadı",
     "body": "Aradığınız sayfa taşınmış veya artık mevcut olmayabilir."
   },
-
   "whatsapp": {
     "prefilledMessage": "Merhaba SAMÍ, bir sipariş hakkında sorum var.",
     "ariaLabel": "WhatsApp'ta sohbet et"
