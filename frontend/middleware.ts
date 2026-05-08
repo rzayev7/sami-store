@@ -3,15 +3,149 @@ import { NextRequest, NextResponse } from "next/server";
 const LOCALES = ["en", "ar", "ru", "uz"];
 const LEGACY_LOCALES = ["az", "fr", "tr", "kk"];
 const DEFAULT_LOCALE = "en";
+const BLOCKED_COUNTRY_CODES = new Set(["AZ"]);
+const ACCESS_RESTRICTED_PATH = "/access-restricted";
+
+type CountryHeaderSource = "cf-ipcountry" | "x-vercel-ip-country" | "cloudfront-viewer-country" | "x-country-code" | "request.geo";
 
 function getLocaleFromPath(pathname: string): string | null {
   const first = pathname.split("/")[1];
   return LOCALES.includes(first) ? first : null;
 }
 
+function normalizeCountryCode(value: string | null | undefined): string {
+  return String(value || "").trim().toUpperCase();
+}
+
+function getClientIp(request: NextRequest): string {
+  const cfIp = request.headers.get("cf-connecting-ip");
+  if (cfIp) return cfIp.trim();
+
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+
+  const xff = request.headers.get("x-forwarded-for");
+  if (xff) return xff.split(",")[0]?.trim() || "";
+
+  return "";
+}
+
+function getBypassIpAllowlist(): Set<string> {
+  // Comma-separated exact IP list, e.g.
+  // COUNTRY_BLOCK_BYPASS_IPS=203.0.113.10,198.51.100.25
+  const raw = String(process.env.COUNTRY_BLOCK_BYPASS_IPS || "");
+  const values = raw
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+  return new Set(values);
+}
+
+function isBypassIp(request: NextRequest): boolean {
+  const clientIp = getClientIp(request);
+  if (!clientIp) return false;
+  return getBypassIpAllowlist().has(clientIp);
+}
+
+function isAccessRestrictedPath(pathname: string): boolean {
+  if (pathname === ACCESS_RESTRICTED_PATH) return true;
+  return LOCALES.some((locale) => pathname === `/${locale}${ACCESS_RESTRICTED_PATH}`);
+}
+
+function getCountryFromTrustedHeaders(
+  request: NextRequest,
+): { countryCode: string; source: CountryHeaderSource | "none" } {
+  // Trust infrastructure-managed country headers only.
+  // Priority order:
+  // 1) Cloudflare: cf-ipcountry
+  // 2) Vercel edge: x-vercel-ip-country
+  // 3) AWS CloudFront: cloudfront-viewer-country
+  // 4) Optional custom edge header: x-country-code
+  // 5) Next.js geo fallback (when available)
+  const candidates: Array<{ source: CountryHeaderSource; value: string | null }> = [
+    { source: "cf-ipcountry", value: request.headers.get("cf-ipcountry") },
+    { source: "x-vercel-ip-country", value: request.headers.get("x-vercel-ip-country") },
+    { source: "cloudfront-viewer-country", value: request.headers.get("cloudfront-viewer-country") },
+    { source: "x-country-code", value: request.headers.get("x-country-code") },
+    // `geo` may be injected by hosting platform/runtime and is not always typed on NextRequest.
+    { source: "request.geo", value: (request as NextRequest & { geo?: { country?: string } }).geo?.country || null },
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeCountryCode(candidate.value);
+    if (normalized) return { countryCode: normalized, source: candidate.source };
+  }
+
+  return { countryCode: "", source: "none" };
+}
+
+function shouldBlockRequest(countryCode: string): boolean {
+  return BLOCKED_COUNTRY_CODES.has(countryCode);
+}
+
+function buildBlockedResponse(request: NextRequest, countryCode: string, source: string) {
+  const mode = String(process.env.COUNTRY_BLOCK_MODE || "redirect").toLowerCase();
+  const responseHeaders = {
+    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+    Pragma: "no-cache",
+    Expires: "0",
+  };
+
+  if (mode === "403") {
+    return NextResponse.json(
+      {
+        error: "access_restricted",
+        message: "Access to this website is restricted in your region.",
+      },
+      { status: 403, headers: responseHeaders },
+    );
+  }
+
+  const redirectUrl = request.nextUrl.clone();
+  redirectUrl.pathname = ACCESS_RESTRICTED_PATH;
+  redirectUrl.search = "";
+  return NextResponse.redirect(redirectUrl, { headers: responseHeaders });
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const firstSegment = pathname.split("/")[1];
+  const { countryCode, source } = getCountryFromTrustedHeaders(request);
+  const clientIp = getClientIp(request);
+  const bypassedByIp = isBypassIp(request);
+
+  // Country block check is done before locale/admin logic for full-site protection.
+  // Access-restricted page itself is allowlisted to avoid redirect loops.
+  if (!isAccessRestrictedPath(pathname) && shouldBlockRequest(countryCode) && !bypassedByIp) {
+    console.warn(
+      JSON.stringify({
+        event: "country_access_blocked",
+        countryCode,
+        source,
+        method: request.method,
+        pathname,
+        ip: clientIp || "unknown",
+        ua: request.headers.get("user-agent") || "unknown",
+        at: new Date().toISOString(),
+      }),
+    );
+    return buildBlockedResponse(request, countryCode, source);
+  }
+
+  if (shouldBlockRequest(countryCode) && bypassedByIp) {
+    console.info(
+      JSON.stringify({
+        event: "country_access_bypassed_by_ip_allowlist",
+        countryCode,
+        source,
+        method: request.method,
+        pathname,
+        ip: clientIp || "unknown",
+        ua: request.headers.get("user-agent") || "unknown",
+        at: new Date().toISOString(),
+      }),
+    );
+  }
 
   // --- Admin routes are intentionally NOT localized ---
   if (pathname.startsWith("/admin")) {
