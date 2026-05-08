@@ -93,16 +93,33 @@ function shouldBlockRequest(countryCode: string): boolean {
 }
 
 function buildBlockedResponse(request: NextRequest) {
-  // Rewrite (URL bar unchanged) but real HTTP 404 — looks like the site/page does not exist.
+  // Default: explicit JSON 403 for blocked regions (e.g. AZ). Set REGION_BLOCK_RESPONSE=ghost404 for silent fake-404 HTML.
+  const mode = String(process.env.REGION_BLOCK_RESPONSE || "json_403").toLowerCase();
+  const noStoreHeaders = {
+    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+    Pragma: "no-cache",
+    Expires: "0",
+  };
+
+  // Plain JSON — explicit “blocked”; good for debugging or API-like responses.
+  if (mode === "json" || mode === "json_403") {
+    return NextResponse.json(
+      {
+        error: "access_restricted",
+        message: "Access to this website is restricted in your region.",
+      },
+      { status: 403, headers: { ...noStoreHeaders, "X-Robots-Tag": "noindex, nofollow" } },
+    );
+  }
+
+  // Default: Rewrite (URL bar unchanged) + real HTTP 404 — looks like the page does not exist.
   const rewriteUrl = request.nextUrl.clone();
   rewriteUrl.pathname = REGION_BLOCK_GHOST_PATH;
   rewriteUrl.search = "";
   return NextResponse.rewrite(rewriteUrl, {
     status: 404,
     headers: {
-      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-      Pragma: "no-cache",
-      Expires: "0",
+      ...noStoreHeaders,
       "X-Robots-Tag": "noindex, nofollow",
     },
   });
