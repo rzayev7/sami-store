@@ -10,6 +10,7 @@ const {
   sendDeliveryEmail,
 } = require("../services/emailService");
 const AZERPOST_TRACKING_URL = "https://www.azerpost.az/en/services/tracking-of-shipments";
+const ALLOWED_PAYMENT_METHODS = ["card", "western_union", "zolotaya_korona", "cod", "other", ""];
 
 const extractCustomerId = (req) => {
   try {
@@ -135,6 +136,11 @@ const createOrder = async (req, res, next) => {
 
     // ── 4. Build & persist order ──
 
+    const normalizedPaymentMethod = String(req.body?.paymentMethod || "").toLowerCase();
+    if (!ALLOWED_PAYMENT_METHODS.includes(normalizedPaymentMethod)) {
+      return res.status(400).json({ message: "Invalid payment method" });
+    }
+
     const payload = {
       ...(customerId && { customerId }),
       customerInfo,
@@ -147,7 +153,7 @@ const createOrder = async (req, res, next) => {
       totalPriceUSD: serverTotal,
       shippingCost,
       paymentStatus: "pending",
-      paymentMethod: String(req.body?.paymentMethod || "").toLowerCase(),
+      paymentMethod: normalizedPaymentMethod,
       ...(couponCode && { couponCode }),
       ...(req.body?.orderNotes != null &&
         String(req.body.orderNotes).trim() && {
@@ -317,7 +323,11 @@ const updateOrder = async (req, res, next) => {
       });
     }
     if (paymentMethod !== undefined) {
-      existingOrder.paymentMethod = String(paymentMethod).toLowerCase();
+      const normalizedPaymentMethod = String(paymentMethod).toLowerCase();
+      if (!ALLOWED_PAYMENT_METHODS.includes(normalizedPaymentMethod)) {
+        return res.status(400).json({ message: "Invalid payment method" });
+      }
+      existingOrder.paymentMethod = normalizedPaymentMethod;
     }
 
     if (timelineEntries.length > 0) {

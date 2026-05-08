@@ -152,7 +152,8 @@ const initiateEpointPayment = async (req, res, next) => {
       amount,
       orderId: String(order._id),
       description: `Sami order ${order._id}`,
-      language: String(order?.customerLocale?.language || process.env.EPOINT_LANGUAGE || "en").toLowerCase(),
+      // Force English payment gateway UI regardless of storefront locale.
+      language: "en",
       successRedirectUrl,
       errorRedirectUrl,
     });

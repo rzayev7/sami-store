@@ -98,7 +98,7 @@ const orderSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ["card", "cod", "bank_transfer", "other", ""],
+    enum: ["card", "cod", "western_union", "zolotaya_korona", "other", ""],
     default: "",
   },
   paymentGateway: {

@@ -9,7 +9,6 @@ import { useAuth } from "../../context/AuthContext";
 import { useLanguage, useLocalePath } from "../../context/LanguageContext";
 import api from "../../lib/api";
 import { getCustomerAuthHeaders } from "../../lib/customerAuth";
-import BankTransferDetails from "../../components/BankTransferDetails";
 import WesternUnionDetails from "../../components/WesternUnionDetails";
 import ZolotayaKoronaDetails from "../../components/ZolotayaKoronaDetails";
 import { formatSizeLabel } from "../../lib/sizeDisplay";
@@ -154,7 +153,7 @@ export default function CheckoutPage() {
     const email = val("email");
     const postalCode = val("postalCode");
     const orderNotesRaw = (fd.get("orderNotes") ?? "").toString();
-    const normalizedPaymentMethod = selectedPaymentMethod === "card" ? "card" : "bank_transfer";
+    const normalizedPaymentMethod = String(selectedPaymentMethod || "card");
 
     const orderPayload = {
       customerInfo: {
@@ -399,50 +398,6 @@ export default function CheckoutPage() {
                   <MastercardMark className="h-6 w-auto" />
                 </div>
               </button>
-            </div>
-
-            <div className="rounded-lg border border-[var(--color-line)] bg-white">
-              <button
-                type="button"
-                onClick={() =>
-                  setOpenPaymentSection((prev) => {
-                    const next = prev === "bank" ? "" : "bank";
-                    if (next === "bank") setSelectedPaymentMethod("bank_transfer");
-                    return next;
-                  })
-                }
-                className={`flex w-full items-center justify-between gap-3 px-3 py-3 text-left transition hover:bg-black/[0.03] ${
-                  selectedPaymentMethod === "bank_transfer"
-                    ? "bg-emerald-50 ring-1 ring-emerald-300"
-                    : ""
-                }`}
-                aria-expanded={openPaymentSection === "bank"}
-              >
-                <span className="flex items-center gap-2 text-sm font-semibold">
-                  {selectedPaymentMethod === "bank_transfer" && (
-                    <span
-                      className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1 text-[11px] font-bold text-white"
-                      aria-hidden="true"
-                    >
-                      ✓
-                    </span>
-                  )}
-                  <span>{t("checkout.bankTransfer")}</span>
-                  {selectedPaymentMethod === "bank_transfer" && (
-                    <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white">
-                      Selected
-                    </span>
-                  )}
-                </span>
-                <span className="text-xs font-medium uppercase tracking-[0.08em] text-black/55">
-                  {openPaymentSection === "bank" ? "Hide" : "Open"}
-                </span>
-              </button>
-              {openPaymentSection === "bank" && (
-                <div className="border-t border-[var(--color-line)] px-3 pb-3 pt-3">
-                  <BankTransferDetails />
-                </div>
-              )}
             </div>
 
             <div className="rounded-lg border border-[var(--color-line)] bg-white">
