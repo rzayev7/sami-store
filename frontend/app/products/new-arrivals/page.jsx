@@ -11,6 +11,7 @@ export default function NewArrivalsPage() {
       accentLabel={t("products.justDroppedEyebrow")}
       title={t("products.newArrivalsTitle")}
       subtitle={t("products.newArrivalsDesc")}
+      queryPreset={{ newArrival: "true" }}
       initialSort="newest"
     />
   );

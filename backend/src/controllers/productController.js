@@ -39,6 +39,12 @@ const toNonNegativeInt = (value, fallback = 0) => {
   return Number.isFinite(parsed) ? Math.max(0, Math.trunc(parsed)) : fallback;
 };
 
+const isTruthyQueryParam = (value) => {
+  if (value == null) return false;
+  const normalized = String(value).trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes";
+};
+
 const createShortCodeCandidate = () => {
   // Example: "P7A3C1F" (7 chars total)
   return `P${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
@@ -63,19 +69,90 @@ const getProducts = async (req, res, next) => {
     }
 
     const page = Math.max(1, parseInt(req.query?.page, 10) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(req.query?.limit, 10) || 50));
+    const limit = Math.min(100, Math.max(1, parseInt(req.query?.limit, 10) || 20));
     const search = String(req.query?.search || "").trim();
+    const sortBy = String(req.query?.sortBy || "featured").trim();
+    const size = String(req.query?.size || "all").trim();
+    const type = String(req.query?.type || "all").trim();
+    const price = String(req.query?.price || "all").trim();
+    const cut = String(req.query?.cut || "all").trim().toLowerCase();
+    const fabric = String(req.query?.fabric || "all").trim().toLowerCase();
+    const piece = String(req.query?.piece || "all").trim().toLowerCase();
+    const season = String(req.query?.season || "all").trim().toLowerCase();
+    const featured = String(req.query?.featured || "").trim().toLowerCase();
+    const bestSeller = String(req.query?.bestSeller || "").trim().toLowerCase();
+    const newArrival = String(req.query?.newArrival || "").trim().toLowerCase();
+    const lite = isTruthyQueryParam(req.query?.lite);
 
     const filter = {};
     if (search) {
       filter.name = { $regex: escapeRegex(search), $options: "i" };
+    }
+    if (size !== "all") {
+      filter.sizes = size;
+    }
+    if (type !== "all") {
+      filter.category = type;
+    }
+    if (price === "0-100") {
+      filter.priceUSD = { $gte: 0, $lte: 100 };
+    } else if (price === "100-200") {
+      filter.priceUSD = { $gt: 100, $lte: 200 };
+    } else if (price === "200-400") {
+      filter.priceUSD = { $gt: 200, $lte: 400 };
+    }
+    if (featured === "true") {
+      filter.featured = true;
+    }
+    if (bestSeller === "true") {
+      filter.isBestSeller = true;
+    }
+    if (newArrival === "true") {
+      filter.isNewArrival = true;
+    }
+
+    const applyOptionalFieldFilter = (fieldName, selectedValue) => {
+      if (!selectedValue || selectedValue === "all") return;
+      filter.$and = filter.$and || [];
+      filter.$and.push({
+        $or: [
+          { [fieldName]: selectedValue },
+          { [fieldName]: { $exists: false } },
+          { [fieldName]: null },
+          { [fieldName]: "" },
+          { [fieldName]: [] },
+        ],
+      });
+    };
+    applyOptionalFieldFilter("cut", cut);
+    applyOptionalFieldFilter("fabric", fabric);
+    applyOptionalFieldFilter("piece", piece);
+    applyOptionalFieldFilter("season", season);
+
+    let sort = { featured: -1, createdAt: -1, _id: -1 };
+    if (sortBy === "newest") {
+      sort = { createdAt: -1, _id: -1 };
+    } else if (sortBy === "price-low") {
+      sort = { priceUSD: 1, createdAt: -1, _id: -1 };
+    } else if (sortBy === "price-high") {
+      sort = { priceUSD: -1, createdAt: -1, _id: -1 };
+    } else if (sortBy === "name-asc") {
+      sort = { name: 1, _id: -1 };
+    } else if (sortBy === "name-desc") {
+      sort = { name: -1, _id: -1 };
     }
 
     const totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / limit);
     const skip = (page - 1) * limit;
 
-    const products = await Product.find(filter).skip(skip).limit(limit);
+    const query = Product.find(filter).sort(sort).skip(skip).limit(limit);
+    if (lite) {
+      query.select(
+        "_id name priceUSD discountPriceUSD category sizes images stock featured cardVideoUrl cardVideoAdjustments cardVideoLandscape isBestSeller isNewArrival createdAt"
+      );
+    }
+    const products = await query.lean();
 
     res.status(200).json({
       products,

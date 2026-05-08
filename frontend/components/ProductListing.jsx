@@ -18,6 +18,17 @@ import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import { formatSizeLabel, normalizeSizeForFilter } from "../lib/sizeDisplay";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 
+const PAGE_SIZE = 20;
+const serializeQueryParams = (params = {}) => {
+  const normalized = {};
+  Object.keys(params)
+    .sort()
+    .forEach((key) => {
+      normalized[key] = params[key];
+    });
+  return JSON.stringify(normalized);
+};
+
 function SkeletonCard() {
   return (
     <div className="animate-pulse">
@@ -216,22 +227,53 @@ function ProductCard({ product }) {
  * @param {string}   props.accentLabel  - Small gold label above the title
  * @param {string}   props.title        - Page heading
  * @param {string}   props.subtitle     - Paragraph below the heading
- * @param {function} [props.productFilter] - Optional predicate applied after
- *                                           fetching to narrow the product set
+ * @param {object}   [props.queryPreset]   - Optional fixed query params sent to backend
  * @param {string}   [props.initialSort]     - Default sort: featured | newest | price-low | ...
  * @param {string}   [props.initialType]     - Pre-select a category/type filter on mount
+ * @param {object}   [props.initialData]      - Optional SSR first-page payload
+ * @param {object}   [props.initialRequestParams] - Params used to build initialData
  */
 export default function ProductListing({
   accentLabel = "Curated Selection",
   title = "The Collection",
   subtitle = "Timeless silhouettes crafted with intention. Find your next signature piece.",
-  productFilter,
+  queryPreset = {},
   initialSort = "featured",
   initialType = "",
+  initialData = null,
+  initialRequestParams = null,
 }) {
   const { t } = useLanguage();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryPresetKey = useMemo(
+    () => serializeQueryParams(queryPreset && typeof queryPreset === "object" ? queryPreset : {}),
+    [queryPreset]
+  );
+  const initialRequestKey = useMemo(
+    () =>
+      serializeQueryParams(
+        initialRequestParams && typeof initialRequestParams === "object"
+          ? initialRequestParams
+          : {}
+      ),
+    [initialRequestParams]
+  );
+  const stableQueryPreset = useMemo(() => JSON.parse(queryPresetKey), [queryPresetKey]);
+  const initialProducts = Array.isArray(initialData?.products) ? initialData.products : [];
+  const initialPage = Number(initialData?.page || 1);
+  const initialTotalPages = Number(initialData?.totalPages || 0);
+  const initialTotalProducts = Number(initialData?.totalProducts || 0);
+  const hasInitialData = initialProducts.length > 0 || initialTotalProducts > 0;
+  const [products, setProducts] = useState(() => (hasInitialData ? initialProducts : []));
+  const [loading, setLoading] = useState(() => !hasInitialData);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [page, setPage] = useState(() => (hasInitialData ? initialPage : 1));
+  const [hasMore, setHasMore] = useState(() =>
+    hasInitialData ? initialPage < initialTotalPages : true
+  );
+  const [totalProducts, setTotalProducts] = useState(() =>
+    hasInitialData ? initialTotalProducts : 0
+  );
+  const loadMoreRef = useRef(null);
   const [filters, setFilters] = useState({
     price: "all",
     size: "all",
@@ -253,14 +295,64 @@ export default function ProductListing({
     season: false,
   });
 
-  useEffect(() => {
-    const fetchProducts = async () => {
+  const buildProductsQuery = useCallback(
+    (targetPage) => ({
+      page: targetPage,
+      limit: PAGE_SIZE,
+      sortBy,
+      price: filters.price,
+      size: filters.size,
+      cut: filters.cut,
+      fabric: filters.fabric,
+      piece: filters.piece,
+      type: filters.type,
+      season: filters.season,
+      lite: stableQueryPreset?.lite ?? "true",
+      ...stableQueryPreset,
+    }),
+    [
+      filters.cut,
+      filters.fabric,
+      filters.piece,
+      filters.price,
+      filters.season,
+      filters.size,
+      filters.type,
+      stableQueryPreset,
+      sortBy,
+    ]
+  );
+
+  const hasBootstrappedInitialRef = useRef(false);
+  const activeRequestIdRef = useRef(0);
+
+  const fetchProductsPage = useCallback(
+    async (targetPage) => {
+      const requestId = activeRequestIdRef.current + 1;
+      activeRequestIdRef.current = requestId;
       const base = getApiBaseURL();
       try {
-        const { data } = await api.get("/api/products");
-        const list = Array.isArray(data) ? data : [];
-        setProducts(list);
+        if (targetPage === 1) {
+          setLoading(true);
+        } else {
+          setIsFetchingMore(true);
+        }
+
+        const { data } = await api.get("/api/products", {
+          params: buildProductsQuery(targetPage),
+        });
+        const list = Array.isArray(data?.products) ? data.products : [];
+        const responsePage = Number(data?.page || targetPage);
+        const responseTotalPages = Number(data?.totalPages || 0);
+        const responseTotalProducts = Number(data?.totalProducts || 0);
+        if (activeRequestIdRef.current !== requestId) return;
+
+        setProducts((prev) => (targetPage === 1 ? list : [...prev, ...list]));
+        setPage(responsePage);
+        setTotalProducts(responseTotalProducts);
+        setHasMore(responsePage < responseTotalPages);
       } catch (err) {
+        if (activeRequestIdRef.current !== requestId) return;
         console.error("[ProductListing] /api/products failed", {
           baseUrl: base,
           requestUrl: `${base}/api/products`,
@@ -268,14 +360,50 @@ export default function ProductListing({
           status: err?.response?.status,
           responseData: err?.response?.data,
         });
-        setProducts([]);
+        if (targetPage === 1) {
+          setProducts([]);
+          setTotalProducts(0);
+          setHasMore(false);
+        }
       } finally {
+        if (activeRequestIdRef.current !== requestId) return;
         setLoading(false);
+        setIsFetchingMore(false);
       }
-    };
+    },
+    [buildProductsQuery]
+  );
 
-    fetchProducts();
-  }, []);
+  useEffect(() => {
+    if (!hasBootstrappedInitialRef.current) {
+      hasBootstrappedInitialRef.current = true;
+      if (
+        hasInitialData &&
+        serializeQueryParams(buildProductsQuery(1)) === initialRequestKey
+      ) {
+        return;
+      }
+    }
+    fetchProductsPage(1);
+  }, [buildProductsQuery, fetchProductsPage, hasInitialData, initialRequestKey]);
+
+  useEffect(() => {
+    if (loading || isFetchingMore || !hasMore) return;
+    const target = loadMoreRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (!first?.isIntersecting) return;
+        fetchProductsPage(page + 1);
+      },
+      { rootMargin: "300px 0px" }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [fetchProductsPage, hasMore, isFetchingMore, loading, page]);
 
   useEffect(() => {
     if (!isMobileFiltersOpen) return;
@@ -286,9 +414,7 @@ export default function ProductListing({
     };
   }, [isMobileFiltersOpen]);
 
-  const baseProducts = useMemo(() => {
-    return productFilter ? products.filter(productFilter) : products;
-  }, [products, productFilter]);
+  const baseProducts = useMemo(() => products, [products]);
 
   const allSizes = useMemo(() => {
     const sizeSet = new Set();
@@ -419,87 +545,7 @@ export default function ProductListing({
     });
   }, []);
 
-  const matchesOptionalField = (product, selectedValue, fields) => {
-    if (selectedValue === "all") return true;
-    const normalizedSelected = String(selectedValue).toLowerCase();
-
-    for (const fieldName of fields) {
-      const rawValue = product?.[fieldName];
-      if (!rawValue) continue;
-      if (Array.isArray(rawValue)) {
-        const hasMatch = rawValue.some(
-          (entry) => String(entry).toLowerCase() === normalizedSelected
-        );
-        if (hasMatch) return true;
-      } else if (String(rawValue).toLowerCase() === normalizedSelected) {
-        return true;
-      }
-    }
-
-    return !fields.some((fieldName) => product?.[fieldName]);
-  };
-
-  const filteredProducts = useMemo(() => {
-    let result = [...baseProducts];
-
-    if (filters.size !== "all") {
-      result = result.filter(
-        (product) =>
-          Array.isArray(product.sizes) &&
-          product.sizes.some(
-            (s) => normalizeSizeForFilter(s) === filters.size
-          )
-      );
-    }
-
-    if (filters.price !== "all") {
-      result = result.filter((product) => {
-        const price = Number(product.priceUSD || 0);
-        if (filters.price === "0-100") return price >= 0 && price <= 100;
-        if (filters.price === "100-200") return price > 100 && price <= 200;
-        if (filters.price === "200-400") return price > 200 && price <= 400;
-        return true;
-      });
-    }
-
-    result = result.filter((product) =>
-      matchesOptionalField(product, filters.cut, ["cut"])
-    );
-    result = result.filter((product) =>
-      matchesOptionalField(product, filters.fabric, ["fabric"])
-    );
-    result = result.filter((product) =>
-      matchesOptionalField(product, filters.piece, ["piece"])
-    );
-    result = result.filter((product) =>
-      matchesOptionalField(product, filters.type, ["type", "category"])
-    );
-    result = result.filter((product) =>
-      matchesOptionalField(product, filters.season, ["season"])
-    );
-
-    if (sortBy === "price-low") {
-      result.sort(
-        (a, b) => Number(a.priceUSD || 0) - Number(b.priceUSD || 0)
-      );
-    } else if (sortBy === "price-high") {
-      result.sort(
-        (a, b) => Number(b.priceUSD || 0) - Number(a.priceUSD || 0)
-      );
-    } else if (sortBy === "newest") {
-      result.sort((a, b) => {
-        const ta = new Date(a.createdAt || 0).getTime();
-        const tb = new Date(b.createdAt || 0).getTime();
-        return tb - ta;
-      });
-    } else if (sortBy === "name-asc") {
-      result.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-    } else if (sortBy === "name-desc") {
-      result.sort((a, b) => (b.name || "").localeCompare(a.name || ""));
-    }
-
-    return result;
-  }, [baseProducts, filters, sortBy]);
+  const filteredProducts = baseProducts;
 
   const renderFilterOptions = (section) => (
     <div className="space-y-1">
@@ -582,8 +628,8 @@ export default function ProductListing({
           </button>
 
           <p className="text-[12px] tracking-[0.04em] text-black/40">
-            {filteredProducts.length}{" "}
-            {filteredProducts.length === 1 ? t("products.product") : t("products.productPlural")}
+            {totalProducts}{" "}
+            {totalProducts === 1 ? t("products.product") : t("products.productPlural")}
           </p>
         </div>
 
@@ -694,6 +740,16 @@ export default function ProductListing({
               ))}
             </div>
           )}
+
+          {isFetchingMore && (
+            <div className="mt-6 grid grid-cols-2 gap-5 sm:gap-6 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <SkeletonCard key={`more-${i}`} />
+              ))}
+            </div>
+          )}
+
+          <div ref={loadMoreRef} className="h-1 w-full" />
         </div>
       </div>
 
@@ -757,7 +813,7 @@ export default function ProductListing({
               onClick={() => setIsMobileFiltersOpen(false)}
               className="sami-btn-dark flex-1 rounded-full py-3 text-[11px] tracking-[0.12em]"
             >
-              {t("products.showResults", { count: filteredProducts.length })}
+              {t("products.showResults", { count: totalProducts })}
             </button>
           </div>
         </div>

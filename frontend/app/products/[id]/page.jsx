@@ -95,13 +95,39 @@ export default function ProductDetailPage() {
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await api.get("/api/products");
-        const list = Array.isArray(data) ? data : [];
+        const { data } = await api.get("/api/products", {
+          params: {
+            page: 1,
+            limit: 8,
+            type: product.category || "all",
+            sortBy: "featured",
+            lite: "true",
+          },
+        });
+        const list = Array.isArray(data?.products)
+          ? data.products
+          : Array.isArray(data)
+            ? data
+            : [];
         const cat = product.category;
         const sameCat = list.filter(
           (p) => p._id !== product._id && (!cat || p.category === cat),
         );
-        const fallback = list.filter((p) => p._id !== product._id);
+        let fallback = list.filter((p) => p._id !== product._id);
+        if (fallback.length < 3) {
+          const fallbackRes = await api.get("/api/products", {
+            params: {
+              page: 1,
+              limit: 12,
+              sortBy: "featured",
+              lite: "true",
+            },
+          });
+          const fallbackList = Array.isArray(fallbackRes.data?.products)
+            ? fallbackRes.data.products
+            : [];
+          fallback = fallbackList.filter((p) => p._id !== product._id);
+        }
         const pick = sameCat.length >= 3 ? sameCat : fallback;
         if (!cancelled) setRelatedProducts(pick.slice(0, 3));
       } catch (err) {

@@ -118,9 +118,21 @@ export default function BestSellers() {
   useEffect(() => {
     const fetchBestSellers = async () => {
       try {
-        const { data } = await api.get("/api/products");
-        const products = Array.isArray(data) ? data : [];
-        setItems(products.filter((p) => p.isBestSeller));
+        const { data } = await api.get("/api/products", {
+          params: {
+            page: 1,
+            limit: 12,
+            bestSeller: "true",
+            sortBy: "featured",
+            lite: "true",
+          },
+        });
+        const products = Array.isArray(data?.products)
+          ? data.products
+          : Array.isArray(data)
+            ? data.filter((p) => p.isBestSeller)
+            : [];
+        setItems(products);
       } catch {
         setItems([]);
       } finally {

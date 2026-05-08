@@ -103,5 +103,12 @@ productSchema.index({ featured: 1 });
 productSchema.index({ isBestSeller: 1 });
 productSchema.index({ isNewArrival: 1 });
 productSchema.index({ createdAt: -1 });
+productSchema.index({ featured: -1, createdAt: -1, _id: -1 });
+productSchema.index({ category: 1, featured: -1, createdAt: -1, _id: -1 });
+productSchema.index({ isBestSeller: 1, featured: -1, createdAt: -1, _id: -1 });
+productSchema.index({ isNewArrival: 1, createdAt: -1, _id: -1 });
+productSchema.index({ priceUSD: 1, createdAt: -1, _id: -1 });
+productSchema.index({ priceUSD: -1, createdAt: -1, _id: -1 });
+productSchema.index({ name: 1, _id: -1 });
 
 module.exports = mongoose.model("Product", productSchema);
