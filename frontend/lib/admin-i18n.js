@@ -287,6 +287,14 @@ export const t = {
   // ── Settings page ──
   configureStore: "Настройки магазина, доставки и операционных параметров.",
   settingsPlaceholder: "Этот раздел готов для будущих модулей настроек магазина.",
+  deliverySettings: "Настройки доставки",
+  deliverySettingsHint: "Измените стоимость доставки по миру в долларах США.",
+  deliveryFeeUsd: "Стоимость доставки (USD)",
+  saveSettings: "Сохранить настройки",
+  settingsSaved: "Настройки сохранены",
+  failedLoadSettings: "Не удалось загрузить настройки",
+  failedSaveSettings: "Не удалось сохранить настройки",
+  invalidDeliveryFee: "Введите корректную стоимость доставки (0 или больше)",
 
   // ── Login page ──
   login: "Вход",

@@ -11,7 +11,7 @@ import {
   Users,
   Ticket,
   BarChart3,
-  Settings,
+  Truck,
   LogOut,
   Menu,
   X,
@@ -27,15 +27,11 @@ const navLinks = [
   { href: "/admin/customers", label: t.customers, icon: Users },
   { href: "/admin/coupons", label: t.coupons, icon: Ticket },
   { href: "/admin/analytics", label: t.analytics, icon: BarChart3 },
-];
-
-const bottomLinks = [
-  { href: "/admin/settings", label: t.settings, icon: Settings },
+  { href: "/admin/shipping", label: t.shipping, icon: Truck },
 ];
 
 function getPageTitle(pathname) {
-  const all = [...navLinks, ...bottomLinks];
-  const match = all.find((l) => pathname?.startsWith(l.href));
+  const match = navLinks.find((l) => pathname?.startsWith(l.href));
   if (pathname?.includes("/products/new")) return t.addProduct;
   if (pathname?.includes("/products/edit")) return t.editProduct;
   return match?.label || t.admin;
@@ -95,16 +91,6 @@ function SidebarContent({ activePath, onNavigate, onLogout }) {
       {/* Bottom section */}
       <div className="mt-auto px-3 pb-4">
         <div className="mx-1 mb-3 h-px bg-[var(--color-line)]" />
-        {bottomLinks.map((link) => (
-          <NavItem
-            key={link.href}
-            href={link.href}
-            label={link.label}
-            icon={link.icon}
-            isActive={activePath.startsWith(link.href)}
-            onClick={onNavigate}
-          />
-        ))}
         <button
           type="button"
           onClick={onLogout}

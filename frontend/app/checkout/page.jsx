@@ -35,7 +35,7 @@ const COUNTRIES = [
   "Uruguay","Uzbekistan","Venezuela","Vietnam",
 ];
 
-const WORLDWIDE_SHIPPING_FEE_USD = 1;
+const DEFAULT_WORLDWIDE_SHIPPING_FEE_USD = 18;
 const FREE_SHIPPING_THRESHOLD_USD = 150;
 
 export default function CheckoutPage() {
@@ -54,6 +54,7 @@ export default function CheckoutPage() {
   const [hasPlacedOrder, setHasPlacedOrder] = useState(false);
   const [openPaymentSection, setOpenPaymentSection] = useState("card");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("card");
+  const [shippingFeeUsd, setShippingFeeUsd] = useState(DEFAULT_WORLDWIDE_SHIPPING_FEE_USD);
 
   const subtotal = useMemo(() => {
     return cartItems.reduce(
@@ -67,8 +68,11 @@ export default function CheckoutPage() {
   const amountToFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
   const shippingCost = subtotal >= freeShippingThreshold
     ? 0
-    : Number((WORLDWIDE_SHIPPING_FEE_USD * Number(aznPerUsd || 1.7)).toFixed(2));
+    : Number((shippingFeeUsd * Number(aznPerUsd || 1.7)).toFixed(2));
   const totalPrice = discountedSubtotal + shippingCost;
+  const shippingFeeLabel = Number.isInteger(shippingFeeUsd)
+    ? `${shippingFeeUsd} USD`
+    : `${shippingFeeUsd.toFixed(2)} USD`;
 
   const handleApplyCoupon = async () => {
     const code = String(couponCode || "").trim().toUpperCase();
@@ -100,6 +104,25 @@ export default function CheckoutPage() {
       router.replace(localePath("/products"));
     }
   }, [cartItems, router, hasPlacedOrder, hasHydratedCart, localePath]);
+
+  useEffect(() => {
+    let ignore = false;
+    const loadStoreSettings = async () => {
+      try {
+        const { data } = await api.get("/api/store-settings");
+        const value = Number(data?.shippingFeeUsd);
+        if (!ignore && Number.isFinite(value) && value >= 0) {
+          setShippingFeeUsd(value);
+        }
+      } catch {
+        // Keep fallback shipping fee when settings API is unavailable.
+      }
+    };
+    loadStoreSettings();
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -287,7 +310,7 @@ export default function CheckoutPage() {
             <p className="text-xs text-[var(--color-muted)] px-1">Select a payment method below to place your order.</p>
 
             <div className="px-1 py-1 text-sm text-[var(--color-text)]">
-              <p className="font-semibold">Delivery: {shippingCost === 0 ? "Free" : "1 USD"} worldwide</p>
+              <p className="font-semibold">Delivery: {shippingCost === 0 ? "Free" : shippingFeeLabel} worldwide</p>
               <p className="mt-0.5 text-xs text-[var(--color-muted)]">
                 {shippingCost === 0
                   ? "Free shipping applied — order over $150"

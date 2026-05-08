@@ -101,6 +101,7 @@ app.use("/api/categories", require("./src/routes/categoryRoutes"));
 app.use("/api/coupons", require("./src/routes/couponRoutes"));
 app.use("/api/customers", require("./src/routes/customerRoutes"));
 app.use("/api/payments/epoint", require("./src/routes/epointPaymentRoutes"));
+app.use("/api/store-settings", require("./src/routes/storeSettingsRoutes"));
 
 app.use(errorHandler);
 

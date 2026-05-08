@@ -5,7 +5,7 @@ import { t } from "../../../lib/admin-i18n";
 import api from "../../../lib/api";
 import { getAdminAuthHeaders } from "../../../lib/adminAuth";
 
-export default function SettingsPage() {
+export default function ShippingPage() {
   const [shippingFeeUsd, setShippingFeeUsd] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -70,20 +70,13 @@ export default function SettingsPage() {
   return (
     <section className="space-y-4">
       <div className="sami-section p-6">
-        <h1 className="sami-title">{t.settings}</h1>
+        <h1 className="sami-title">{t.shipping}</h1>
         <p className="mt-2 text-sm text-[var(--color-muted)]">
-          {t.configureStore}
+          {t.deliverySettingsHint}
         </p>
       </div>
 
       <form onSubmit={handleSave} className="sami-section space-y-4 p-5">
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-black/70">
-            {t.deliverySettings}
-          </h2>
-          <p className="mt-1 text-sm text-black/55">{t.deliverySettingsHint}</p>
-        </div>
-
         <label className="block">
           <span className="mb-1.5 block text-sm font-medium text-black/75">
             {t.deliveryFeeUsd}
