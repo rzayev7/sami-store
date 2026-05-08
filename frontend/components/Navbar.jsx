@@ -266,6 +266,37 @@ export default function Navbar() {
 
           <div className="mx-6 my-3 border-t border-[var(--color-line)]" />
 
+          {/* Occasion-based collections */}
+          <div className="px-6 pb-3">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-black/40">
+              {t("nav.collections")}
+            </p>
+          </div>
+          <div className="flex flex-col">
+            {[
+              { key: "nav.newIn", href: "/products?newArrival=true", badge: true },
+              { key: "nav.bestSellersNav", href: "/products?bestSeller=true" },
+              { key: "nav.theSetEdit", href: "/products?category=Sets" },
+              { key: "nav.eveningLooks", href: "/products?category=Dresses" },
+            ].map(({ key, href, badge }) => (
+              <Link
+                key={key}
+                href={href}
+                onClick={closeSidebar}
+                className="flex items-center gap-2 px-6 py-3.5 text-[14px] font-medium tracking-[0.02em] transition-colors hover:bg-[var(--color-cream)]"
+              >
+                {t(key)}
+                {badge && (
+                  <span className="rounded-full bg-[var(--color-gold)]/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--color-gold)]">
+                    New
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
+
+          <div className="mx-6 my-3 border-t border-[var(--color-line)]" />
+
           <div className="px-6 pb-3">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-black/40">
               {t("nav.categories")}

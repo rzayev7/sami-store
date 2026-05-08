@@ -60,7 +60,12 @@
     "help": "Помощь",
     "trackOrder": "Отследить заказ",
     "worldwideShipping": "Доставка по всему миру",
-    "language": "Язык"
+    "language": "Язык",
+    "collections": "Коллекции",
+    "newIn": "Новинки",
+    "bestSellersNav": "Бестселлеры",
+    "theSetEdit": "Образы с комплектами",
+    "eveningLooks": "Платья"
   },
   "footer": {
     "tagline": "Женская одежда из Баку. Носят по всему миру.",
@@ -391,7 +396,8 @@
     "elevatedPieces": "Изысканные вещи для каждого момента.",
     "followUs": "Следите за нашей историей",
     "followUsDesc": "Смотрите новинки, идеи образов и закулисье нашей студии в Баку.",
-    "followOnInstagram": "Подписаться в Instagram"
+    "followOnInstagram": "Подписаться в Instagram",
+    "shopByStyle": "Выбрать по стилю"
   },
   "products": {
     "curatedSelection": "Избранная подборка",

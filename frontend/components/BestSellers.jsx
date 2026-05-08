@@ -146,7 +146,7 @@ export default function BestSellers() {
   if (!loading && items.length === 0) return null;
 
   return (
-    <section className="py-20 sm:py-28">
+    <section className="pt-10 pb-20 sm:pt-14 sm:pb-28">
       <div className="text-center">
         <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-[var(--color-gold)]">
           {t("home.mostLoved")}

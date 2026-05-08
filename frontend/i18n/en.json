@@ -62,7 +62,12 @@
     "help": "Help",
     "trackOrder": "Track Order",
     "worldwideShipping": "Worldwide Shipping",
-    "language": "Language"
+    "language": "Language",
+    "collections": "Collections",
+    "newIn": "New In",
+    "bestSellersNav": "Best Sellers",
+    "theSetEdit": "The Set Edit",
+    "eveningLooks": "Dresses"
   },
 
   "footer": {
@@ -403,7 +408,8 @@
     "elevatedPieces": "Elevated pieces for every moment.",
     "followUs": "Follow Our Journey",
     "followUsDesc": "See new arrivals, styling ideas, and behind-the-scenes from our studio in Baku.",
-    "followOnInstagram": "Follow on Instagram"
+    "followOnInstagram": "Follow on Instagram",
+    "shopByStyle": "Shop by Style"
   },
 
   "products": {

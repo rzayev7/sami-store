@@ -59,7 +59,12 @@
     "help": "المساعدة",
     "trackOrder": "تتبع الطلب",
     "worldwideShipping": "شحن حول العالم",
-    "language": "اللغة"
+    "language": "اللغة",
+    "collections": "المجموعات",
+    "newIn": "وصل حديثًا",
+    "bestSellersNav": "الأكثر مبيعًا",
+    "theSetEdit": "تشكيلة الأطقم",
+    "eveningLooks": "فساتين"
   },
   "footer": {
     "tagline": "أزياء نسائية من باكو. تُرتدى في كل مكان.",
@@ -381,7 +386,8 @@
     "elevatedPieces": "قطع راقية لكل لحظة.",
     "followUs": "تابعوا رحلتنا",
     "followUsDesc": "اكتشفوا أحدث القطع وأفكار التنسيق وكواليس استوديو باكو.",
-    "followOnInstagram": "تابعونا على إنستغرام"
+    "followOnInstagram": "تابعونا على إنستغرام",
+    "shopByStyle": "تسوّقي حسب الأسلوب"
   },
   "products": {
     "curatedSelection": "تشكيلة منتقاة",

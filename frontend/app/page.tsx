@@ -3,8 +3,8 @@
 import Link from "../components/LocaleLink";
 import Image from "next/image";
 import HeroSection from "../components/HeroSection";
-import HeroGridSection from "../components/HeroGridSection";
 import BestSellers from "../components/BestSellers";
+import CollectionsStrip from "../components/CollectionsStrip";
 import { useLanguage } from "../context/LanguageContext";
 
 export default function Home() {
@@ -26,16 +26,8 @@ export default function Home() {
     <div className="space-y-0">
       <HeroSection />
 
-      <section className="w-full bg-[#F2F2F2]">
-        <div className="mx-auto max-w-5xl px-10 py-28 text-center sm:px-16 sm:py-20">
-          <div className="mx-auto mb-6 h-px w-12 bg-[var(--color-gold)]" aria-hidden />
-          <h2 className="font-serif text-xl font-light leading-snug tracking-[0.06em] text-[var(--color-black)] sm:text-2xl sm:tracking-[0.05em] md:text-3xl md:tracking-[0.045em] lg:text-[2.35rem] lg:tracking-[0.04em]">
-            {t("home.threeWays")}
-          </h2>
-        </div>
-      </section>
-
-      <HeroGridSection />
+      {/* Products visible immediately after hero — critical for mobile conversion */}
+      <CollectionsStrip />
 
       <BestSellers />
 
@@ -77,46 +69,37 @@ export default function Home() {
       </section>
 
       {/* Instagram section */}
-      <section className="border-t border-[var(--color-line)]/60 bg-[#F6F3EF] pt-18 pb-8 sm:pt-24 sm:pb-10">
+      <section className="border-t border-[var(--color-line)]/60 bg-[#F6F3EF] pt-16 pb-10 sm:pt-20 sm:pb-12">
         <div className="mx-auto max-w-3xl px-6">
-          <div className="rounded-[30px] border border-black/10 bg-white/70 px-7 py-12 text-center backdrop-blur-sm sm:px-10 sm:py-14">
+          <div className="rounded-[34px] border border-black/8 bg-white px-7 py-12 text-center shadow-[0_12px_40px_rgba(16,14,12,0.06)] sm:px-10 sm:py-14">
             <a
               href="https://www.instagram.com/sami_boutique_baku/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="SAMÍ on Instagram"
-              className="group mx-auto inline-flex h-18 w-18 items-center justify-center rounded-3xl bg-gradient-to-br from-[#833AB4] via-[#E1306C] to-[#F77737] p-[1px] transition-transform duration-300 hover:scale-[1.03]"
+              className="group mx-auto inline-flex items-center justify-center transition-transform duration-300 hover:scale-[1.03]"
             >
-              <span className="flex h-full w-full items-center justify-center rounded-[22px] bg-[#111]">
-                <svg
-                  width="34"
-                  height="34"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden
-                >
-                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                  <circle cx="12" cy="12" r="4" />
-                  <circle cx="17.5" cy="6.5" r="1.2" fill="white" stroke="none" />
-                </svg>
-              </span>
+              <Image
+                src="/instagram.png"
+                alt=""
+                aria-hidden
+                width={46}
+                height={46}
+                className="h-[46px] w-[46px] object-contain"
+              />
             </a>
 
-            <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--color-black)]/45">
+            <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.23em] text-[var(--color-black)]/45">
               @sami_boutique_baku
             </p>
 
             <div className="mx-auto mt-4 h-px w-12 bg-[var(--color-gold)]" aria-hidden />
 
-            <h2 className="mt-5 font-serif text-[2rem] font-light leading-[1.2] tracking-[0.03em] text-[var(--color-black)] sm:text-[2.35rem]">
+            <h2 className="mt-5 font-serif text-[1.9rem] font-light leading-[1.2] tracking-[0.025em] text-[var(--color-black)] sm:text-[2.25rem]">
               {followUsTitle}
             </h2>
 
-            <p className="mx-auto mt-4 max-w-md text-[14px] leading-[1.8] tracking-[0.01em] text-[#4f4a45] sm:text-[15px]">
+            <p className="mx-auto mt-4 max-w-md text-[14px] leading-[1.85] tracking-[0.01em] text-[#4f4a45] sm:text-[15px]">
               {followUsDesc}
             </p>
 
@@ -124,23 +107,16 @@ export default function Home() {
               href="https://www.instagram.com/sami_boutique_baku/"
               target="_blank"
               rel="noopener noreferrer"
-              className="group mx-auto mt-9 inline-flex min-h-[52px] items-center gap-2.5 rounded-full bg-gradient-to-r from-[#833AB4] via-[#E1306C] to-[#F77737] px-9 py-3.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-white transition-transform duration-200 hover:scale-[1.02]"
+              className="group mx-auto mt-9 inline-flex min-h-[54px] items-center gap-2.5 rounded-full bg-gradient-to-r from-[#7f3db3] via-[#d72f76] to-[#f36d3f] px-10 py-3.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-white shadow-[0_10px_24px_rgba(225,48,108,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:brightness-[1.03]"
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+              <Image
+                src="/instagram.png"
+                alt=""
                 aria-hidden
-              >
-                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                <circle cx="12" cy="12" r="4" />
-                <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none" />
-              </svg>
+                width={16}
+                height={16}
+                className="h-[16px] w-[16px] object-contain"
+              />
               {followOnInstagram}
             </a>
           </div>

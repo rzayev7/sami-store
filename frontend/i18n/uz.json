@@ -56,7 +56,12 @@
     "help": "Yordam",
     "trackOrder": "Buyurtmani kuzatish",
     "worldwideShipping": "Butun dunyo bo‘ylab yetkazib berish",
-    "language": "Til"
+    "language": "Til",
+    "collections": "Kolleksiyalar",
+    "newIn": "Yangi keldi",
+    "bestSellersNav": "Koʻp sotilganlar",
+    "theSetEdit": "Komplektlar",
+    "eveningLooks": "Koʻylaklar"
   },
   "footer": {
     "tagline": "Bakudan ayollar kiyimi. Har yerda kiyiladi.",
@@ -382,7 +387,8 @@
     "elevatedPieces": "Har bir lahza uchun maxsus buyumlar.",
     "followUs": "Sayohatimizni kuzating",
     "followUsDesc": "Yangi kelganlar, uslub g'oyalari va Boku studiyamiz ortidagi jarayonlarni ko'ring.",
-    "followOnInstagram": "Instagramda kuzating"
+    "followOnInstagram": "Instagramda kuzating",
+    "shopByStyle": "Uslub boʻyicha xarid"
   },
   "products": {
     "curatedSelection": "Tanlangan tanlov",
