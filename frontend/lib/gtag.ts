@@ -126,6 +126,37 @@ export function trackAddPaymentInfo(
   });
 }
 
+/** Fired when a list/grid of products is displayed (e.g. category page, search results). */
+export function trackViewItemList(
+  items: GtagItem[],
+  listName = "Product List",
+  listId = "product_list"
+) {
+  if (!items.length) return;
+  gtag("event", "view_item_list", {
+    item_list_id: listId,
+    item_list_name: listName,
+    items: items.slice(0, 20), // GA4 recommends max 20 items per event
+  });
+}
+
+/** Fired when the user removes an item from the cart. */
+export function trackRemoveFromCart(item: GtagItem, currency = "USD") {
+  gtag("event", "remove_from_cart", {
+    currency,
+    value: (item.price ?? 0) * (item.quantity ?? 1),
+    items: [item],
+  });
+}
+
+/** Fired when the user applies a search query or filter on the listing page. */
+export function trackSearch(searchTerm: string) {
+  if (!searchTerm) return;
+  gtag("event", "search", {
+    search_term: searchTerm,
+  });
+}
+
 /** Fired on the order-success page after a confirmed order. */
 export function trackPurchase(
   orderId: string,

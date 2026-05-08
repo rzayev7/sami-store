@@ -17,7 +17,7 @@ import { useLanguage } from "../context/LanguageContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import { formatSizeLabel, normalizeSizeForFilter } from "../lib/sizeDisplay";
 import PortraitCoverVideo from "./PortraitCoverVideo";
-import { productToItem, trackSelectItem } from "../lib/gtag";
+import { productToItem, trackSelectItem, trackViewItemList, trackSearch } from "../lib/gtag";
 
 const PAGE_SIZE = 20;
 const serializeQueryParams = (params = {}) => {
@@ -420,6 +420,24 @@ export default function ProductListing({
   }, [isMobileFiltersOpen]);
 
   const baseProducts = useMemo(() => products, [products]);
+
+  // Fire view_item_list whenever the visible product list changes
+  useEffect(() => {
+    if (loading || baseProducts.length === 0) return;
+    const items = baseProducts.slice(0, 20).map((p, index) =>
+      productToItem(p, { index })
+    );
+    trackViewItemList(items, title, title.toLowerCase().replace(/\s+/g, "_"));
+  }, [baseProducts, loading, title]);
+
+  // Fire search event when any filter (other than "all") is applied
+  useEffect(() => {
+    const activeFilters = Object.entries(filters)
+      .filter(([, v]) => v !== "all")
+      .map(([k, v]) => `${k}:${v}`)
+      .join(", ");
+    if (activeFilters) trackSearch(activeFilters);
+  }, [filters]);
 
   const allSizes = useMemo(() => {
     const sizeSet = new Set();
