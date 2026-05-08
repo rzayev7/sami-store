@@ -92,16 +92,18 @@ function shouldBlockRequest(countryCode: string): boolean {
 }
 
 function buildBlockedResponse(request: NextRequest) {
-  const responseHeaders = {
-    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-    Pragma: "no-cache",
-    Expires: "0",
-  };
-
-  const redirectUrl = request.nextUrl.clone();
-  redirectUrl.pathname = ACCESS_RESTRICTED_PATH;
-  redirectUrl.search = "";
-  return NextResponse.redirect(redirectUrl, { headers: responseHeaders });
+  // Rewrite (not redirect) so the visitor's URL stays unchanged.
+  // They see the coming soon page but the address bar shows the page they requested.
+  const rewriteUrl = request.nextUrl.clone();
+  rewriteUrl.pathname = ACCESS_RESTRICTED_PATH;
+  rewriteUrl.search = "";
+  return NextResponse.rewrite(rewriteUrl, {
+    headers: {
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+    },
+  });
 }
 
 export function middleware(request: NextRequest) {
