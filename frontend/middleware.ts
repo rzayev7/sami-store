@@ -92,22 +92,11 @@ function shouldBlockRequest(countryCode: string): boolean {
 }
 
 function buildBlockedResponse(request: NextRequest) {
-  const mode = String(process.env.COUNTRY_BLOCK_MODE || "redirect").toLowerCase();
   const responseHeaders = {
     "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
     Pragma: "no-cache",
     Expires: "0",
   };
-
-  if (mode === "403") {
-    return NextResponse.json(
-      {
-        error: "access_restricted",
-        message: "Access to this website is restricted in your region.",
-      },
-      { status: 403, headers: responseHeaders },
-    );
-  }
 
   const redirectUrl = request.nextUrl.clone();
   redirectUrl.pathname = ACCESS_RESTRICTED_PATH;
