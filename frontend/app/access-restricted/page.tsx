@@ -23,12 +23,6 @@ export default function AccessRestrictedPage() {
         Something special<br />is on its way.
       </h1>
 
-      {/* Subtext */}
-      <p className="mx-auto mt-5 max-w-sm text-[14px] leading-[1.85] text-[#8a837a] sm:text-[15px]">
-        Our website is not yet available in your region.
-        We&rsquo;re working on it and will be with you soon.
-      </p>
-
       {/* Separator dots */}
       <div className="mt-8 flex items-center gap-1.5" aria-hidden>
         <span className="h-1 w-1 rounded-full bg-[#a68b5b]/40" />
