@@ -5,7 +5,7 @@ export const metadata = {
 
 export default function AccessRestrictedPage() {
   return (
-    <div className="fixed inset-0 z-50 flex min-h-screen flex-col items-center justify-center bg-[#F6F3EE] px-6 text-center">
+    <div className="fixed inset-0 z-[9999] flex min-h-screen flex-col items-center justify-center bg-[#F6F3EE] px-6 text-center">
 
       {/* Brand */}
       <p
