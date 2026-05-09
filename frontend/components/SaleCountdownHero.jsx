@@ -3,44 +3,22 @@
 import Image from "next/image";
 import Link from "./LocaleLink";
 import { useEffect, useState } from "react";
+import {
+  PROMO_TITLE,
+  PROMO_DISCOUNT,
+  calcTimeLeft,
+  pad,
+} from "../lib/promoConfig";
 
-// ─── PROMO CONFIG ─────────────────────────────────────────────────────────────
-// Edit these values to update the promotion. No other changes needed.
-const PROMO_LABEL      = "Limited Time Offer";
-const PROMO_TITLE      = "New Season Arrivals";
-const PROMO_DISCOUNT   = "20% Off";
-const PROMO_SUBTITLE   = "Discover Your Signature Look";
-const PROMO_CTA        = "Shop the Sale";
-const PROMO_IMAGE      = "/hero6.png";
-const PROMO_PERIOD_DAYS = 3; // countdown length — resets automatically every N days
-// Fixed anchor: the moment the first promotion period started.
-// Changing this shifts when the counter resets. Leave it as-is for perpetual renewal.
-const PROMO_ANCHOR_MS  = new Date("2026-05-09T00:00:00Z").getTime();
+// ─── HERO-ONLY CONFIG ─────────────────────────────────────────────────────────
+// Edit lib/promoConfig.js for values shared with the product-page strip.
+const PROMO_LABEL   = "Limited Time Offer";
+const PROMO_SUBTITLE = "Discover Your Signature Look";
+const PROMO_CTA     = "Shop the Sale";
+const PROMO_IMAGE   = "/hero6.png";
 // ──────────────────────────────────────────────────────────────────────────────
 
-const PERIOD_MS = PROMO_PERIOD_DAYS * 24 * 60 * 60 * 1000;
-
-function getCountdownEnd() {
-  const now = Date.now();
-  const elapsed = (now - PROMO_ANCHOR_MS) % PERIOD_MS;
-  return now + (PERIOD_MS - elapsed);
-}
-
-function calcTimeLeft() {
-  const diff = Math.max(0, getCountdownEnd() - Date.now());
-  return {
-    days:    Math.floor(diff / (1000 * 60 * 60 * 24)),
-    hours:   Math.floor((diff / (1000 * 60 * 60)) % 24),
-    minutes: Math.floor((diff / (1000 * 60)) % 60),
-    seconds: Math.floor((diff / 1000) % 60),
-  };
-}
-
-function pad(n) {
-  return String(n).padStart(2, "0");
-}
-
-const UNITS = ["days", "hours", "minutes", "seconds"];
+const UNITS  = ["days", "hours", "minutes", "seconds"];
 const LABELS = { days: "Days", hours: "Hours", minutes: "Minutes", seconds: "Seconds" };
 
 export default function SaleCountdownHero() {

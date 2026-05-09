@@ -32,6 +32,7 @@ import {
   trackViewItem,
   trackAddToCart,
 } from "../../../lib/gtag";
+import PromoCountdownStrip from "../../../components/PromoCountdownStrip";
 
 export default function ProductDetailClient({
   productId,
@@ -819,7 +820,7 @@ export default function ProductDetailClient({
 
                 {typeof product.stock === "number" && (
                   <div
-                    className="mt-3 space-y-1 text-center lg:text-start"
+                    className="mt-3 space-y-1.5 text-center lg:text-start"
                     data-testid="product-availability"
                   >
                     {isOutOfStock ? (
@@ -829,6 +830,19 @@ export default function ProductDetailClient({
                     ) : isAtCartLimit ? (
                       <p className="font-sans text-[12px] text-black/45">
                         {t("product.allInBag")}
+                      </p>
+                    ) : remainingStock <= 3 ? (
+                      <p className="inline-flex items-center gap-2 font-sans text-[12px] font-medium text-[#9a6a2a]">
+                        <span className="relative flex h-2 w-2 shrink-0">
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#C8A96E] opacity-60" />
+                          <span className="relative inline-flex h-2 w-2 rounded-full bg-[#C8A96E]" />
+                        </span>
+                        Only {remainingStock} left in stock
+                        {totalInCart > 0 && (
+                          <span className="text-black/35">
+                            ({totalInCart} in bag)
+                          </span>
+                        )}
                       </p>
                     ) : (
                       <p className="font-sans text-[12px] text-black/[0.58]">
@@ -846,19 +860,22 @@ export default function ProductDetailClient({
                     )}
                     {!isOutOfStock &&
                       !isAtCartLimit &&
-                      remainingStock > 0 &&
+                      remainingStock > 3 &&
                       remainingStock <= 22 && (
-                        <p className="font-serif text-[12px] italic leading-snug text-[#9a7c52]">
+                        <p className="inline-flex items-center gap-1.5 font-sans text-[11.5px] font-medium text-[#9a6a2a]">
                           <span
-                            className="me-1.5 inline-block h-[5px] w-[5px] rounded-full align-middle"
+                            className="inline-block h-[5px] w-[5px] rounded-full"
                             style={{ backgroundColor: "#C8A96E" }}
                           />
-                          {t("product.sellingFast")}
+                          {t("product.sellingFast")} — only {remainingStock} left
                         </p>
                       )}
                   </div>
                 )}
               </div>
+
+              {/* Promo countdown — shown right after price for maximum visibility */}
+              <PromoCountdownStrip />
 
               {/* Color selector */}
               {Array.isArray(product.colors) && product.colors.length > 0 && (
