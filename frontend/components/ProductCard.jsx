@@ -3,9 +3,11 @@
 import Image from "next/image";
 import Link from "./LocaleLink";
 import { useRef } from "react";
+import { Heart } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useCurrency } from "../context/CurrencyContext";
 import { useLanguage } from "../context/LanguageContext";
+import { useWishlist } from "../context/WishlistContext";
 import { trackAddToCart, productToItem } from "../lib/gtag";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import PortraitCoverVideo from "./PortraitCoverVideo";
@@ -14,7 +16,9 @@ export default function ProductCard({ product }) {
   const { addToCart } = useCart();
   const { formatPrice } = useCurrency();
   const { t } = useLanguage();
+  const { isWishlisted, toggle } = useWishlist();
   const videoRef = useRef(null);
+  const wishlisted = isWishlisted(product?._id);
   const hasVideo = Boolean(product?.cardVideoUrl);
 
   const imagePrimary = product?.images?.[0] || "https://placehold.co/700x900?text=SAMI";
@@ -87,6 +91,23 @@ export default function ProductCard({ product }) {
               quality={92}
             />
           )}
+
+          {/* Wishlist heart */}
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); toggle(product?._id); }}
+            aria-label={wishlisted ? "Remove from wishlist" : "Save to wishlist"}
+            className={`absolute end-2.5 top-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 shadow-sm backdrop-blur-[2px] transition-all duration-200 hover:scale-110 hover:bg-white ${
+              wishlisted ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            }`}
+          >
+            <Heart
+              size={15}
+              strokeWidth={1.6}
+              className={wishlisted ? "text-[var(--color-gold)]" : "text-black/50"}
+              fill={wishlisted ? "currentColor" : "none"}
+            />
+          </button>
         </div>
       </Link>
 

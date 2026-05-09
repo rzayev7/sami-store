@@ -4,9 +4,10 @@ import Link from "./LocaleLink";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocalePath, stripLocale } from "../context/LanguageContext";
-import { Menu, Search, User, ShoppingBag, X, ChevronDown } from "lucide-react";
+import { Menu, Search, User, ShoppingBag, Heart, X, ChevronDown } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import { useWishlist } from "../context/WishlistContext";
 import { useLanguage } from "../context/LanguageContext";
 import { LANGUAGES } from "../i18n";
 import CurrencySelector from "./CurrencySelector";
@@ -69,6 +70,7 @@ function LanguageSwitcher({ className = "", inverted = false }) {
 export default function Navbar() {
   const { cartItems, openCart } = useCart();
   const { user: customerUser, openAuthModal } = useAuth();
+  const { count: wishlistCount } = useWishlist();
   const { t } = useLanguage();
   const localePath = useLocalePath();
   const pathname = usePathname();
@@ -183,6 +185,19 @@ export default function Navbar() {
                 <span className="absolute -end-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-[var(--color-green)]" />
               )}
             </button>
+
+            <Link
+              href={localePath("/account?tab=wishlist")}
+              aria-label={t("nav.wishlist")}
+              className={`relative rounded-full p-2 transition-opacity hover:opacity-60 ${iconColor}`}
+            >
+              <Heart size={21} strokeWidth={1.8} />
+              {wishlistCount > 0 && (
+                <span className="absolute -end-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-white bg-[var(--color-gold)] text-[9px] font-bold text-white">
+                  {wishlistCount > 9 ? "9+" : wishlistCount}
+                </span>
+              )}
+            </Link>
 
             <button
               type="button"

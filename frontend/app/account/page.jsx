@@ -21,6 +21,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { useCurrency } from "../../context/CurrencyContext";
 import { useLanguage } from "../../context/LanguageContext";
+import { useCart } from "../../context/CartContext";
 import api from "../../lib/api";
 import { getCustomerAuthHeaders } from "../../lib/customerAuth";
 import { useLocalePath } from "../../context/LanguageContext";
@@ -31,6 +32,7 @@ export default function AccountPage() {
   const { user, loading: authLoading, logout, openAuthModal } = useAuth();
   const { formatPrice, currency } = useCurrency();
   const { t } = useLanguage();
+  const { addToCart } = useCart();
 
   const TABS = [
     { id: "orders", label: t("account.orders"), icon: Package },
@@ -533,40 +535,70 @@ export default function AccountPage() {
                     </Link>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 divide-y divide-[var(--color-line)] sm:grid-cols-2 sm:divide-y-0 sm:gap-px sm:bg-[var(--color-line)]">
-                    {wishlist.map((product) => (
-                      <div key={product._id} className="flex gap-4 bg-white p-5 sm:p-6">
-                        <Link href={`/products/${product._id}`} className="shrink-0">
-                          <div className="h-24 w-20 overflow-hidden rounded-lg bg-[var(--color-cream)]">
-                            {product.images?.[0] && (
-                              <img
-                                src={product.images[0]}
-                                alt={product.name}
-                                className="h-full w-full object-cover"
-                              />
-                            )}
-                          </div>
-                        </Link>
-                        <div className="flex min-w-0 flex-1 flex-col justify-between">
-                          <div>
+                  <div className="grid grid-cols-2 gap-px bg-[var(--color-line)] sm:grid-cols-3 lg:grid-cols-4">
+                    {wishlist.map((product) => {
+                      const hasDiscount =
+                        product.discountPriceUSD != null &&
+                        Number(product.discountPriceUSD) > 0 &&
+                        Number(product.discountPriceUSD) < Number(product.priceUSD);
+                      const preferredSize = Array.isArray(product.sizes) && product.sizes.length > 0 ? product.sizes[0] : "";
+                      return (
+                        <div key={product._id} className="group relative flex flex-col bg-white">
+                          <Link href={`/products/${product._id}`} className="block">
+                            <div className="relative aspect-[4/5] overflow-hidden bg-[var(--color-cream)]">
+                              {product.images?.[0] && (
+                                <img
+                                  src={product.images[0]}
+                                  alt={product.name}
+                                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                                />
+                              )}
+                              {hasDiscount && (
+                                <span className="absolute start-2 top-2 rounded bg-black px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white">
+                                  Sale
+                                </span>
+                              )}
+                            </div>
+                          </Link>
+
+                          {/* Remove */}
+                          <button
+                            onClick={() => handleRemoveWishlist(product._id)}
+                            aria-label="Remove from wishlist"
+                            className="absolute end-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/80 text-black/40 opacity-0 shadow-sm backdrop-blur-[2px] transition hover:text-red-500 group-hover:opacity-100"
+                          >
+                            <X size={13} strokeWidth={2} />
+                          </button>
+
+                          <div className="flex flex-1 flex-col gap-2 p-3">
                             <Link href={`/products/${product._id}`}>
-                              <p className="truncate text-[13px] font-medium hover:text-[var(--color-gold)]">
+                              <p className="line-clamp-2 text-[12px] font-medium leading-5 hover:text-[var(--color-gold)]">
                                 {product.name}
                               </p>
                             </Link>
-                            <p className="mt-0.5 text-[13px] font-medium text-[var(--color-gold)]">
-                              {formatPrice(product.priceUSD)} {currency}
-                            </p>
+
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[13px] font-medium">
+                                {formatPrice(hasDiscount ? product.discountPriceUSD : product.priceUSD)} {currency}
+                              </span>
+                              {hasDiscount && (
+                                <span className="text-[11px] text-black/30 line-through">
+                                  {formatPrice(product.priceUSD)}
+                                </span>
+                              )}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => addToCart(product, preferredSize)}
+                              className="mt-auto w-full border border-[#1e1b17] py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#1e1b17] transition hover:bg-[#1e1b17] hover:text-[#f2e7d1]"
+                            >
+                              {t("product.addToBag")}
+                            </button>
                           </div>
-                          <button
-                            onClick={() => handleRemoveWishlist(product._id)}
-                            className="mt-2 inline-flex w-fit items-center gap-1 rounded px-2 py-1 text-[11px] text-red-400 transition hover:bg-red-50 hover:text-red-600"
-                          >
-                            <Trash2 size={12} /> {t("common.remove")}
-                          </button>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

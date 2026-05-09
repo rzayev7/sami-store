@@ -12,6 +12,7 @@ import AuthModal from "../components/AuthModal";
 import { CartProvider } from "../context/CartContext";
 import { CurrencyProvider } from "../context/CurrencyContext";
 import { AuthProvider } from "../context/AuthContext";
+import { WishlistProvider } from "../context/WishlistContext";
 import { LanguageProvider } from "../context/LanguageContext";
 import FirstVisitLanguageModal from "../components/FirstVisitLanguageModal";
 import LeadCapture from "../components/LeadCapture";
@@ -95,6 +96,7 @@ export default function RootLayout({
         <GoogleAuthProvider>
         <LanguageProvider>
           <AuthProvider>
+            <WishlistProvider>
             <CurrencyProvider>
               <CartProvider>
                 <div className="min-h-screen w-full bg-[var(--color-cream)] text-[var(--color-black)]">
@@ -114,6 +116,7 @@ export default function RootLayout({
                 </div>
               </CartProvider>
             </CurrencyProvider>
+            </WishlistProvider>
           </AuthProvider>
         </LanguageProvider>
         </GoogleAuthProvider>
