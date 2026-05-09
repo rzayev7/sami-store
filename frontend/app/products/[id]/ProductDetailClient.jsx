@@ -62,7 +62,7 @@ export default function ProductDetailClient({
   const videoRefs = useRef({});
   const carouselScrollRaf = useRef(null);
   const [playingVideoIndex, setPlayingVideoIndex] = useState(null);
-  const [descriptionOpen, setDescriptionOpen] = useState(false);
+  const [descriptionOpen, setDescriptionOpen] = useState(true);
   const [fabricCareOpen, setFabricCareOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
@@ -1153,6 +1153,22 @@ export default function ProductDetailClient({
                   amount: formatPrice(150 * Number(aznPerUsd || 1.7)),
                 })}
               </p>
+
+              {/* Trust strip */}
+              <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-b border-black/[0.07] py-3 lg:justify-start">
+                <span className="flex items-center gap-1.5 text-[10.5px] tracking-[0.04em] text-black/48">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  Secure checkout
+                </span>
+                <span className="flex items-center gap-1.5 text-[10.5px] tracking-[0.04em] text-black/48">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  Free returns
+                </span>
+                <span className="flex items-center gap-1.5 text-[10.5px] tracking-[0.04em] text-black/48">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                  Worldwide shipping
+                </span>
+              </div>
 
               {/* Description & Fabric & care */}
               <div className="border-t border-black/[0.08] pt-0" data-testid="product-accordions">

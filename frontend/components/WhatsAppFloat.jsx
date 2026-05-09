@@ -21,7 +21,7 @@ export default function WhatsAppFloat() {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="whatsapp-float-enter fixed bottom-5 end-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-lg shadow-black/15 md:hidden"
+      className="whatsapp-float-enter fixed bottom-5 end-4 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-lg shadow-black/15"
       style={{ backgroundColor: "#25D366" }}
       aria-label={t("whatsapp.ariaLabel")}
     >

@@ -2,7 +2,8 @@
 
 import Link from "../components/LocaleLink";
 import Image from "next/image";
-import HeroSection from "../components/HeroSection";
+import SaleCountdownHero from "../components/SaleCountdownHero";
+// import HeroSection from "../components/HeroSection"; // switch back when sale ends
 import BestSellers from "../components/BestSellers";
 import CollectionsStrip from "../components/CollectionsStrip";
 import { useLanguage } from "../context/LanguageContext";
@@ -24,7 +25,7 @@ export default function Home() {
 
   return (
     <div className="space-y-0">
-      <HeroSection />
+      <SaleCountdownHero />
 
       {/* Products visible immediately after hero — critical for mobile conversion */}
       <CollectionsStrip />
