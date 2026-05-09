@@ -6,6 +6,7 @@ import { useRef } from "react";
 import { useCart } from "../context/CartContext";
 import { useCurrency } from "../context/CurrencyContext";
 import { useLanguage } from "../context/LanguageContext";
+import { trackAddToCart, productToItem } from "../lib/gtag";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 
@@ -25,6 +26,7 @@ export default function ProductCard({ product }) {
   const preferredSize = Array.isArray(product?.sizes) && product.sizes.length > 0 ? product.sizes[0] : "";
 
   const handleQuickAdd = () => {
+    trackAddToCart(productToItem(product, { quantity: 1 }));
     addToCart(product, preferredSize);
   };
 

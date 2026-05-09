@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "About | SAMÍ",
+  title: "About",
   description: "SAMÍ is a womenswear brand from Baku.",
 };
 

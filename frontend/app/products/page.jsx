@@ -1,5 +1,9 @@
 import ProductsPageClient from "./ProductsPageClient";
 
+export const metadata = {
+  title: "Shop All",
+};
+
 const PAGE_SIZE = 20;
 
 const getApiBaseURL = () => {

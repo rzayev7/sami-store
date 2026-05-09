@@ -98,26 +98,26 @@ export async function generateMetadata({ params }) {
 
   if (!product) {
     return {
-      title: "Product not found | SAMI",
+      title: { absolute: "Product not found | SAMÍ" },
       description: "Browse our latest womenswear collection.",
       robots: { index: false, follow: true },
     };
   }
 
-  const title = `${product.name} | SAMI`;
+  const titleAbsolute = `${product.name} | SAMÍ`;
   const description =
-    product.description?.trim() || "Discover premium womenswear from SAMI.";
+    product.description?.trim() || "Discover premium womenswear from SAMÍ.";
   const image = Array.isArray(product.images) ? product.images[0] : null;
   const canonicalPath = `/products/${productId}`;
 
   return {
-    title,
+    title: { absolute: titleAbsolute },
     description,
     alternates: {
       canonical: canonicalPath,
     },
     openGraph: {
-      title,
+      title: titleAbsolute,
       description,
       type: "website",
       url: canonicalPath,
@@ -132,7 +132,7 @@ export async function generateMetadata({ params }) {
     },
     twitter: {
       card: image ? "summary_large_image" : "summary",
-      title,
+      title: titleAbsolute,
       description,
       images: image ? [image] : [],
     },

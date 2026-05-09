@@ -37,7 +37,8 @@ const notoArabic = Noto_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "SAMÍ",
+  // Default stays "SAMÍ" for Home. Routes set `title` (e.g. "Shop") → "Shop | SAMÍ" so GA doesn’t lump all pages under one row.
+  title: { default: "SAMÍ", template: "%s | SAMÍ" },
   description: "Elegant women's fashion - premium sets, dresses, and modern style.",
   metadataBase: new URL("https://wearsamiofficial.com"),
   icons: {

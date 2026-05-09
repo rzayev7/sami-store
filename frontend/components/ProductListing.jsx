@@ -17,7 +17,7 @@ import { useLanguage } from "../context/LanguageContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import { formatSizeLabel, normalizeSizeForFilter } from "../lib/sizeDisplay";
 import PortraitCoverVideo from "./PortraitCoverVideo";
-import { productToItem, trackSelectItem, trackViewItemList, trackSearch } from "../lib/gtag";
+import { productToItem, trackSelectItem, trackViewItemList, trackSearch, trackAddToCart } from "../lib/gtag";
 
 const PAGE_SIZE = 20;
 const serializeQueryParams = (params = {}) => {
@@ -185,6 +185,7 @@ function ProductCard({ product }) {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  trackAddToCart(productToItem(product, { quantity: 1 }));
                   addToCart(product, preferredSize);
                 }}
                 className="max-w-[min(10.5rem,calc(100%-0.5rem))] rounded-full bg-white/95 px-3 py-1.5 text-center text-[9px] font-semibold uppercase leading-tight tracking-[0.1em] text-black shadow-md backdrop-blur-sm transition-all hover:bg-black hover:text-white"
