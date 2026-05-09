@@ -2,6 +2,7 @@ const Order = require("../models/Order");
 const { EpointService } = require("../services/epointService");
 const { verifySignature, decodeData } = require("../utils/epointSignature");
 const { deductStockForPaidOrder } = require("../services/orderStockService");
+const { awardPointsForOrder } = require("../services/loyaltyService");
 const { sendWhatsAppOrderNotification } = require("../services/whatsappService");
 const {
   sendOrderConfirmationEmail,
@@ -89,6 +90,7 @@ const applyGatewayResultToOrder = async (order, gatewayData) => {
 
   if (!wasPaid && mapped.paymentStatus === "paid" && !order.stockDeductedAt) {
     await deductStockForPaidOrder(order);
+    await awardPointsForOrder(order);
   }
 
   await order.save();

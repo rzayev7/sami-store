@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
 const Customer = require("../models/Customer");
 const Order = require("../models/Order");
+const { MIN_REDEEM, POINTS_PER_DOLLAR_REDEEM, redeemPoints } = require("../services/loyaltyService");
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -297,10 +298,43 @@ const googleAuth = async (req, res, next) => {
   }
 };
 
+const getPoints = async (req, res, next) => {
+  try {
+    const customer = await Customer.findById(req.customer._id).select("loyaltyPoints");
+    const history = await Order.find(
+      { customerId: req.customer._id, pointsEarned: { $gt: 0 } },
+      "pointsEarned pointsRedeemed totalPriceUSD createdAt status"
+    ).sort({ createdAt: -1 }).limit(20).lean();
+
+    res.json({
+      balance: customer.loyaltyPoints || 0,
+      minRedeem: MIN_REDEEM,
+      pointsPerDollar: POINTS_PER_DOLLAR_REDEEM,
+      history,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const redeemCustomerPoints = async (req, res, next) => {
+  try {
+    const { points } = req.body;
+    const amount = Math.floor(Number(points || 0));
+    const result = await redeemPoints(req.customer._id, amount);
+    const updated = await Customer.findById(req.customer._id).select("loyaltyPoints");
+    res.json({ ...result, newBalance: updated.loyaltyPoints });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 module.exports = {
   signup,
   login,
   googleAuth,
+  getPoints,
+  redeemCustomerPoints,
   getMe,
   updateProfile,
   getAddresses,

@@ -3,6 +3,8 @@ const {
   signup,
   login,
   googleAuth,
+  getPoints,
+  redeemCustomerPoints,
   getMe,
   updateProfile,
   getAddresses,
@@ -31,6 +33,9 @@ router.delete("/addresses/:addressId", protectCustomer, deleteAddress);
 
 router.get("/wishlist", protectCustomer, getWishlist);
 router.post("/wishlist", protectCustomer, toggleWishlistItem);
+
+router.get("/points", protectCustomer, getPoints);
+router.post("/points/redeem", protectCustomer, redeemCustomerPoints);
 
 router.get("/orders", protectCustomer, getMyOrders);
 

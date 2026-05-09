@@ -17,6 +17,10 @@ import {
   ShoppingBag,
   X,
   Edit3,
+  Gift,
+  RotateCcw,
+  FileText,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useCurrency } from "../../context/CurrencyContext";
@@ -38,12 +42,14 @@ export default function AccountPage() {
     { id: "orders", label: t("account.orders"), icon: Package },
     { id: "addresses", label: t("account.addresses"), icon: MapPin },
     { id: "wishlist", label: t("account.wishlist"), icon: Heart },
+    { id: "points", label: "Points", icon: Gift },
   ];
 
   const [activeTab, setActiveTab] = useState("orders");
   const [orders, setOrders] = useState([]);
   const [addresses, setAddresses] = useState([]);
   const [wishlist, setWishlist] = useState([]);
+  const [pointsData, setPointsData] = useState(null);
   const [dataLoading, setDataLoading] = useState(false);
 
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -82,6 +88,9 @@ export default function AccountPage() {
       } else if (activeTab === "wishlist") {
         const { data } = await api.get("/api/customers/wishlist", { headers });
         setWishlist(data);
+      } else if (activeTab === "points") {
+        const { data } = await api.get("/api/customers/points", { headers });
+        setPointsData(data);
       }
     } catch {
       /* silently fail */
@@ -165,6 +174,23 @@ export default function AccountPage() {
     } catch {
       /* silently fail */
     }
+  };
+
+  const handleReorder = (order) => {
+    if (!Array.isArray(order.items)) return;
+    order.items.forEach((item) => {
+      addToCart(
+        {
+          _id: item.productId,
+          name: item.name,
+          priceUSD: item.priceUSD,
+          images: item.image ? [item.image] : [],
+          sizes: item.size ? [item.size] : [],
+        },
+        item.size || "",
+        item.quantity || 1
+      );
+    });
   };
 
   const handleRemoveWishlist = async (productId) => {
@@ -280,32 +306,63 @@ export default function AccountPage() {
                 ) : (
                   <div className="divide-y divide-[var(--color-line)]">
                     {orders.map((order) => (
-                      <div key={order._id} className="flex items-center justify-between gap-4 px-6 py-5 sm:px-8">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-[13px] font-medium">
-                              #{order._id.slice(-8).toUpperCase()}
+                      <div key={order._id} className="px-6 py-5 sm:px-8">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-[13px] font-medium">
+                                #{order._id.slice(-8).toUpperCase()}
+                              </p>
+                              <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] ${statusColor(order.status)}`}>
+                                {order.status}
+                              </span>
+                              {order.pointsEarned > 0 && (
+                                <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                                  <Sparkles size={9} /> +{order.pointsEarned} pts
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-1 text-[12px] text-[var(--color-muted)]">
+                              {new Date(order.createdAt).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              })}
+                              {" · "}
+                              {order.items?.length || 0} {order.items?.length !== 1 ? t("common.items") : t("common.item")}
                             </p>
-                            <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] ${statusColor(order.status)}`}>
-                              {order.status}
-                            </span>
                           </div>
-                          <p className="mt-1 text-[12px] text-[var(--color-muted)]">
-                            {new Date(order.createdAt).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })}
-                            {" · "}
-                            {order.items?.length || 0} {order.items?.length !== 1 ? t("common.items") : t("common.item")}
-                          </p>
+                          <div className="text-end">
+                            <p className="text-[14px] font-medium">
+                              {formatPrice(order.totalPriceUSD)} {currency}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-end">
-                          <p className="text-[14px] font-medium">
-                            {formatPrice(order.totalPriceUSD)} {currency}
-                          </p>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleReorder(order)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-line)] px-3 py-1.5 text-[11px] font-medium tracking-[0.06em] text-black/70 transition hover:bg-[var(--color-cream)] hover:text-black"
+                          >
+                            <RotateCcw size={11} strokeWidth={2} />
+                            Reorder
+                          </button>
+                          <Link
+                            href={`/orders/${order._id}/invoice`}
+                            target="_blank"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-line)] px-3 py-1.5 text-[11px] font-medium tracking-[0.06em] text-black/70 transition hover:bg-[var(--color-cream)] hover:text-black"
+                          >
+                            <FileText size={11} strokeWidth={2} />
+                            Invoice
+                          </Link>
+                          <Link
+                            href={`/track-order?id=${order._id}`}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-line)] px-3 py-1.5 text-[11px] font-medium tracking-[0.06em] text-black/70 transition hover:bg-[var(--color-cream)] hover:text-black"
+                          >
+                            <ChevronRight size={11} strokeWidth={2} />
+                            Track
+                          </Link>
                         </div>
-                        <ChevronRight size={16} className="shrink-0 text-[var(--color-muted)]" />
                       </div>
                     ))}
                   </div>
@@ -600,6 +657,89 @@ export default function AccountPage() {
                       );
                     })}
                   </div>
+                )}
+              </div>
+            )}
+            {/* POINTS TAB */}
+            {activeTab === "points" && (
+              <div className="p-6 sm:p-8">
+                {/* Balance card */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2a2118] to-[#1a150e] p-6 text-white sm:p-8">
+                  <div className="absolute -end-6 -top-6 h-32 w-32 rounded-full bg-[var(--color-gold)]/10" />
+                  <div className="absolute -bottom-8 -start-4 h-24 w-24 rounded-full bg-[var(--color-gold)]/5" />
+                  <p className="relative text-[11px] font-medium uppercase tracking-[0.2em] text-white/50">
+                    Your Balance
+                  </p>
+                  <div className="relative mt-2 flex items-end gap-3">
+                    <span className="text-5xl font-semibold tracking-tight text-[var(--color-gold)]">
+                      {pointsData?.balance ?? 0}
+                    </span>
+                    <span className="mb-1.5 text-[14px] text-white/60">points</span>
+                  </div>
+                  <div className="relative mt-4 grid grid-cols-2 gap-4 border-t border-white/10 pt-4 text-[12px]">
+                    <div>
+                      <p className="text-white/40">Earn rate</p>
+                      <p className="mt-0.5 font-medium text-white">$1 spent = 1 point</p>
+                    </div>
+                    <div>
+                      <p className="text-white/40">Redeem rate</p>
+                      <p className="mt-0.5 font-medium text-white">
+                        {pointsData?.pointsPerDollar ?? 20} points = $1 off
+                      </p>
+                    </div>
+                  </div>
+                  <p className="relative mt-3 text-[11px] text-white/30">
+                    Min. {pointsData?.minRedeem ?? 100} points to redeem · redeem at checkout
+                  </p>
+                </div>
+
+                {/* How it works */}
+                <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                  {[
+                    { icon: ShoppingBag, title: "Shop & Earn", desc: "Earn 1 point for every $1 spent on any order." },
+                    { icon: Sparkles, title: "Collect Points", desc: "Points are added automatically after payment." },
+                    { icon: Gift, title: "Redeem at Checkout", desc: "Use points for a discount on your next order." },
+                  ].map(({ icon: Icon, title, desc }) => (
+                    <div key={title} className="rounded-xl border border-[var(--color-line)] p-4">
+                      <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-amber-50">
+                        <Icon size={15} className="text-amber-600" strokeWidth={1.8} />
+                      </div>
+                      <p className="text-[12px] font-semibold">{title}</p>
+                      <p className="mt-1 text-[11px] leading-[1.6] text-[var(--color-muted)]">{desc}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Points history */}
+                {pointsData?.history?.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="mb-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/50">
+                      Points History
+                    </h3>
+                    <div className="divide-y divide-[var(--color-line)] rounded-xl border border-[var(--color-line)]">
+                      {pointsData.history.map((h) => (
+                        <div key={h._id} className="flex items-center justify-between px-4 py-3">
+                          <div>
+                            <p className="text-[12px] font-medium">
+                              Order #{String(h._id).slice(-8).toUpperCase()}
+                            </p>
+                            <p className="text-[11px] text-[var(--color-muted)]">
+                              {new Date(h.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                            </p>
+                          </div>
+                          <span className="text-[13px] font-semibold text-emerald-600">
+                            +{h.pointsEarned} pts
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {pointsData?.history?.length === 0 && (
+                  <p className="mt-6 text-center text-[13px] text-[var(--color-muted)]">
+                    Place your first order to start earning points.
+                  </p>
                 )}
               </div>
             )}

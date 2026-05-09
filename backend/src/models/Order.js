@@ -122,6 +122,14 @@ const orderSchema = new mongoose.Schema({
     currencyRate: { type: Number, default: 1 },
     aznPerUsd: { type: Number, default: 1.7 },
   },
+  pointsEarned: {
+    type: Number,
+    default: 0,
+  },
+  pointsRedeemed: {
+    type: Number,
+    default: 0,
+  },
   trackingNumber: {
     type: String,
   },

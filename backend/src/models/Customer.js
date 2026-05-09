@@ -41,6 +41,11 @@ const customerSchema = new mongoose.Schema({
   avatar: {
     type: String,
   },
+  loyaltyPoints: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
   addresses: [addressSchema],
   wishlist: [
     {
