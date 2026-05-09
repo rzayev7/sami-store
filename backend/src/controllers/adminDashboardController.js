@@ -1,5 +1,6 @@
 const Order = require("../models/Order");
 const Product = require("../models/Product");
+const Customer = require("../models/Customer");
 
 const getDashboardStats = async (req, res, next) => {
   try {
@@ -64,27 +65,62 @@ const getDashboardStats = async (req, res, next) => {
 
 const getCustomersSummary = async (req, res, next) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 });
-    const customerMap = new Map();
+    const [registeredCustomers, orders] = await Promise.all([
+      Customer.find({}, "name email createdAt").sort({ createdAt: -1 }).lean(),
+      Order.find({}, "customerInfo totalPriceUSD createdAt").lean(),
+    ]);
 
+    // Build order stats keyed by email
+    const orderStats = new Map();
     orders.forEach((order) => {
       const email = String(order.customerInfo?.email || "").toLowerCase();
       if (!email) return;
-
-      const existing = customerMap.get(email) || {
-        name: order.customerInfo?.name || "-",
-        email,
-        country: order.customerInfo?.country || "-",
-        orderCount: 0,
-        totalSpentUSD: 0,
-      };
-
-      existing.orderCount += 1;
-      existing.totalSpentUSD += Number(order.totalPriceUSD || 0);
-      customerMap.set(email, existing);
+      const stat = orderStats.get(email) || { orderCount: 0, totalSpentUSD: 0, country: order.customerInfo?.country || "-" };
+      stat.orderCount += 1;
+      stat.totalSpentUSD += Number(order.totalPriceUSD || 0);
+      orderStats.set(email, stat);
     });
 
-    res.status(200).json(Array.from(customerMap.values()));
+    // Merge registered accounts with order stats
+    const customerMap = new Map();
+
+    registeredCustomers.forEach((c) => {
+      const email = String(c.email || "").toLowerCase();
+      const stat = orderStats.get(email) || { orderCount: 0, totalSpentUSD: 0, country: "-" };
+      customerMap.set(email, {
+        name: c.name || "-",
+        email,
+        country: stat.country,
+        orderCount: stat.orderCount,
+        totalSpentUSD: stat.totalSpentUSD,
+        registeredAt: c.createdAt,
+        registered: true,
+      });
+    });
+
+    // Also include guest customers (ordered but never registered)
+    orderStats.forEach((stat, email) => {
+      if (!customerMap.has(email)) {
+        customerMap.set(email, {
+          name: "-",
+          email,
+          country: stat.country,
+          orderCount: stat.orderCount,
+          totalSpentUSD: stat.totalSpentUSD,
+          registeredAt: null,
+          registered: false,
+        });
+      }
+    });
+
+    const result = Array.from(customerMap.values()).sort((a, b) => {
+      if (a.registeredAt && b.registeredAt) return new Date(b.registeredAt) - new Date(a.registeredAt);
+      if (a.registeredAt) return -1;
+      if (b.registeredAt) return 1;
+      return b.orderCount - a.orderCount;
+    });
+
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }

@@ -54,7 +54,7 @@ export default function CustomersPage() {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <div className="sami-section overflow-x-auto p-4">
-        <table className="w-full min-w-[760px] text-left text-sm">
+        <table className="w-full min-w-[860px] text-left text-sm">
           <thead>
             <tr className="border-b border-[var(--color-line)]">
               <th className="px-2 py-2">{t.customer}</th>
@@ -62,20 +62,41 @@ export default function CustomersPage() {
               <th className="px-2 py-2">{t.country}</th>
               <th className="px-2 py-2">{t.ordersCount}</th>
               <th className="px-2 py-2">{t.totalSpent}</th>
+              <th className="px-2 py-2">Registered</th>
+              <th className="px-2 py-2">Account</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((customer) => (
               <tr key={customer.email} className="border-b border-[var(--color-line)]">
-                <td className="px-2 py-2">{customer.name || "-"}</td>
-                <td className="px-2 py-2">{customer.email || "-"}</td>
+                <td className="px-2 py-2 font-medium">{customer.name || "-"}</td>
+                <td className="px-2 py-2 text-black/60">{customer.email || "-"}</td>
                 <td className="px-2 py-2">{customer.country || "-"}</td>
                 <td className="px-2 py-2">{Number(customer.orderCount || 0)}</td>
-                <td className="px-2 py-2">₼{Number(customer.totalSpentUSD || 0).toFixed(2)}</td>
+                <td className="px-2 py-2">${Number(customer.totalSpentUSD || 0).toFixed(2)}</td>
+                <td className="px-2 py-2 text-xs text-black/50">
+                  {customer.registeredAt
+                    ? new Date(customer.registeredAt).toLocaleDateString()
+                    : "-"}
+                </td>
+                <td className="px-2 py-2">
+                  {customer.registered ? (
+                    <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                      Registered
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-black/5 px-2 py-0.5 text-xs text-black/40">
+                      Guest
+                    </span>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+        {filtered.length === 0 && (
+          <p className="py-8 text-center text-sm text-black/40">No customers found.</p>
+        )}
       </div>
     </section>
   );
