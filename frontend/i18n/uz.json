@@ -1,4 +1,4 @@
-{
+﻿{
   "common": {
     "brand": "SAMÍ",
     "home": "Bosh sahifa",
@@ -482,7 +482,9 @@
     "deliveryBody2": "Yetkazib berish muddatlari taxminiydir. Xalqaro buyurtmalar bojxona rasmiylashtiruviga duch kelishi mumkin; bu qo‘shimcha vaqt bizning nazoratimizdan tashqarida.",
     "orderTracking": "Buyurtmani kuzatish",
     "orderTrackingBody": "Buyurtmangiz jo‘natilgach kuzatuv ma’lumotlari bilan email olasiz. Buyurtma holatini shuningdek quyidagi sahifamizdan ham tekshirishingiz mumkin:",
+    "orderTrackingEnd": ".",
     "trackOrderLink": "Buyurtmani kuzatish",
+    "trackOnCarrier": "Jo'natmani kuzatish",
     "returns": "Qaytarishlar",
     "returnsBody": "Barcha sotuvlar yakuniy. Shikastlangan, nosoz yoki noto‘g‘ri buyum olsangiz, iltimos ko‘ring:",
     "returnsPolicyLink": "Qaytarish siyosati",

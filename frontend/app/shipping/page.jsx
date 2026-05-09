@@ -52,8 +52,7 @@ export default function ShippingPage() {
             className="underline underline-offset-2 transition-opacity hover:opacity-70"
           >
             {t("shipping.trackOrderLink")}
-          </Link>{" "}
-          page.
+          </Link>{t("shipping.orderTrackingEnd")}
         </p>
       </section>
 

@@ -121,7 +121,7 @@ export default function TrackOrderPage() {
                     rel="noopener noreferrer"
                     className="inline-flex items-center rounded-md border border-[var(--color-line)] bg-white px-2.5 py-1 text-xs font-medium text-black/80 transition-colors hover:bg-[var(--color-sand)]"
                   >
-                    Track on Azerpost
+                    {t("shipping.trackOnCarrier")}
                   </a>
                 </p>
               )}
