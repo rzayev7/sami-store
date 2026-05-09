@@ -561,7 +561,7 @@
     "ordersPricingBody": "All prices are displayed in the selected currency and are subject to change without notice. We reserve the right to cancel orders due to pricing errors, stock issues, or suspected fraud. You will be notified if your order is affected.",
     "orderAcceptance": "An order is not considered accepted until it has been confirmed by us. We reserve the right to refuse or cancel any order at our discretion.",
     "payment": "Payment",
-    "paymentBody": "We accept bank transfers and, where available, card payments through our payment provider. Orders will only be processed and shipped after full payment has been successfully received and confirmed.",
+    "paymentBody": "We accept card payments (Visa and Mastercard) through our secure payment provider. Orders will only be processed and shipped after full payment has been successfully received and confirmed.",
     "salesReturns": "Sales & Returns",
     "salesReturnsBody": "All sales are final. We do not currently offer standard returns or exchanges. If you receive a damaged, defective, or incorrect item, please refer to our",
     "salesReturnsLink": "Returns Policy",
