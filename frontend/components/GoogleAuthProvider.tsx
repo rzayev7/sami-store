@@ -9,7 +9,8 @@ export default function GoogleAuthProvider({
 }: {
   children: React.ReactNode;
 }) {
-  if (!GOOGLE_CLIENT_ID) return <>{children}</>;
+  // Always render the provider so useGoogleLogin hook is always in context.
+  // The button is hidden in AuthModal when clientId is empty.
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       {children}

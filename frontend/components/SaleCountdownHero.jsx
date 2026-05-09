@@ -22,9 +22,12 @@ const UNITS  = ["days", "hours", "minutes", "seconds"];
 const LABELS = { days: "Days", hours: "Hours", minutes: "Minutes", seconds: "Seconds" };
 
 export default function SaleCountdownHero() {
-  const [timeLeft, setTimeLeft] = useState(calcTimeLeft);
+  const [mounted, setMounted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
+    setMounted(true);
+    setTimeLeft(calcTimeLeft());
     const id = setInterval(() => setTimeLeft(calcTimeLeft()), 1000);
     return () => clearInterval(id);
   }, []);
@@ -95,8 +98,11 @@ export default function SaleCountdownHero() {
             {UNITS.map((unit, i) => (
               <div key={unit} className="flex items-start gap-5 sm:gap-8">
                 <div className="flex flex-col items-center">
-                  <span className="font-serif text-[2.2rem] font-light leading-none tabular-nums text-white sm:text-[2.8rem]">
-                    {pad(timeLeft[unit])}
+                  <span
+                    className="font-serif text-[2.2rem] font-light leading-none tabular-nums text-white sm:text-[2.8rem]"
+                    suppressHydrationWarning
+                  >
+                    {mounted ? pad(timeLeft[unit]) : "00"}
                   </span>
                   <span className="mt-2 text-[8px] font-semibold uppercase tracking-[0.3em] text-white/50">
                     {LABELS[unit]}
