@@ -54,6 +54,13 @@ export function AuthProvider({ children }) {
     return data.user;
   }, []);
 
+  const loginWithGoogle = useCallback(async (access_token) => {
+    const { data } = await api.post("/api/customers/auth/google", { access_token });
+    setCustomerToken(data.token);
+    setUser(data.user);
+    return data.user;
+  }, []);
+
   const logout = useCallback(() => {
     clearCustomerToken();
     setUser(null);
@@ -74,6 +81,7 @@ export function AuthProvider({ children }) {
       loading,
       login,
       signup,
+      loginWithGoogle,
       logout,
       fetchUser,
       authModalOpen,
@@ -81,7 +89,7 @@ export function AuthProvider({ children }) {
       closeAuthModal,
       requireAuth,
     }),
-    [user, loading, login, signup, logout, fetchUser, authModalOpen, openAuthModal, closeAuthModal, requireAuth]
+    [user, loading, login, signup, loginWithGoogle, logout, fetchUser, authModalOpen, openAuthModal, closeAuthModal, requireAuth]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

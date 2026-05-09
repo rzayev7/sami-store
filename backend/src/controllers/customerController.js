@@ -1,6 +1,9 @@
 const jwt = require("jsonwebtoken");
+const { OAuth2Client } = require("google-auth-library");
 const Customer = require("../models/Customer");
 const Order = require("../models/Order");
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const generateToken = (id) =>
   jwt.sign({ id, role: "customer" }, process.env.JWT_SECRET, {
@@ -240,9 +243,64 @@ const getMyOrders = async (req, res, next) => {
   }
 };
 
+const googleAuth = async (req, res, next) => {
+  try {
+    const { access_token } = req.body;
+    if (!access_token) {
+      return res.status(400).json({ message: "Google access token is required" });
+    }
+
+    // Fetch user info from Google using the access token
+    const response = await fetch(
+      `https://www.googleapis.com/oauth2/v3/userinfo`,
+      { headers: { Authorization: `Bearer ${access_token}` } }
+    );
+
+    if (!response.ok) {
+      return res.status(401).json({ message: "Invalid Google token" });
+    }
+
+    const { sub: googleId, email, name, picture } = await response.json();
+
+    if (!email) {
+      return res.status(400).json({ message: "Google account has no email" });
+    }
+
+    let customer = await Customer.findOne({
+      $or: [{ googleId }, { email: email.toLowerCase() }],
+    });
+
+    if (!customer) {
+      customer = await Customer.create({
+        name: name || email.split("@")[0],
+        email: email.toLowerCase(),
+        googleId,
+        avatar: picture,
+      });
+    } else if (!customer.googleId) {
+      customer.googleId = googleId;
+      if (!customer.avatar && picture) customer.avatar = picture;
+      await customer.save();
+    }
+
+    res.status(200).json({
+      token: generateToken(customer._id),
+      user: {
+        _id: customer._id,
+        name: customer.name,
+        email: customer.email,
+        avatar: customer.avatar,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   signup,
   login,
+  googleAuth,
   getMe,
   updateProfile,
   getAddresses,

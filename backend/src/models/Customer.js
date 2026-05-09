@@ -31,8 +31,15 @@ const customerSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
     minlength: 6,
+  },
+  googleId: {
+    type: String,
+    sparse: true,
+    unique: true,
+  },
+  avatar: {
+    type: String,
   },
   addresses: [addressSchema],
   wishlist: [
@@ -48,7 +55,7 @@ const customerSchema = new mongoose.Schema({
 });
 
 customerSchema.pre("save", async function () {
-  if (!this.isModified("password")) return;
+  if (!this.isModified("password") || !this.password) return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });

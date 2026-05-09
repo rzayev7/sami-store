@@ -2,6 +2,7 @@ const express = require("express");
 const {
   signup,
   login,
+  googleAuth,
   getMe,
   updateProfile,
   getAddresses,
@@ -18,6 +19,7 @@ const router = express.Router();
 
 router.post("/signup", signup);
 router.post("/login", login);
+router.post("/auth/google", googleAuth);
 
 router.get("/me", protectCustomer, getMe);
 router.put("/me", protectCustomer, updateProfile);

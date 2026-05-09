@@ -15,6 +15,7 @@ import { AuthProvider } from "../context/AuthContext";
 import { LanguageProvider } from "../context/LanguageContext";
 import FirstVisitLanguageModal from "../components/FirstVisitLanguageModal";
 import LeadCapture from "../components/LeadCapture";
+import GoogleAuthProvider from "../components/GoogleAuthProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -91,6 +92,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <GoogleAnalyticsPageView />
         </Suspense>
+        <GoogleAuthProvider>
         <LanguageProvider>
           <AuthProvider>
             <CurrencyProvider>
@@ -114,6 +116,7 @@ export default function RootLayout({
             </CurrencyProvider>
           </AuthProvider>
         </LanguageProvider>
+        </GoogleAuthProvider>
       </body>
     </html>
   );
