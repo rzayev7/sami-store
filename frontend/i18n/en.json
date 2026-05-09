@@ -40,6 +40,26 @@
     "shopBestSellers": "Shop Best Sellers"
   },
 
+  "promoHero": {
+    "label": "Limited Time Offer",
+    "title": "New Season Arrivals",
+    "discount": "20% Off",
+    "subtitle": "Discover Your Signature Look",
+    "cta": "Shop the Sale",
+    "daysShort": "Days",
+    "hoursShort": "Hours",
+    "minutesShort": "Minutes",
+    "secondsShort": "Seconds"
+  },
+  "promoStrip": {
+    "autoApplied": "Auto-applied at checkout",
+    "endingSoon": "Ending soon",
+    "daysShort": "Days",
+    "hoursShort": "Hrs",
+    "minutesShort": "Mins",
+    "secondsShort": "Secs"
+  },
+
   "nav": {
     "openMenu": "Open menu",
     "closeMenu": "Close menu",

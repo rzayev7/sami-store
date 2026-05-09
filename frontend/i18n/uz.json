@@ -34,6 +34,27 @@
   "announcement": {
     "freeShipping": "Butun dunyo bo‘ylab yetkazib berish"
   },
+
+  "promoHero": {
+    "label": "Cheklangan taklif",
+    "title": "Yangi mavsum koleksiyasi",
+    "discount": "-20%",
+    "subtitle": "O‘zingiz uchun uslubni tanlang",
+    "cta": "Chegirmalarni ko‘ring",
+    "daysShort": "Kun",
+    "hoursShort": "Soat",
+    "minutesShort": "Daqiqa",
+    "secondsShort": "Soniya"
+  },
+  "promoStrip": {
+    "autoApplied": "To‘lovda avtomatik qo‘llanadi",
+    "endingSoon": "Tez orada tugaydi",
+    "daysShort": "K.",
+    "hoursShort": "S.",
+    "minutesShort": "D.",
+    "secondsShort": "S."
+  },
+
   "nav": {
     "openMenu": "Menyuni ochish",
     "closeMenu": "Menyuni yopish",

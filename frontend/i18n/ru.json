@@ -38,6 +38,27 @@
     "socialProof3": "Женская одежда из Баку",
     "shopBestSellers": "Хиты продаж"
   },
+
+  "promoHero": {
+    "label": "Ограниченное предложение",
+    "title": "Новые поступления сезона",
+    "discount": "-20%",
+    "subtitle": "Найдите свой фирменный образ",
+    "cta": "Распродажа",
+    "daysShort": "Дней",
+    "hoursShort": "Часов",
+    "minutesShort": "Мин",
+    "secondsShort": "Сек"
+  },
+  "promoStrip": {
+    "autoApplied": "Применяется при оформлении заказа",
+    "endingSoon": "Заканчивается скоро",
+    "daysShort": "Дн.",
+    "hoursShort": "Ч",
+    "minutesShort": "Мин",
+    "secondsShort": "Сек"
+  },
+
   "nav": {
     "openMenu": "Открыть меню",
     "closeMenu": "Закрыть меню",

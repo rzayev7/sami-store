@@ -38,6 +38,27 @@
     "socialProof3": "أزياء نسائية من باكو",
     "shopBestSellers": "تسوّقي الأكثر مبيعًا"
   },
+
+  "promoHero": {
+    "label": "عرض لفترة محدودة",
+    "title": "وصلات موسمية جديدة",
+    "discount": "خصم 20٪",
+    "subtitle": "اكتشفي أسلوبك المميز",
+    "cta": "تسوّق التخفيضات",
+    "daysShort": "أيام",
+    "hoursShort": "ساعات",
+    "minutesShort": "دقائق",
+    "secondsShort": "ثوانٍ"
+  },
+  "promoStrip": {
+    "autoApplied": "يُطبّق تلقائيًا عند الدفع",
+    "endingSoon": "ينتهي قريبًا",
+    "daysShort": "يوم",
+    "hoursShort": "س",
+    "minutesShort": "د",
+    "secondsShort": "ث"
+  },
+
   "nav": {
     "openMenu": "فتح القائمة",
     "closeMenu": "إغلاق القائمة",
