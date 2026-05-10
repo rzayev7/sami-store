@@ -127,21 +127,24 @@ export default function Navbar() {
             : "bg-white/95 text-[var(--color-black)] backdrop-blur"
         }`}
       >
-        <div className="mx-auto grid w-full max-w-screen-2xl grid-cols-3 items-center px-4 py-4 sm:px-6 sm:py-5 lg:px-12">
-          <div className="flex items-center justify-start">
+        <div className="mx-auto flex w-full max-w-screen-2xl items-center px-4 py-4 sm:px-6 sm:py-5 lg:px-12">
+          <div className="flex min-w-0 flex-1 basis-0 items-center justify-start">
             <button
               type="button"
               aria-label={t("nav.openMenu")}
               onClick={() => setIsSidebarOpen(true)}
               className={`rounded-full p-2 transition-opacity hover:opacity-60 ${iconColor}`}
             >
-              <Menu size={22} strokeWidth={1.8} />
+              <Menu className="h-[22px] w-[22px]" strokeWidth={1.8} />
             </button>
           </div>
 
-          <Link href="/" className="justify-self-center transition-opacity hover:opacity-80">
+          <Link
+            href="/"
+            className="shrink-0 px-1 text-center transition-opacity hover:opacity-80 sm:px-2"
+          >
             <span
-              className={`sami-brand text-4xl leading-none sm:text-5xl transition-all duration-300 ${
+              className={`sami-brand text-3xl leading-none sm:text-5xl transition-all duration-300 ${
                 isTransparent
                   ? "!text-[#C8A96A] drop-shadow-[0_1px_6px_rgba(0,0,0,0.4)]"
                   : ""
@@ -151,7 +154,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          <div className="flex items-center justify-end gap-1 sm:gap-2">
+          <div className="flex min-w-0 flex-1 basis-0 items-center justify-end gap-0.5 sm:gap-2">
             <div className="hidden sm:block">
               <LanguageSwitcher inverted={isTransparent} />
             </div>
@@ -163,9 +166,9 @@ export default function Navbar() {
             <Link
               href="/products"
               aria-label={t("nav.searchProducts")}
-              className={`rounded-full p-2 transition-opacity hover:opacity-60 ${iconColor}`}
+              className={`rounded-full p-1.5 transition-opacity hover:opacity-60 sm:p-2 ${iconColor}`}
             >
-              <Search size={21} strokeWidth={1.8} />
+              <Search className="h-[18px] w-[18px] sm:h-[21px] sm:w-[21px]" strokeWidth={1.8} />
             </Link>
 
             <button
@@ -178,9 +181,9 @@ export default function Navbar() {
                   openAuthModal();
                 }
               }}
-              className={`relative rounded-full p-2 transition-opacity hover:opacity-60 ${iconColor}`}
+              className={`relative rounded-full p-1.5 transition-opacity hover:opacity-60 sm:p-2 ${iconColor}`}
             >
-              <User size={21} strokeWidth={1.8} />
+              <User className="h-[18px] w-[18px] sm:h-[21px] sm:w-[21px]" strokeWidth={1.8} />
               {customerUser && (
                 <span className="absolute -end-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-[var(--color-green)]" />
               )}
@@ -189,9 +192,9 @@ export default function Navbar() {
             <Link
               href={localePath("/account?tab=wishlist")}
               aria-label={t("nav.wishlist")}
-              className={`relative rounded-full p-2 transition-opacity hover:opacity-60 ${iconColor}`}
+              className={`relative rounded-full p-1.5 transition-opacity hover:opacity-60 sm:p-2 ${iconColor}`}
             >
-              <Heart size={21} strokeWidth={1.8} />
+              <Heart className="h-[18px] w-[18px] sm:h-[21px] sm:w-[21px]" strokeWidth={1.8} />
               {wishlistCount > 0 && (
                 <span className="absolute -end-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-white bg-[var(--color-gold)] text-[9px] font-bold text-white">
                   {wishlistCount > 9 ? "9+" : wishlistCount}
@@ -203,9 +206,9 @@ export default function Navbar() {
               type="button"
               aria-label={t("nav.openCart")}
               onClick={openCart}
-              className={`relative rounded-full p-2 transition-opacity hover:opacity-60 ${iconColor}`}
+              className={`relative rounded-full p-1.5 transition-opacity hover:opacity-60 sm:p-2 ${iconColor}`}
             >
-              <ShoppingBag size={21} strokeWidth={1.8} />
+              <ShoppingBag className="h-[18px] w-[18px] sm:h-[21px] sm:w-[21px]" strokeWidth={1.8} />
               {cartCount > 0 && (
                 <span className="absolute -end-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[var(--color-green)] px-1 text-[10px] font-bold leading-none text-white">
                   {cartCount > 99 ? "99+" : cartCount}
