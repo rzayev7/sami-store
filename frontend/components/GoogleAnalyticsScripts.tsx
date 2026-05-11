@@ -17,6 +17,7 @@ export default function GoogleAnalyticsScripts() {
           gtag('js', new Date());
           gtag('config', '${GA_MEASUREMENT_ID}', {
             send_page_view: true,
+            page_path: window.location.pathname + window.location.search,
             page_title: document.title,
             page_location: window.location.href
           });

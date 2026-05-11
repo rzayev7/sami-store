@@ -146,7 +146,7 @@ export default function FirstVisitLanguageModal() {
 
         // For Arab-speaking countries auto-apply language + currency silently.
         // They still see the banner for everything else.
-        if (ARAB_COUNTRIES.has(cc)) {
+        if (ARAB_COUNTRIES.has(countryCode)) {
           setCurrency(mapped.currency);
           setLanguage(mapped.language);
           window.localStorage.setItem(STORAGE_KEY, "applied");

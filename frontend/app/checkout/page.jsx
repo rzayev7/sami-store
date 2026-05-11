@@ -198,11 +198,12 @@ export default function CheckoutPage() {
           { quantity: item.quantity, index }
         )
       );
-      trackAddPaymentInfo(gaItems, totalPrice, selectedPaymentMethod);
       const headers = customerUser ? getCustomerAuthHeaders() : {};
       const { data } = await api.post("/api/orders", orderPayload, { headers });
       const orderId = data?._id || data?.id || data?.order?._id;
       if (!orderId) throw new Error("Order created but no order id returned");
+
+      trackAddPaymentInfo(gaItems, totalPrice, selectedPaymentMethod);
 
       setHasPlacedOrder(true);
       clearCart();

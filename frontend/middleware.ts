@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { geolocation } from "@vercel/functions";
+import { inferDefaultLocaleFromSignals } from "./lib/localeInference";
 
 const LOCALES = ["en", "ar", "ru", "uz"];
 const LEGACY_LOCALES = ["az", "fr", "tr", "kk"];
@@ -162,6 +163,11 @@ export function middleware(request: NextRequest) {
     );
   }
 
+  // Short social tracking URLs (/l/instagram, /l/tiktok) — skip locale redirect so bios stay one clean path.
+  if (pathname.startsWith("/l/")) {
+    return NextResponse.next();
+  }
+
   // --- Admin routes are intentionally NOT localized ---
   if (pathname.startsWith("/admin")) {
     if (pathname.startsWith("/admin/login")) {
@@ -188,7 +194,12 @@ export function middleware(request: NextRequest) {
     const stripped = "/" + pathname.split("/").slice(2).join("/");
     const normalizedPath = stripped === "/" ? "" : stripped;
     const url = request.nextUrl.clone();
-    url.pathname = `/${DEFAULT_LOCALE}${normalizedPath}`;
+    const lang =
+      inferDefaultLocaleFromSignals({
+        countryCode,
+        acceptLanguage: request.headers.get("accept-language"),
+      }) || DEFAULT_LOCALE;
+    url.pathname = `/${lang}${normalizedPath}`;
     return NextResponse.redirect(url);
   }
 
@@ -216,7 +227,13 @@ export function middleware(request: NextRequest) {
   }
 
   const saved = request.cookies.get("sami_lang")?.value;
-  const lang = saved && LOCALES.includes(saved) ? saved : DEFAULT_LOCALE;
+  const lang =
+    saved && LOCALES.includes(saved)
+      ? saved
+      : inferDefaultLocaleFromSignals({
+          countryCode,
+          acceptLanguage: request.headers.get("accept-language"),
+        }) || DEFAULT_LOCALE;
   const url = request.nextUrl.clone();
   url.pathname = `/${lang}${pathname}`;
   return NextResponse.redirect(url);

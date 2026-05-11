@@ -10,7 +10,7 @@ declare global {
 }
 
 function gtag(...args: unknown[]) {
-  if (typeof window === "undefined" || typeof window.gtag !== "function") return;
+  if (!GA_MEASUREMENT_ID || typeof window === "undefined" || typeof window.gtag !== "function") return;
   window.gtag(...args);
 }
 
@@ -20,10 +20,17 @@ export function sendPageView(pathWithQuery: string) {
     ? pathWithQuery
     : `/${pathWithQuery}`;
 
-  gtag("config", GA_MEASUREMENT_ID, {
-    page_path: pagePath,
-    page_location: window.location.href,
-    page_title: document.title,
+  const flush = () => {
+    gtag("config", GA_MEASUREMENT_ID, {
+      page_path: pagePath,
+      page_location: window.location.href,
+      page_title: document.title,
+    });
+  };
+
+  // Defer until after Next.js updates <title> so GA4 “Page title” matches the real screen.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(flush);
   });
 }
 
@@ -140,7 +147,17 @@ export function trackViewItemList(
   });
 }
 
-/** Fired when the user removes an item from the cart. */
+/** Fired when the user opens the cart drawer and it has at least one line. */
+export function trackViewCart(items: GtagItem[], value: number, currency = "USD") {
+  if (!items.length) return;
+  gtag("event", "view_cart", {
+    currency,
+    value,
+    items: items.slice(0, 20),
+  });
+}
+
+/** Fired when the user removes units or an entire line from the cart. */
 export function trackRemoveFromCart(item: GtagItem, currency = "USD") {
   gtag("event", "remove_from_cart", {
     currency,

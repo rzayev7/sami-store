@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "./LocaleLink";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { X, Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { useCart } from "../context/CartContext";
@@ -10,6 +10,7 @@ import { useCurrency } from "../context/CurrencyContext";
 import { useLanguage } from "../context/LanguageContext";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import { formatSizeLabel } from "../lib/sizeDisplay";
+import { productToItem, trackRemoveFromCart, trackViewCart } from "../lib/gtag";
 
 const FREE_SHIPPING_THRESHOLD_USD = 150;
 
@@ -139,6 +140,16 @@ function CartItem({ item, onUpdateQuantity, onRemove, formatPrice, t }) {
   );
 }
 
+function findCartLine(cartItems, productId, size, color, bundle) {
+  return cartItems.find(
+    (i) =>
+      i.productId === productId &&
+      i.size === size &&
+      (i.color || "") === (color || "") &&
+      (i.bundle || "") === (bundle || ""),
+  );
+}
+
 export default function CartDrawer() {
   const pathname = usePathname();
   const { cartItems, isCartOpen, closeCart, removeFromCart, updateQuantity } =
@@ -146,6 +157,7 @@ export default function CartDrawer() {
   const { formatPrice, aznPerUsd } = useCurrency();
   const { t } = useLanguage();
   const drawerRef = useRef(null);
+  const wasCartOpenRef = useRef(false);
 
   const subtotal = useMemo(
     () =>
@@ -165,6 +177,65 @@ export default function CartDrawer() {
   const freeShippingThreshold = FREE_SHIPPING_THRESHOLD_USD * Number(aznPerUsd || 1.7);
   const shippingProgress = Math.min((subtotal / freeShippingThreshold) * 100, 100);
   const amountToFreeShipping = Math.max(freeShippingThreshold - subtotal, 0);
+
+  useEffect(() => {
+    const opening = isCartOpen && !wasCartOpenRef.current;
+    if (opening && cartItems.length > 0) {
+      const items = cartItems.map((item, index) =>
+        productToItem(
+          { _id: item.productId, name: item.name, priceUSD: item.priceUSD },
+          { quantity: Number(item.quantity || 0), index },
+        ),
+      );
+      trackViewCart(items, subtotal);
+    }
+    wasCartOpenRef.current = isCartOpen;
+  }, [isCartOpen, cartItems, subtotal]);
+
+  const handleRemoveLine = useCallback(
+    (productId, size, color, bundle) => {
+      const item = findCartLine(cartItems, productId, size, color, bundle);
+      if (item) {
+        trackRemoveFromCart(
+          productToItem(
+            { _id: item.productId, name: item.name, priceUSD: item.priceUSD },
+            { quantity: Number(item.quantity || 0) },
+          ),
+        );
+      }
+      removeFromCart(productId, size, color, bundle);
+    },
+    [cartItems, removeFromCart],
+  );
+
+  const handleUpdateQuantity = useCallback(
+    (productId, size, newQty, color, bundle) => {
+      const item = findCartLine(cartItems, productId, size, color, bundle);
+      const oldQty = item ? Number(item.quantity || 0) : 0;
+      const next = Number(newQty);
+
+      if (item && Number.isFinite(next)) {
+        if (next <= 0) {
+          trackRemoveFromCart(
+            productToItem(
+              { _id: item.productId, name: item.name, priceUSD: item.priceUSD },
+              { quantity: oldQty },
+            ),
+          );
+        } else if (next < oldQty) {
+          trackRemoveFromCart(
+            productToItem(
+              { _id: item.productId, name: item.name, priceUSD: item.priceUSD },
+              { quantity: oldQty - next },
+            ),
+          );
+        }
+      }
+
+      updateQuantity(productId, size, newQty, color, bundle);
+    },
+    [cartItems, updateQuantity],
+  );
 
   useEffect(() => {
     if (!isCartOpen) return;
@@ -284,8 +355,8 @@ export default function CartDrawer() {
                 <CartItem
                   key={`${item.productId}-${item.size}-${item.color || ""}-${item.bundle || ""}`}
                   item={item}
-                  onUpdateQuantity={updateQuantity}
-                  onRemove={removeFromCart}
+                  onUpdateQuantity={handleUpdateQuantity}
+                  onRemove={handleRemoveLine}
                   formatPrice={formatPrice}
                   t={t}
                 />

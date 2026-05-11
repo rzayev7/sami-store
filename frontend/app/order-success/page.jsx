@@ -51,7 +51,17 @@ function OrderSuccessInner() {
           const orderTotal = Number(data?.totalPriceUSD || data?.totalPrice || 0);
           const orderShipping = Number(data?.shippingCost || 0);
           const orderId = String(data?._id || "");
-          trackPurchase(orderId, gaItems, orderTotal, orderShipping);
+          if (orderId) {
+            try {
+              const dedupeKey = `ga4_purchase_sent_${orderId}`;
+              if (!sessionStorage.getItem(dedupeKey)) {
+                sessionStorage.setItem(dedupeKey, "1");
+                trackPurchase(orderId, gaItems, orderTotal, orderShipping);
+              }
+            } catch {
+              trackPurchase(orderId, gaItems, orderTotal, orderShipping);
+            }
+          }
         }
       } catch {
         if (!cancelled) {
