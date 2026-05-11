@@ -17,6 +17,7 @@ import { LanguageProvider } from "../context/LanguageContext";
 import FirstVisitLanguageModal from "../components/FirstVisitLanguageModal";
 import LeadCapture from "../components/LeadCapture";
 import GoogleAuthProvider from "../components/GoogleAuthProvider";
+import TikTokAuthIdentify from "../components/TikTokAuthIdentify";
 import "./globals.css";
 
 const inter = Inter({
@@ -93,6 +94,7 @@ export default function RootLayout({
         <GoogleAuthProvider>
         <LanguageProvider>
           <AuthProvider>
+            <TikTokAuthIdentify />
             <WishlistProvider>
             <CurrencyProvider>
               <CartProvider>

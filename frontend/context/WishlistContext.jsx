@@ -10,6 +10,8 @@ import {
 } from "react";
 import api from "../lib/api";
 import { getCustomerAuthHeaders } from "../lib/customerAuth";
+import { productToItem } from "../lib/gtag";
+import { trackTikTokAddToWishlist } from "../lib/tiktok-pixel";
 import { useAuth } from "./AuthContext";
 
 const WishlistContext = createContext(null);
@@ -40,18 +42,26 @@ export function WishlistProvider({ children }) {
   const toggle = useCallback(
     async (productId) => {
       if (!user) { openAuthModal(); return; }
+      const prevHad = items.some((p) => String(p._id) === String(productId));
       try {
         const { data } = await api.post(
           "/api/customers/wishlist",
           { productId },
           { headers: getCustomerAuthHeaders() }
         );
-        setItems(Array.isArray(data) ? data : []);
+        const nextList = Array.isArray(data) ? data : [];
+        setItems(nextList);
+        if (!prevHad) {
+          const added = nextList.find((p) => String(p._id) === String(productId));
+          if (added) {
+            trackTikTokAddToWishlist(productToItem(added, { quantity: 1 }));
+          }
+        }
       } catch {
         /* silently fail */
       }
     },
-    [user, openAuthModal]
+    [user, openAuthModal, items]
   );
 
   const count = items.length;

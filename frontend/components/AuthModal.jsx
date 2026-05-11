@@ -7,6 +7,7 @@ const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 import { Eye, EyeOff, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
+import { trackTikTokCompleteRegistration } from "../lib/tiktok-pixel";
 
 export default function AuthModal() {
   const { authModalOpen, closeAuthModal, login, signup, loginWithGoogle } = useAuth();
@@ -76,6 +77,7 @@ export default function AuthModal() {
         await login(email, password);
       } else {
         await signup(name, email, password);
+        trackTikTokCompleteRegistration();
       }
       resetForm();
       closeAuthModal();

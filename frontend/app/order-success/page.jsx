@@ -9,6 +9,10 @@ import { useLanguage } from "../../context/LanguageContext";
 import { getCustomerAuthHeaders } from "../../lib/customerAuth";
 import { formatSizeLabel } from "../../lib/sizeDisplay";
 import { productToItem, trackPurchase } from "../../lib/gtag";
+import {
+  identifyTikTokFromRaw,
+  trackTikTokPurchase,
+} from "../../lib/tiktok-pixel";
 
 function OrderSuccessInner() {
   const searchParams = useSearchParams();
@@ -56,10 +60,24 @@ function OrderSuccessInner() {
               const dedupeKey = `ga4_purchase_sent_${orderId}`;
               if (!sessionStorage.getItem(dedupeKey)) {
                 sessionStorage.setItem(dedupeKey, "1");
+                try {
+                  await identifyTikTokFromRaw({
+                    email: data?.customerInfo?.email,
+                    phone: data?.customerInfo?.phone,
+                    externalId:
+                      customerUser?._id != null
+                        ? String(customerUser._id)
+                        : undefined,
+                  });
+                } catch {
+                  /* identify is best-effort */
+                }
                 trackPurchase(orderId, gaItems, orderTotal, orderShipping);
+                trackTikTokPurchase(gaItems, orderTotal, orderId);
               }
             } catch {
               trackPurchase(orderId, gaItems, orderTotal, orderShipping);
+              trackTikTokPurchase(gaItems, orderTotal, orderId);
             }
           }
         }

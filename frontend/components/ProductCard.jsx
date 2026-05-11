@@ -9,6 +9,7 @@ import { useCurrency } from "../context/CurrencyContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useWishlist } from "../context/WishlistContext";
 import { trackAddToCart, productToItem } from "../lib/gtag";
+import { trackTikTokAddToCart } from "../lib/tiktok-pixel";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 
@@ -30,7 +31,9 @@ export default function ProductCard({ product }) {
   const preferredSize = Array.isArray(product?.sizes) && product.sizes.length > 0 ? product.sizes[0] : "";
 
   const handleQuickAdd = () => {
-    trackAddToCart(productToItem(product, { quantity: 1 }));
+    const line = productToItem(product, { quantity: 1 });
+    trackAddToCart(line);
+    trackTikTokAddToCart(line);
     addToCart(product, preferredSize);
   };
 

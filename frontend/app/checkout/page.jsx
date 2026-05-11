@@ -14,6 +14,12 @@ import ZolotayaKoronaDetails from "../../components/ZolotayaKoronaDetails";
 import { formatSizeLabel } from "../../lib/sizeDisplay";
 import { MastercardMark, VisaMark, WesternUnionMark, ZolotayaKoronaMark } from "../../components/CardBrandLogos";
 import { productToItem, trackBeginCheckout, trackAddPaymentInfo } from "../../lib/gtag";
+import {
+  identifyTikTokFromRaw,
+  identifyThenRun,
+  trackTikTokAddPaymentInfo,
+  trackTikTokInitiateCheckout,
+} from "../../lib/tiktok-pixel";
 
 const COUNTRIES = [
   "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia",
@@ -114,6 +120,15 @@ export default function CheckoutPage() {
       )
     );
     trackBeginCheckout(items, subtotal);
+    void identifyThenRun(
+      {
+        email: customerUser?.email,
+        phone: customerUser?.phone,
+        externalId:
+          customerUser?._id != null ? String(customerUser._id) : undefined,
+      },
+      () => trackTikTokInitiateCheckout(items, totalPrice),
+    );
     // Only fire once per checkout mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasHydratedCart]);
@@ -198,12 +213,24 @@ export default function CheckoutPage() {
           { quantity: item.quantity, index }
         )
       );
+      await identifyTikTokFromRaw({
+        email,
+        phone: mobile,
+        externalId:
+          customerUser?._id != null ? String(customerUser._id) : undefined,
+      });
       const headers = customerUser ? getCustomerAuthHeaders() : {};
       const { data } = await api.post("/api/orders", orderPayload, { headers });
       const orderId = data?._id || data?.id || data?.order?._id;
       if (!orderId) throw new Error("Order created but no order id returned");
 
       trackAddPaymentInfo(gaItems, totalPrice, selectedPaymentMethod);
+      trackTikTokAddPaymentInfo(
+        gaItems,
+        totalPrice,
+        "USD",
+        `addpay_${orderId}`,
+      );
 
       setHasPlacedOrder(true);
       clearCart();

@@ -18,6 +18,7 @@ import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import { formatSizeLabel, normalizeSizeForFilter } from "../lib/sizeDisplay";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 import { productToItem, trackSelectItem, trackViewItemList, trackSearch, trackAddToCart } from "../lib/gtag";
+import { trackTikTokAddToCart, trackTikTokSearch } from "../lib/tiktok-pixel";
 
 const PAGE_SIZE = 20;
 const serializeQueryParams = (params = {}) => {
@@ -185,7 +186,9 @@ function ProductCard({ product }) {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  trackAddToCart(productToItem(product, { quantity: 1 }));
+                  const line = productToItem(product, { quantity: 1 });
+                  trackAddToCart(line);
+                  trackTikTokAddToCart(line);
                   addToCart(product, preferredSize);
                 }}
                 className="max-w-[min(10.5rem,calc(100%-0.5rem))] rounded-full bg-white/95 px-3 py-1.5 text-center text-[9px] font-semibold uppercase leading-tight tracking-[0.1em] text-black shadow-md backdrop-blur-sm transition-all hover:bg-black hover:text-white"
@@ -437,8 +440,14 @@ export default function ProductListing({
       .filter(([, v]) => v !== "all")
       .map(([k, v]) => `${k}:${v}`)
       .join(", ");
-    if (activeFilters) trackSearch(activeFilters);
-  }, [filters]);
+    if (!activeFilters) return;
+    trackSearch(activeFilters);
+    if (loading || baseProducts.length === 0) return;
+    const gaItems = baseProducts.slice(0, 20).map((p, index) =>
+      productToItem(p, { index }),
+    );
+    trackTikTokSearch(activeFilters, { items: gaItems });
+  }, [filters, baseProducts, loading]);
 
   const allSizes = useMemo(() => {
     const sizeSet = new Set();

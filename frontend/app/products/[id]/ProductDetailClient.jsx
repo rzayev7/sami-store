@@ -32,6 +32,12 @@ import {
   trackViewItem,
   trackAddToCart,
 } from "../../../lib/gtag";
+import {
+  identifyThenRun,
+  trackTikTokAddToCart,
+  trackTikTokAddToWishlist,
+  trackTikTokViewContent,
+} from "../../../lib/tiktok-pixel";
 import PromoCountdownStrip from "../../../components/PromoCountdownStrip";
 
 export default function ProductDetailClient({
@@ -323,8 +329,17 @@ export default function ProductDetailClient({
 
   useEffect(() => {
     if (!product?._id) return;
-    trackViewItem(productToItem(product));
-  }, [product?._id]);
+    const item = productToItem(product);
+    trackViewItem(item);
+    void identifyThenRun(
+      {
+        email: user?.email,
+        phone: user?.phone,
+        externalId: user?._id != null ? String(user._id) : undefined,
+      },
+      () => trackTikTokViewContent(item),
+    );
+  }, [product?._id, user]);
 
   const commitAddToCart = () => {
     const activeBundle = isBundleProduct ? selectedBundle : "single";
@@ -375,7 +390,9 @@ export default function ProductDetailClient({
     for (let i = 0; i < toAdd; i++) {
       addToCart(cartProduct, sizeForCart, selectedColor, { bundle: bundleLabelForCart });
     }
-    trackAddToCart(productToItem(cartProduct, { quantity: toAdd }));
+    const gaLine = productToItem(cartProduct, { quantity: toAdd });
+    trackAddToCart(gaLine);
+    trackTikTokAddToCart(gaLine);
     return true;
   };
 
@@ -400,7 +417,11 @@ export default function ProductDetailClient({
         { headers: getCustomerAuthHeaders() },
       );
       const list = Array.isArray(data) ? data : [];
-      setWishlisted(list.some((p) => String(p?._id) === String(product._id)));
+      const nowOn = list.some((p) => String(p?._id) === String(product._id));
+      setWishlisted(nowOn);
+      if (!wishlisted && nowOn) {
+        trackTikTokAddToWishlist(productToItem(product, { quantity: 1 }));
+      }
     } catch {
       /* keep state */
     }
