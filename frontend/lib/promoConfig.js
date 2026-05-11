@@ -5,7 +5,8 @@
 
 export const PROMO_TITLE        = "New Season Arrivals";
 export const PROMO_DISCOUNT     = "20% Off";
-export const PROMO_PERIOD_DAYS  = 3;   // auto-renews every N days
+/** Length of each promo cycle (countdown resets every N days). Was 3; +7 days longer window. */
+export const PROMO_PERIOD_DAYS  = 10;
 export const PROMO_ANCHOR_MS    = new Date("2026-05-09T00:00:00Z").getTime();
 
 // ─── Countdown helpers ────────────────────────────────────────────────────────
