@@ -8,7 +8,7 @@ import GoogleAnalyticsScripts from "./GoogleAnalyticsScripts";
 function isAdminPath(pathname: string | null | undefined): boolean {
   if (!pathname) return false;
   if (pathname.startsWith("/admin")) return true;
-  return /^\/(en|ar|ru|uz)\/admin(\/|$)/.test(pathname);
+  return /^\/(en|ar|ru|uz|fr)\/admin(\/|$)/.test(pathname);
 }
 
 export default function ConditionalGoogleAnalytics() {

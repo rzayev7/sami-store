@@ -34,9 +34,28 @@
   "announcement": {
     "freeShipping": "Livraison dans le monde entier",
     "socialProof1": "Livré dans plus de 30 pays",
-    "socialProof2": "Livraison gratuite dans le monde entier",
+    "socialProof2": "Livraison gratuite dans le monde entier pour les commandes de plus de 150 $",
     "socialProof3": "Prêt-à-porter féminin de Bakou",
     "shopBestSellers": "Voir les meilleures ventes"
+  },
+  "promoHero": {
+    "label": "Offre limitée dans le temps",
+    "title": "Nouveautés de saison",
+    "discount": "-20 %",
+    "subtitle": "Découvrez votre signature",
+    "cta": "Profiter des soldes",
+    "daysShort": "J",
+    "hoursShort": "H",
+    "minutesShort": "Min",
+    "secondsShort": "S"
+  },
+  "promoStrip": {
+    "autoApplied": "Appliqué automatiquement au paiement",
+    "endingSoon": "Se termine bientôt",
+    "daysShort": "J",
+    "hoursShort": "H",
+    "minutesShort": "Min",
+    "secondsShort": "S"
   },
   "nav": {
     "openMenu": "Ouvrir le menu",
@@ -52,6 +71,7 @@
     "dresses": "Robes",
     "shirtsBlouses": "Chemises & Blouses",
     "pantsSkirts": "Pantalons & Jupes",
+    "jumpsuits": "Combinaisons",
     "myAccount": "Mon compte",
     "myOrders": "Mes commandes",
     "wishlist": "Liste de souhaits",
@@ -59,7 +79,12 @@
     "help": "Aide",
     "trackOrder": "Suivre ma commande",
     "worldwideShipping": "Livraison internationale",
-    "language": "Langue"
+    "language": "Langue",
+    "collections": "Collections",
+    "newIn": "Nouveautés",
+    "bestSellersNav": "Meilleures ventes",
+    "theSetEdit": "The Set Edit",
+    "eveningLooks": "Robes"
   },
   "footer": {
     "tagline": "Prêt-à-porter féminin de Bakou. Porté partout.",
@@ -179,9 +204,18 @@
     "sizeGuide": "Guide des tailles",
     "sizeGuideBody": "Mensurations corporelles en centimètres. Entre deux tailles, choisissez la taille supérieure pour un ajustement décontracté.",
     "thSize": "Taille",
+    "thInternational": "International",
+    "thRussian": "Russe",
+    "thTurkish": "Turc",
     "thBust": "Poitrine (cm)",
     "thWaist": "Tour de taille (cm)",
     "thHip": "Hanches (cm)",
+    "oneSizeTitle": "Taille unique (standard)",
+    "oneSizeFits": "Convient aux tailles S à XL.",
+    "oneSizeEu": "UE : 36-42",
+    "oneSizeRu": "RU : 42-48",
+    "oneSizeTr": "TR : 36-42",
+    "oneSizeNote": "Conçu pour une coupe décontractée et souple.",
     "pauseVideo": "Mettre la vidéo en pause",
     "playVideo": "Lire la vidéo",
     "topLabel": "Haut :",
@@ -381,7 +415,8 @@
     "elevatedPieces": "Des pièces raffinées pour chaque moment.",
     "followUs": "Suivez notre univers",
     "followUsDesc": "Découvrez les nouveautés, des idées de style et les coulisses de notre studio à Bakou.",
-    "followOnInstagram": "Suivre sur Instagram"
+    "followOnInstagram": "Suivre sur Instagram",
+    "shopByStyle": "Acheter par style"
   },
   "products": {
     "curatedSelection": "Sélection soignée",
@@ -438,29 +473,7 @@
     "seasonSpring": "Printemps",
     "seasonSummer": "Été",
     "seasonRamadan": "Ramadan",
-    "launchNotice": "Nous ne faisons que commencer — de nouvelles pièces sont ajoutées régulièrement à la collection. Si vous ne trouvez pas ce que vous cherchez aujourd'hui, revenez bientôt.",
-    "filterColor": "Couleur",
-    "allColors": "Toutes les couleurs",
-    "filterAvailability": "Disponibilité",
-    "onSale": "En solde",
-    "newArrivals": "Nouveautés",
-    "categoryAll": "Tout",
-    "categorySets": "Ensembles",
-    "categoryDresses": "Robes",
-    "categoryTops": "Hauts",
-    "categoryBottoms": "Bas",
-    "categoryJumpsuits": "Combinaisons",
-    "categorySale": "Soldes",
-    "trustShipping": "Livraison mondiale suivie",
-    "trustFreeShip": "Livraison gratuite dès $150",
-    "trustWhatsApp": "Support WhatsApp",
-    "trustMadeInBaku": "Conçu à Bakou",
-    "selectSize": "Choisir la taille",
-    "addedToBag": "Ajouté au panier",
-    "off": "REMISE",
-    "saveToWishlist": "Ajouter aux favoris",
-    "removeFromWishlist": "Retirer des favoris",
-    "under": "Moins de"
+    "launchNotice": "Nous ne faisons que commencer — de nouvelles pièces sont ajoutées régulièrement à la collection. Si vous ne trouvez pas ce que vous cherchez aujourd'hui, revenez bientôt."
   },
   "about": {
     "title": "À propos de SAMÍ",
@@ -596,5 +609,20 @@
   "whatsapp": {
     "prefilledMessage": "Bonjour SAMÍ, j'ai une question concernant une commande.",
     "ariaLabel": "Discuter sur WhatsApp"
+  },
+  "leadCapture": {
+    "headline": "Profitez de 10 % sur votre première commande",
+    "body": "Entrez votre e-mail ou votre WhatsApp pour recevoir votre code de réduction exclusif.",
+    "emailPlaceholder": "Adresse e-mail",
+    "whatsappPlaceholder": "WhatsApp (ex. +33 6 12 34 56 78)",
+    "orDivider": "ou",
+    "submitButton": "Obtenir ma réduction",
+    "submitting": "Envoi en cours…",
+    "successTitle": "Voici votre code !",
+    "successBody": "Utilisez ce code au paiement. Valable sur votre première commande.",
+    "successCopy": "Copier le code",
+    "successCopied": "Copié !",
+    "successCta": "Acheter maintenant",
+    "dismiss": "Non merci, je paierai plein tarif"
   }
 }

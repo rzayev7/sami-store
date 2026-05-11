@@ -2,7 +2,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { inferDefaultLocaleFromSignals } from "../../../lib/localeInference";
 
-const LOCALES = new Set(["en", "ar", "ru", "uz"]);
+const LOCALES = new Set(["en", "ar", "ru", "uz", "fr"]);
 
 const SLUG_UTM: Record<string, { utm_source: string; utm_medium: string; utm_campaign: string }> = {
   instagram: { utm_source: "instagram", utm_medium: "social", utm_campaign: "instagram_bio" },
