@@ -3,6 +3,7 @@ import { Cinzel, Inter, Noto_Sans_Arabic } from "next/font/google";
 import AnnouncementBars from "../components/AnnouncementBars";
 import ConditionalGoogleAnalytics from "../components/ConditionalGoogleAnalytics";
 import ConditionalMetaPixel from "../components/ConditionalMetaPixel";
+import ConditionalTikTokPixel from "../components/ConditionalTikTokPixel";
 import Footer from "../components/Footer";
 import WhatsAppFloat from "../components/WhatsAppFloat";
 import Navbar from "../components/Navbar";
@@ -88,6 +89,7 @@ export default function RootLayout({
       >
         <ConditionalGoogleAnalytics />
         <ConditionalMetaPixel />
+        <ConditionalTikTokPixel />
         <GoogleAuthProvider>
         <LanguageProvider>
           <AuthProvider>
