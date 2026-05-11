@@ -10,6 +10,7 @@ import { useLanguage } from "../context/LanguageContext";
 import { useWishlist } from "../context/WishlistContext";
 import { trackAddToCart, productToItem } from "../lib/gtag";
 import { trackTikTokAddToCart } from "../lib/tiktok-pixel";
+import { trackMetaAddToCart } from "../lib/meta-pixel";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 
@@ -34,6 +35,7 @@ export default function ProductCard({ product }) {
     const line = productToItem(product, { quantity: 1 });
     trackAddToCart(line);
     trackTikTokAddToCart(line);
+    trackMetaAddToCart(line);
     addToCart(product, preferredSize);
   };
 

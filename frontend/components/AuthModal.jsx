@@ -8,6 +8,7 @@ import { Eye, EyeOff, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { trackTikTokCompleteRegistration } from "../lib/tiktok-pixel";
+import { trackMetaCompleteRegistration } from "../lib/meta-pixel";
 
 export default function AuthModal() {
   const { authModalOpen, closeAuthModal, login, signup, loginWithGoogle } = useAuth();
@@ -78,6 +79,7 @@ export default function AuthModal() {
       } else {
         await signup(name, email, password);
         trackTikTokCompleteRegistration();
+        trackMetaCompleteRegistration();
       }
       resetForm();
       closeAuthModal();

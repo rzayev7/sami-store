@@ -19,6 +19,7 @@ import { formatSizeLabel, normalizeSizeForFilter } from "../lib/sizeDisplay";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 import { productToItem, trackSelectItem, trackViewItemList, trackSearch, trackAddToCart } from "../lib/gtag";
 import { trackTikTokAddToCart, trackTikTokSearch } from "../lib/tiktok-pixel";
+import { trackMetaAddToCart, trackMetaSearch } from "../lib/meta-pixel";
 
 const PAGE_SIZE = 20;
 const serializeQueryParams = (params = {}) => {
@@ -189,6 +190,7 @@ function ProductCard({ product }) {
                   const line = productToItem(product, { quantity: 1 });
                   trackAddToCart(line);
                   trackTikTokAddToCart(line);
+                  trackMetaAddToCart(line);
                   addToCart(product, preferredSize);
                 }}
                 className="max-w-[min(10.5rem,calc(100%-0.5rem))] rounded-full bg-white/95 px-3 py-1.5 text-center text-[9px] font-semibold uppercase leading-tight tracking-[0.1em] text-black shadow-md backdrop-blur-sm transition-all hover:bg-black hover:text-white"
@@ -447,6 +449,7 @@ export default function ProductListing({
       productToItem(p, { index }),
     );
     trackTikTokSearch(activeFilters, { items: gaItems });
+    trackMetaSearch(activeFilters);
   }, [filters, baseProducts, loading]);
 
   const allSizes = useMemo(() => {

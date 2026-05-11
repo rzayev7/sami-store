@@ -12,6 +12,7 @@ import api from "../lib/api";
 import { getCustomerAuthHeaders } from "../lib/customerAuth";
 import { productToItem } from "../lib/gtag";
 import { trackTikTokAddToWishlist } from "../lib/tiktok-pixel";
+import { trackMetaAddToWishlist } from "../lib/meta-pixel";
 import { useAuth } from "./AuthContext";
 
 const WishlistContext = createContext(null);
@@ -54,7 +55,9 @@ export function WishlistProvider({ children }) {
         if (!prevHad) {
           const added = nextList.find((p) => String(p._id) === String(productId));
           if (added) {
-            trackTikTokAddToWishlist(productToItem(added, { quantity: 1 }));
+            const line = productToItem(added, { quantity: 1 });
+            trackTikTokAddToWishlist(line);
+            trackMetaAddToWishlist(line);
           }
         }
       } catch {

@@ -38,6 +38,11 @@ import {
   trackTikTokAddToWishlist,
   trackTikTokViewContent,
 } from "../../../lib/tiktok-pixel";
+import {
+  trackMetaAddToCart,
+  trackMetaAddToWishlist,
+  trackMetaViewContent,
+} from "../../../lib/meta-pixel";
 import PromoCountdownStrip from "../../../components/PromoCountdownStrip";
 
 export default function ProductDetailClient({
@@ -337,7 +342,10 @@ export default function ProductDetailClient({
         phone: user?.phone,
         externalId: user?._id != null ? String(user._id) : undefined,
       },
-      () => trackTikTokViewContent(item),
+      () => {
+        trackTikTokViewContent(item);
+        trackMetaViewContent(item);
+      },
     );
   }, [product?._id, user]);
 
@@ -393,6 +401,7 @@ export default function ProductDetailClient({
     const gaLine = productToItem(cartProduct, { quantity: toAdd });
     trackAddToCart(gaLine);
     trackTikTokAddToCart(gaLine);
+    trackMetaAddToCart(gaLine);
     return true;
   };
 
@@ -420,7 +429,9 @@ export default function ProductDetailClient({
       const nowOn = list.some((p) => String(p?._id) === String(product._id));
       setWishlisted(nowOn);
       if (!wishlisted && nowOn) {
-        trackTikTokAddToWishlist(productToItem(product, { quantity: 1 }));
+        const wishLine = productToItem(product, { quantity: 1 });
+        trackTikTokAddToWishlist(wishLine);
+        trackMetaAddToWishlist(wishLine);
       }
     } catch {
       /* keep state */

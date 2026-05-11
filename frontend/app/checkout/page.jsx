@@ -20,6 +20,10 @@ import {
   trackTikTokAddPaymentInfo,
   trackTikTokInitiateCheckout,
 } from "../../lib/tiktok-pixel";
+import {
+  trackMetaAddPaymentInfo,
+  trackMetaInitiateCheckout,
+} from "../../lib/meta-pixel";
 
 const COUNTRIES = [
   "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia",
@@ -127,7 +131,10 @@ export default function CheckoutPage() {
         externalId:
           customerUser?._id != null ? String(customerUser._id) : undefined,
       },
-      () => trackTikTokInitiateCheckout(items, totalPrice),
+      () => {
+        trackTikTokInitiateCheckout(items, totalPrice);
+        trackMetaInitiateCheckout(items, totalPrice);
+      },
     );
     // Only fire once per checkout mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -231,6 +238,7 @@ export default function CheckoutPage() {
         "USD",
         `addpay_${orderId}`,
       );
+      trackMetaAddPaymentInfo(gaItems, totalPrice);
 
       setHasPlacedOrder(true);
       clearCart();

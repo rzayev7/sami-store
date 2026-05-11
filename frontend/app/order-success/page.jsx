@@ -13,6 +13,7 @@ import {
   identifyTikTokFromRaw,
   trackTikTokPurchase,
 } from "../../lib/tiktok-pixel";
+import { trackMetaPurchase } from "../../lib/meta-pixel";
 
 function OrderSuccessInner() {
   const searchParams = useSearchParams();
@@ -74,10 +75,12 @@ function OrderSuccessInner() {
                 }
                 trackPurchase(orderId, gaItems, orderTotal, orderShipping);
                 trackTikTokPurchase(gaItems, orderTotal, orderId);
+                trackMetaPurchase(gaItems, orderTotal, orderId);
               }
             } catch {
               trackPurchase(orderId, gaItems, orderTotal, orderShipping);
               trackTikTokPurchase(gaItems, orderTotal, orderId);
+              trackMetaPurchase(gaItems, orderTotal, orderId);
             }
           }
         }
