@@ -10,8 +10,15 @@ declare global {
 }
 
 function gtag(...args: unknown[]) {
-  if (!GA_MEASUREMENT_ID || typeof window === "undefined" || typeof window.gtag !== "function") return;
-  window.gtag(...args);
+  if (!GA_MEASUREMENT_ID || typeof window === "undefined") return;
+  if (typeof window.gtag === "function") {
+    window.gtag(...args);
+    return;
+  }
+
+  // Queue events fired before the GA bootstrap script attaches window.gtag.
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push(args);
 }
 
 export function sendPageView(pathWithQuery: string) {
