@@ -2,6 +2,17 @@ const Order = require("../models/Order");
 const Product = require("../models/Product");
 const Customer = require("../models/Customer");
 
+/** Realized revenue: paid money only; never cancelled/failed/refunded. */
+const countsTowardRevenue = (order) => {
+  const st = String(order.status || "").toLowerCase();
+  if (st === "cancelled" || st === "failed") return false;
+  const ps = String(order.paymentStatus || "").toLowerCase();
+  if (ps === "refunded" || ps === "failed") return false;
+  if (ps === "paid") return true;
+  // Legacy rows where status moved forward but paymentStatus was not backfilled
+  return ["paid", "shipped", "delivered"].includes(st);
+};
+
 const getDashboardStats = async (req, res, next) => {
   try {
     const [orders, totalProducts] = await Promise.all([
@@ -9,10 +20,10 @@ const getDashboardStats = async (req, res, next) => {
       Product.countDocuments(),
     ]);
 
-    const totalRevenue = orders.reduce(
-      (sum, order) => sum + Number(order.totalPriceUSD || 0),
-      0
-    );
+    const totalRevenue = orders.reduce((sum, order) => {
+      if (!countsTowardRevenue(order)) return sum;
+      return sum + Number(order.totalPriceUSD || 0);
+    }, 0);
     const totalOrders = orders.length;
     const customersSet = new Set(
       orders.map((order) => (order.customerInfo?.email || "").toLowerCase()).filter(Boolean)
@@ -37,8 +48,10 @@ const getDashboardStats = async (req, res, next) => {
       const key = new Date(order.createdAt).toISOString().slice(0, 10);
       if (!dailyMap.has(key)) return;
       const row = dailyMap.get(key);
-      row.revenue += Number(order.totalPriceUSD || 0);
-      row.orders += 1;
+      if (countsTowardRevenue(order)) {
+        row.revenue += Number(order.totalPriceUSD || 0);
+        row.orders += 1;
+      }
     });
 
     const recentOrders = orders.slice(0, 8).map((order) => ({
@@ -67,7 +80,7 @@ const getCustomersSummary = async (req, res, next) => {
   try {
     const [registeredCustomers, orders] = await Promise.all([
       Customer.find({}, "name email createdAt").sort({ createdAt: -1 }).lean(),
-      Order.find({}, "customerInfo totalPriceUSD createdAt").lean(),
+      Order.find({}, "customerInfo totalPriceUSD createdAt status paymentStatus").lean(),
     ]);
 
     // Build order stats keyed by email
@@ -77,7 +90,9 @@ const getCustomersSummary = async (req, res, next) => {
       if (!email) return;
       const stat = orderStats.get(email) || { orderCount: 0, totalSpentUSD: 0, country: order.customerInfo?.country || "-" };
       stat.orderCount += 1;
-      stat.totalSpentUSD += Number(order.totalPriceUSD || 0);
+      if (countsTowardRevenue(order)) {
+        stat.totalSpentUSD += Number(order.totalPriceUSD || 0);
+      }
       orderStats.set(email, stat);
     });
 
@@ -135,12 +150,15 @@ const getSalesAnalytics = async (req, res, next) => {
 
     orders.forEach((order) => {
       const key = new Date(order.createdAt).toISOString().slice(0, 10);
-      revenueByDay[key] = (revenueByDay[key] || 0) + Number(order.totalPriceUSD || 0);
-      ordersByDay[key] = (ordersByDay[key] || 0) + 1;
+      if (countsTowardRevenue(order)) {
+        revenueByDay[key] = (revenueByDay[key] || 0) + Number(order.totalPriceUSD || 0);
+        ordersByDay[key] = (ordersByDay[key] || 0) + 1;
+      }
     });
 
     const soldByProductId = {};
     orders.forEach((order) => {
+      if (!countsTowardRevenue(order)) return;
       (order.items || []).forEach((item) => {
         const key = String(item.productId || item.name || "");
         soldByProductId[key] = (soldByProductId[key] || 0) + Number(item.quantity || 0);
