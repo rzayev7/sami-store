@@ -25,120 +25,109 @@ const extractCustomerId = (req) => {
   }
 };
 
+const buildValidatedOrderPayload = async ({ body = {}, customerId = null, timelineEvent = "order_created" }) => {
+  const rawItems = Array.isArray(body?.items) ? body.items : [];
+  const customerInfo = body?.customerInfo || {};
+  const rawLocale = body?.customerLocale || {};
+
+  if (rawItems.length === 0) {
+    return { error: { status: 400, message: "Cart is empty" } };
+  }
+
+  const requiredCustomerFields = ["name", "email", "phone", "country", "address", "city", "postalCode"];
+  const missingField = requiredCustomerFields.find((field) => !String(customerInfo?.[field] || "").trim());
+  if (missingField) {
+    return { error: { status: 400, message: `Missing required field: ${missingField}` } };
+  }
+
+  const productIds = rawItems.map((i) => i?.productId).filter(Boolean);
+  const products = await Product.find({ _id: { $in: productIds } });
+  const productMap = new Map(products.map((p) => [String(p._id), p]));
+
+  const verifiedItems = [];
+  for (const item of rawItems) {
+    const pid = String(item?.productId || "");
+    const product = productMap.get(pid);
+    if (!product) {
+      return { error: { status: 400, message: `Product ${pid} not found` } };
+    }
+
+    const qty = Math.max(1, Math.trunc(Number(item?.quantity || 1)));
+    const hasDiscount =
+      product.discountPriceUSD != null &&
+      Number(product.discountPriceUSD) > 0 &&
+      Number(product.discountPriceUSD) < Number(product.priceUSD);
+    const serverPrice = hasDiscount ? Number(product.discountPriceUSD) : Number(product.priceUSD);
+
+    verifiedItems.push({
+      productId: pid,
+      code: product.code || "",
+      name: product.name,
+      priceUSD: serverPrice,
+      quantity: qty,
+      size: item?.size || "",
+      color: item?.color || "",
+      image: item?.image || product.images?.[0] || "",
+    });
+  }
+
+  const subtotal = verifiedItems.reduce((sum, i) => sum + i.priceUSD * i.quantity, 0);
+
+  let discountAmount = 0;
+  let couponCode = null;
+  if (body?.couponCode) {
+    const code = String(body.couponCode).trim().toUpperCase();
+    const coupon = await Coupon.findOne({ code, isActive: true });
+    if (coupon && new Date(coupon.expiresAt) >= new Date()) {
+      discountAmount = (subtotal * coupon.discountPercentage) / 100;
+      couponCode = coupon.code;
+    }
+  }
+
+  const shippingCost = Math.max(0, Number(body?.shippingCost || 0));
+  const serverTotal = Math.round((subtotal - discountAmount + shippingCost) * 100) / 100;
+
+  const normalizedPaymentMethod = String(body?.paymentMethod || "").toLowerCase();
+  if (!ALLOWED_PAYMENT_METHODS.includes(normalizedPaymentMethod)) {
+    return { error: { status: 400, message: "Invalid payment method" } };
+  }
+
+  const payload = {
+    ...(customerId && { customerId }),
+    customerInfo,
+    customerLocale: {
+      language: String(rawLocale.language || "en").toLowerCase(),
+      currency: String(rawLocale.currency || "USD").toUpperCase(),
+      currencyRate: Math.max(0, Number(rawLocale.currencyRate || 0)),
+      aznPerUsd: Math.max(0, Number(rawLocale.aznPerUsd || 1.7)),
+    },
+    items: verifiedItems,
+    totalPriceUSD: serverTotal,
+    shippingCost,
+    paymentStatus: "pending",
+    paymentMethod: normalizedPaymentMethod,
+    ...(couponCode && { couponCode }),
+    ...(body?.orderNotes != null &&
+      String(body.orderNotes).trim() && {
+        orderNotes: String(body.orderNotes).trim(),
+      }),
+    timeline: [{ event: timelineEvent, timestamp: new Date() }],
+  };
+
+  return { payload };
+};
+
 const createOrder = async (req, res, next) => {
   try {
     const customerId = extractCustomerId(req);
-    const rawItems = Array.isArray(req.body?.items) ? req.body.items : [];
-    const customerInfo = req.body?.customerInfo || {};
-    const rawLocale = req.body?.customerLocale || {};
-
-    if (rawItems.length === 0) {
-      return res.status(400).json({ message: "Cart is empty" });
+    const { payload, error } = await buildValidatedOrderPayload({
+      body: req.body,
+      customerId,
+      timelineEvent: "order_created",
+    });
+    if (error) {
+      return res.status(error.status).json({ message: error.message });
     }
-
-    const requiredCustomerFields = [
-      "name",
-      "email",
-      "phone",
-      "country",
-      "address",
-      "city",
-      "postalCode",
-    ];
-    const missingField = requiredCustomerFields.find(
-      (field) => !String(customerInfo?.[field] || "").trim(),
-    );
-    if (missingField) {
-      return res.status(400).json({ message: `Missing required field: ${missingField}` });
-    }
-
-    // ── 1. Re-read prices from database (never trust the client) ──
-
-    const productIds = rawItems
-      .map((i) => i?.productId)
-      .filter(Boolean);
-    const products = await Product.find({ _id: { $in: productIds } });
-    const productMap = new Map(products.map((p) => [String(p._id), p]));
-
-    const verifiedItems = [];
-    for (const item of rawItems) {
-      const pid = String(item?.productId || "");
-      const product = productMap.get(pid);
-      if (!product) {
-        return res.status(400).json({ message: `Product ${pid} not found` });
-      }
-
-      const qty = Math.max(1, Math.trunc(Number(item?.quantity || 1)));
-
-      const hasDiscount =
-        product.discountPriceUSD != null &&
-        Number(product.discountPriceUSD) > 0 &&
-        Number(product.discountPriceUSD) < Number(product.priceUSD);
-      const serverPrice = hasDiscount
-        ? Number(product.discountPriceUSD)
-        : Number(product.priceUSD);
-
-      verifiedItems.push({
-        productId: pid,
-        code: product.code || "",
-        name: product.name,
-        priceUSD: serverPrice,
-        quantity: qty,
-        size: item?.size || "",
-        color: item?.color || "",
-        image: item?.image || product.images?.[0] || "",
-      });
-    }
-
-    // ── 2. Re-validate coupon & compute total server-side ──
-
-    const subtotal = verifiedItems.reduce(
-      (sum, i) => sum + i.priceUSD * i.quantity,
-      0,
-    );
-
-    let discountAmount = 0;
-    let couponCode = null;
-    if (req.body?.couponCode) {
-      const code = String(req.body.couponCode).trim().toUpperCase();
-      const coupon = await Coupon.findOne({ code, isActive: true });
-      if (coupon && new Date(coupon.expiresAt) >= new Date()) {
-        discountAmount = (subtotal * coupon.discountPercentage) / 100;
-        couponCode = coupon.code;
-      }
-    }
-
-    const shippingCost = Math.max(0, Number(req.body?.shippingCost || 0));
-    const serverTotal =
-      Math.round((subtotal - discountAmount + shippingCost) * 100) / 100;
-
-    // ── 3. Build & persist order ──
-
-    const normalizedPaymentMethod = String(req.body?.paymentMethod || "").toLowerCase();
-    if (!ALLOWED_PAYMENT_METHODS.includes(normalizedPaymentMethod)) {
-      return res.status(400).json({ message: "Invalid payment method" });
-    }
-
-    const payload = {
-      ...(customerId && { customerId }),
-      customerInfo,
-      customerLocale: {
-        language: String(rawLocale.language || "en").toLowerCase(),
-        currency: String(rawLocale.currency || "USD").toUpperCase(),
-        currencyRate: Math.max(0, Number(rawLocale.currencyRate || 0)),
-      },
-      items: verifiedItems,
-      totalPriceUSD: serverTotal,
-      shippingCost,
-      paymentStatus: "pending",
-      paymentMethod: normalizedPaymentMethod,
-      ...(couponCode && { couponCode }),
-      ...(req.body?.orderNotes != null &&
-        String(req.body.orderNotes).trim() && {
-          orderNotes: String(req.body.orderNotes).trim(),
-        }),
-      timeline: [{ event: "order_created", timestamp: new Date() }],
-    };
 
     const order = await Order.create(payload);
 
@@ -175,6 +164,24 @@ const createOrder = async (req, res, next) => {
     res.status(201).json(order);
   } catch (error) {
     next(error);
+  }
+};
+
+const createAdminManualOrder = async (req, res, next) => {
+  try {
+    const { payload, error } = await buildValidatedOrderPayload({
+      body: req.body,
+      customerId: null,
+      timelineEvent: "manual_order_created_by_admin",
+    });
+    if (error) {
+      return res.status(error.status).json({ message: error.message });
+    }
+
+    const order = await Order.create(payload);
+    return res.status(201).json(order);
+  } catch (error) {
+    return next(error);
   }
 };
 
@@ -386,6 +393,7 @@ const getCustomerStats = async (req, res, next) => {
 
 module.exports = {
   createOrder,
+  createAdminManualOrder,
   getOrders,
   getOrderById,
   updateOrder,

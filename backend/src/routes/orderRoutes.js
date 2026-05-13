@@ -1,6 +1,7 @@
 const express = require("express");
 const {
   createOrder,
+  createAdminManualOrder,
   getOrders,
   getOrderById,
   updateOrder,
@@ -11,6 +12,7 @@ const { protectAdmin } = require("../middleware/adminAuthMiddleware");
 const router = express.Router();
 
 router.post("/", createOrder);
+router.post("/admin/manual", protectAdmin, createAdminManualOrder);
 router.get("/", protectAdmin, getOrders);
 router.get("/customer-stats/:email", protectAdmin, getCustomerStats);
 // Public/role-aware access; controller sanitizes response for guests.
