@@ -5,6 +5,7 @@ import Link from "next/link";
 import api from "../../../lib/api";
 import { getAdminAuthHeaders } from "../../../lib/adminAuth";
 import { t } from "../../../lib/admin-i18n";
+import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../../../lib/image";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState([]);
@@ -134,8 +135,13 @@ export default function AdminProductsPage() {
                     <td className="px-4 py-3">
                       <div className="h-14 w-12 overflow-hidden rounded-md bg-[var(--color-sand)]">
                         <img
-                          src={product.images?.[0] || "https://placehold.co/120x160?text=Sami"}
+                          src={
+                            isCloudinaryUrl(product.images?.[0])
+                              ? cloudinaryOptimizedUrl(product.images[0], { preset: "admin" })
+                              : (product.images?.[0] || "https://placehold.co/120x160?text=Sami")
+                          }
                           alt={product.name || "Product image"}
+                          loading="lazy"
                           className="h-full w-full object-cover"
                         />
                       </div>

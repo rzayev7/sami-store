@@ -1417,7 +1417,7 @@ export default function ProductDetailClient({
                     >
                       <div className="relative aspect-[3/4] w-full overflow-hidden rounded-md bg-[var(--color-sand)]/30">
                         <Image
-                          src={cloudinaryOptimizedUrl(img, { preset: "product" })}
+                          src={cloudinaryOptimizedUrl(img, { preset: "listing" })}
                           alt={p.name || "Product"}
                           fill
                           sizes="(max-width: 640px) 42vw, 28vw"

@@ -14,6 +14,7 @@ import {
   trackTikTokPurchase,
 } from "../../lib/tiktok-pixel";
 import { trackMetaPurchase } from "../../lib/meta-pixel";
+import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../../lib/image";
 
 function OrderSuccessInner() {
   const searchParams = useSearchParams();
@@ -204,8 +205,13 @@ function OrderSuccessInner() {
                   >
                     <div className="aspect-[3/4] overflow-hidden rounded-lg bg-[var(--color-sand)]">
                       <img
-                        src={item.image || "https://placehold.co/300x400?text=Sami"}
+                        src={
+                          isCloudinaryUrl(item.image)
+                            ? cloudinaryOptimizedUrl(item.image, { preset: "cart" })
+                            : (item.image || "https://placehold.co/120x160?text=Sami")
+                        }
                         alt={item.name || "Product image"}
+                        loading="lazy"
                         className="h-full w-full object-cover"
                       />
                     </div>

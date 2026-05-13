@@ -6,6 +6,7 @@ import { getAdminAuthHeaders } from "../../../lib/adminAuth";
 import StatusBadge from "../../../components/admin/StatusBadge";
 import { t } from "../../../lib/admin-i18n";
 import { formatSizeLabel } from "../../../lib/sizeDisplay";
+import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../../../lib/image";
 
 const quickStatusActions = ["paid", "shipped", "delivered", "cancelled"];
 
@@ -347,8 +348,13 @@ export default function AdminOrdersPage() {
                                       title={t.enlargeImage}
                                     >
                                       <img
-                                        src={item.image || "https://placehold.co/120x160?text=Sami"}
+                                        src={
+                                          isCloudinaryUrl(item.image)
+                                            ? cloudinaryOptimizedUrl(item.image, { preset: "admin" })
+                                            : (item.image || "https://placehold.co/120x160?text=Sami")
+                                        }
                                         alt={item.name || "Product"}
+                                        loading="lazy"
                                         className="h-full w-full object-cover"
                                       />
                                       <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/20">

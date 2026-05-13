@@ -61,7 +61,16 @@ export async function POST(request: NextRequest) {
       secure_url: string;
     }>((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
-        { folder: "products" },
+        {
+          folder: "products",
+          // Cap source dimensions so over-sized originals are never stored.
+          // Delivery transformations (f_auto, q_auto, w_*) still apply on top
+          // of this base, but the raw asset won't exceed 2400px on any side.
+          transformation: [
+            { width: 2400, height: 2400, crop: "limit" },
+            { quality: "auto:good", fetch_format: "auto" },
+          ],
+        },
         (error, result) => {
           if (error || !result) {
             return reject(error ?? new Error("Upload failed"));

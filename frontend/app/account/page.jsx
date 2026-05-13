@@ -29,6 +29,7 @@ import { useCart } from "../../context/CartContext";
 import api from "../../lib/api";
 import { getCustomerAuthHeaders } from "../../lib/customerAuth";
 import { useLocalePath } from "../../context/LanguageContext";
+import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../../lib/image";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -605,8 +606,13 @@ export default function AccountPage() {
                             <div className="relative aspect-[4/5] overflow-hidden bg-[var(--color-cream)]">
                               {product.images?.[0] && (
                                 <img
-                                  src={product.images[0]}
+                                  src={
+                                    isCloudinaryUrl(product.images[0])
+                                      ? cloudinaryOptimizedUrl(product.images[0], { preset: "listing" })
+                                      : product.images[0]
+                                  }
                                   alt={product.name}
+                                  loading="lazy"
                                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                                 />
                               )}

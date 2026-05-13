@@ -12,6 +12,7 @@ import { getCustomerAuthHeaders } from "../../lib/customerAuth";
 import WesternUnionDetails from "../../components/WesternUnionDetails";
 import ZolotayaKoronaDetails from "../../components/ZolotayaKoronaDetails";
 import { formatSizeLabel } from "../../lib/sizeDisplay";
+import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../../lib/image";
 import { MastercardMark, VisaMark, WesternUnionMark, ZolotayaKoronaMark } from "../../components/CardBrandLogos";
 import { productToItem, trackBeginCheckout, trackAddPaymentInfo } from "../../lib/gtag";
 import {
@@ -546,8 +547,13 @@ export default function CheckoutPage() {
               >
                 <div className="aspect-[3/4] overflow-hidden rounded bg-[var(--color-sand)]">
                   <img
-                    src={item.image || "https://placehold.co/300x400?text=Sami"}
+                    src={
+                      isCloudinaryUrl(item.image)
+                        ? cloudinaryOptimizedUrl(item.image, { preset: "cart" })
+                        : (item.image || "https://placehold.co/120x160?text=Sami")
+                    }
                     alt={item.name || "Product image"}
+                    loading="lazy"
                     className="h-full w-full object-cover"
                   />
                 </div>

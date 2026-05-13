@@ -19,6 +19,7 @@ import {
 import api from "../../../lib/api";
 import { getAdminAuthHeaders } from "../../../lib/adminAuth";
 import StatusBadge from "../../../components/admin/StatusBadge";
+import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../../../lib/image";
 
 const COUNTRIES = [
   "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia",
@@ -422,7 +423,12 @@ export default function ManualOrderPage() {
                         }`}
                       >
                         {p.images?.[0] ? (
-                          <img src={p.images[0]} alt={p.name} className="h-10 w-8 shrink-0 rounded-md object-cover" />
+                          <img
+                            src={isCloudinaryUrl(p.images[0]) ? cloudinaryOptimizedUrl(p.images[0], { preset: "admin" }) : p.images[0]}
+                            alt={p.name}
+                            loading="lazy"
+                            className="h-10 w-8 shrink-0 rounded-md object-cover"
+                          />
                         ) : (
                           <div className="h-10 w-8 shrink-0 rounded-md bg-[var(--color-sand)]" />
                         )}
@@ -469,7 +475,12 @@ export default function ManualOrderPage() {
                   {items.map((item) => (
                     <div key={item.productId} className="flex items-center gap-3 rounded-xl border border-[var(--color-line)] bg-[var(--color-sand)]/20 px-3 py-2.5">
                       {item.image
-                        ? <img src={item.image} alt={item.name} className="h-10 w-8 shrink-0 rounded-md object-cover" />
+                        ? <img
+                            src={isCloudinaryUrl(item.image) ? cloudinaryOptimizedUrl(item.image, { preset: "admin" }) : item.image}
+                            alt={item.name}
+                            loading="lazy"
+                            className="h-10 w-8 shrink-0 rounded-md object-cover"
+                          />
                         : <div className="h-10 w-8 shrink-0 rounded-md bg-[var(--color-sand)]" />
                       }
                       <div className="min-w-0 flex-1">

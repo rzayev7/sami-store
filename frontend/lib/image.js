@@ -1,10 +1,37 @@
 const CLOUDINARY_HOST_PATTERN = /(^|\.)cloudinary\.com$/i;
+
+/**
+ * Delivery presets — widths are chosen so the largest realistic viewport
+ * at 2× retina is covered without over-serving pixels.
+ *
+ * Rule of thumb used here:
+ *   preset width ≈ largest CSS display width × 2 (for retina)
+ *
+ * dpr_auto is intentionally omitted: it only works when the Cloudinary
+ * JavaScript SDK is present on the page. In static delivery URLs it has
+ * no effect (resolves to dpr_1.0), so we bake in 2× retina sizing instead.
+ */
 const IMAGE_PRESETS = {
-  cart: { width: 240, quality: "auto:good", fit: "limit" },
-  thumb: { width: 320, quality: "auto:good", fit: "limit" },
-  listing: { width: 900, quality: "auto:good", fit: "limit" },
-  product: { width: 1600, quality: "auto:best", fit: "limit" },
-  zoom: { width: 2200, quality: "auto:best", fit: "limit" },
+  // 80px cart/admin thumbnail → 160px covers 2× retina
+  cart:    { width: 160,  quality: "auto:good", fit: "limit" },
+
+  // 86–100px gallery strip thumbnail → 200px covers 2× retina
+  thumb:   { width: 200,  quality: "auto:good", fit: "limit" },
+
+  // ≤120px admin table/picker thumbnails — not customer-facing
+  admin:   { width: 120,  quality: "auto:eco",  fit: "limit" },
+
+  // Catalog grid cards: 25vw–50vw; 360px desktop 2× = 720px → 700 is the sweet spot
+  // Was 900 — ~23% file-size saving at no visible quality loss
+  listing: { width: 700,  quality: "auto:good", fit: "limit" },
+
+  // Product detail main gallery: ~600px container × 2 DPR = 1200px
+  // Was 1600 — ~44% file-size saving
+  product: { width: 1200, quality: "auto:best", fit: "limit" },
+
+  // Explicit zoom / lightbox — still large but capped at 1800
+  // Was 2200
+  zoom:    { width: 1800, quality: "auto:best", fit: "limit" },
 };
 
 export function isCloudinaryUrl(url) {
@@ -18,25 +45,33 @@ export function isCloudinaryUrl(url) {
   }
 }
 
+/**
+ * Inject Cloudinary delivery transformations into a raw upload URL.
+ *
+ * Always adds:  f_auto  q_<quality>  [w_<width>  c_<fit>]
+ *
+ * Transformations are inserted immediately after /upload/ so they compose
+ * correctly with any existing path-based transformations (e.g. named presets
+ * like t_hero that Cloudinary resolves server-side).
+ */
 export function cloudinaryOptimizedUrl(url, options = {}) {
   if (!isCloudinaryUrl(url)) return url;
 
-  const preset = options.preset ? IMAGE_PRESETS[options.preset] : null;
-  const width = Number(options.width ?? preset?.width);
-  const requestedQuality = options.quality ?? preset?.quality ?? "auto:good";
-  const fitMode = options.fit ?? preset?.fit ?? "limit";
+  const preset  = options.preset ? IMAGE_PRESETS[options.preset] : null;
+  const width   = Number(options.width ?? preset?.width);
+  const quality = options.quality ?? preset?.quality ?? "auto:good";
+  const fit     = options.fit     ?? preset?.fit     ?? "limit";
 
-  const transformationParts = ["f_auto", `q_${requestedQuality}`, "dpr_auto"];
+  const parts = ["f_auto", `q_${quality}`];
 
   if (Number.isFinite(width) && width > 0) {
-    transformationParts.push(`w_${Math.round(width)}`);
-    transformationParts.push(`c_${fitMode}`);
+    parts.push(`w_${Math.round(width)}`, `c_${fit}`);
   }
 
-  const uploadMarker = "/upload/";
-  if (!url.includes(uploadMarker)) return url;
+  const marker = "/upload/";
+  if (!url.includes(marker)) return url;
 
-  return url.replace(uploadMarker, `${uploadMarker}${transformationParts.join(",")}/`);
+  return url.replace(marker, `${marker}${parts.join(",")}/`);
 }
 
 export const imagePresets = IMAGE_PRESETS;
