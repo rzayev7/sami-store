@@ -33,6 +33,18 @@ const buildUrl = (base, path, query = {}) => {
   return url.toString();
 };
 
+/**
+ * Each Epoint `/api/1/request` needs a fresh merchant `order_id`. Re-sending the same
+ * id while a session is still open often yields `status: "failed"` with no `redirect_url`.
+ * We suffix Mongo `_id` with `_${Date.now()}` and strip the suffix when handling callbacks.
+ */
+const extractMongoOrderIdFromEpointOrderRef = (raw) => {
+  const s = String(raw || "").trim();
+  if (!s) return "";
+  const m = s.match(/^([a-f0-9]{24})(?:_.+)?$/i);
+  return m ? m[1] : s;
+};
+
 const mapEpointStatus = (status) => {
   const normalized = String(status || "").toLowerCase();
   if (normalized === "success") return { status: "paid", paymentStatus: "paid" };
@@ -155,9 +167,11 @@ const initiateEpointPayment = async (req, res, next) => {
       orderId: order._id,
     });
 
+    const epointMerchantOrderRef = `${String(order._id)}_${Date.now()}`;
+
     const response = await epointService.initiatePayment({
       amount,
-      orderId: String(order._id),
+      orderId: epointMerchantOrderRef,
       description: `Sami order ${order._id}`,
       // Force English payment gateway UI regardless of storefront locale.
       language: "en",
@@ -165,8 +179,28 @@ const initiateEpointPayment = async (req, res, next) => {
       errorRedirectUrl,
     });
 
-    if (response?.status !== "success" || !response?.redirect_url) {
-      return res.status(502).json({ message: "Unexpected Epoint initiate response", details: response });
+    const redirectUrl =
+      response?.redirect_url || response?.redirectUrl || response?.payment_url || response?.paymentUrl;
+    const epointStatus = String(response?.status ?? response?.Status ?? "").toLowerCase();
+
+    if (epointStatus !== "success" || !redirectUrl) {
+      const humanMessage =
+        response?.message ||
+        response?.Message ||
+        (epointStatus === "failed"
+          ? "Epoint rejected the payment session (often duplicate order_id or invalid amount)."
+          : "Unexpected Epoint initiate response");
+      console.warn("[epoint] initiate failed", {
+        mongoOrderId: String(order._id),
+        epointMerchantOrderRef,
+        epointStatus,
+        response,
+      });
+      return res.status(502).json({
+        message: humanMessage,
+        epointStatus: epointStatus || response?.status,
+        details: response,
+      });
     }
 
     order.status = "pending";
@@ -176,8 +210,9 @@ const initiateEpointPayment = async (req, res, next) => {
       provider: "epoint",
       mode: process.env.NODE_ENV || "production",
       orderId: String(order._id),
+      epointMerchantOrderRef,
       sessionId: String(response?.transaction || ""),
-      paymentUrl: String(response.redirect_url),
+      paymentUrl: String(redirectUrl),
       rawStatus: String(response?.status || "new"),
       rawResponse: response,
       lastCheckedAt: new Date(),
@@ -187,7 +222,7 @@ const initiateEpointPayment = async (req, res, next) => {
 
     return res.status(200).json({
       orderId: order._id,
-      paymentUrl: response.redirect_url,
+      paymentUrl: redirectUrl,
       transaction: response?.transaction || "",
       gateway: { provider: "epoint", status: response?.status || "new" },
     });
@@ -239,7 +274,8 @@ const epointCallback = async (req, res, next) => {
     }
 
     const payload = decodeData(data);
-    const orderId = String(payload?.order_id || "");
+    const rawOrderId = String(payload?.order_id || "");
+    const orderId = extractMongoOrderIdFromEpointOrderRef(rawOrderId);
     if (!orderId) return res.status(400).json({ message: "Missing order_id in callback payload" });
 
     const order = await Order.findById(orderId);

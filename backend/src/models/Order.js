@@ -105,6 +105,8 @@ const orderSchema = new mongoose.Schema({
     provider: { type: String, default: "" },
     mode: { type: String, default: "" },
     orderId: { type: String, default: "" },
+    /** Last value sent to Epoint as `order_id` (may be `${mongoId}_${timestamp}`). */
+    epointMerchantOrderRef: { type: String, default: "" },
     sessionId: { type: String, default: "" },
     paymentUrl: { type: String, default: "" },
     rawStatus: { type: String, default: "" },
