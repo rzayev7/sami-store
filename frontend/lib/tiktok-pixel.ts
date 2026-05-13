@@ -142,9 +142,14 @@ async function eventIdFromSeed(seed: string): Promise<string> {
 
 function itemToTikTokContent(item: GtagItem) {
   return {
-    content_id: String(item.item_id ?? ""),
+    content_id:   String(item.item_id   ?? ""),
     content_type: "product" as const,
     content_name: String(item.item_name ?? ""),
+    // TikTok requires quantity + price on each content object for Purchase /
+    // AddToCart / InitiateCheckout events. Without them the event is accepted
+    // but excluded from value-based optimisation (Performance Max, Value ROAS).
+    quantity: Number(item.quantity ?? 1),
+    price:    Number(item.price    ?? 0),
   };
 }
 
@@ -257,6 +262,7 @@ export function trackTikTokAddToCart(item: GtagItem, currency = "USD") {
       contents: [itemToTikTokContent(item)],
       value,
       currency,
+      num_items: Number(item.quantity ?? 1),
     },
     `cart_${item.item_id}_${item.quantity ?? 1}_${Date.now()}`,
   );
@@ -268,12 +274,14 @@ export function trackTikTokInitiateCheckout(
   currency = "USD",
 ) {
   if (!items.length) return;
+  const numItems = items.reduce((sum, it) => sum + Number(it.quantity ?? 1), 0);
   emitTrack(
     "InitiateCheckout",
     {
       contents: items.map(itemToTikTokContent),
       value: Math.round(Number(value) * 100) / 100,
       currency,
+      num_items: numItems,
     },
     `checkout_${items.map((i) => i.item_id).join(",")}_${Math.round(Number(value) * 100)}`,
   );
@@ -294,6 +302,9 @@ export function trackTikTokCompleteRegistration(currency = "USD") {
 /**
  * Single web conversion for an order: deduped in `sessionStorage` and with a stable
  * `event_id` derived from `orderId` (via {@link emitTrack} seed `purchase_${orderId}`).
+ *
+ * Includes `num_items` and per-item `quantity` + `price` as required by TikTok's
+ * Purchase event spec for value-based campaign optimisation.
  */
 export function trackTikTokPurchase(
   items: GtagItem[],
@@ -311,12 +322,14 @@ export function trackTikTokPurchase(
   } catch {
     /* private mode / blocked storage — still send one client hit */
   }
+  const numItems = items.reduce((sum, it) => sum + Number(it.quantity ?? 1), 0);
   emitTrack(
     "Purchase",
     {
-      contents: items.map(itemToTikTokContent),
-      value: Math.round(Number(value) * 100) / 100,
+      contents:  items.map(itemToTikTokContent),
+      value:     Math.round(Number(value) * 100) / 100,
       currency,
+      num_items: numItems,
     },
     `purchase_${orderId}`,
   );
