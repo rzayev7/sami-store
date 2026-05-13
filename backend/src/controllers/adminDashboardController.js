@@ -2,28 +2,45 @@ const Order = require("../models/Order");
 const Product = require("../models/Product");
 const Customer = require("../models/Customer");
 
-/** Realized revenue: paid money only; never cancelled/failed/refunded. */
+/** Realized revenue: only paid; never cancelled/failed/refunded or timeline-cancelled. */
 const countsTowardRevenue = (order) => {
   const st = String(order.status || "").toLowerCase();
   if (st === "cancelled" || st === "failed") return false;
+  if (Array.isArray(order.timeline)) {
+    const cancelledInTimeline = order.timeline.some(
+      (e) => String(e?.event || "") === "order_cancelled"
+    );
+    if (cancelledInTimeline) return false;
+  }
   const ps = String(order.paymentStatus || "").toLowerCase();
   if (ps === "refunded" || ps === "failed") return false;
-  if (ps === "paid") return true;
-  // Legacy rows where status moved forward but paymentStatus was not backfilled
-  return ["paid", "shipped", "delivered"].includes(st);
+  return ps === "paid";
 };
+
+/** Mongo $match for the same rules as {@link countsTowardRevenue} (dashboard aggregate). */
+const revenueMongoMatch = () => ({
+  paymentStatus: "paid",
+  status: { $nin: ["cancelled", "failed"] },
+  $nor: [{ timeline: { $elemMatch: { event: "order_cancelled" } } }],
+});
 
 const getDashboardStats = async (req, res, next) => {
   try {
-    const [orders, totalProducts] = await Promise.all([
+    const [orders, totalProducts, revenueAgg] = await Promise.all([
       Order.find().sort({ createdAt: -1 }).limit(200),
       Product.countDocuments(),
+      Order.aggregate([
+        { $match: revenueMongoMatch() },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: { $toDouble: { $ifNull: ["$totalPriceUSD", 0] } } },
+          },
+        },
+      ]),
     ]);
 
-    const totalRevenue = orders.reduce((sum, order) => {
-      if (!countsTowardRevenue(order)) return sum;
-      return sum + Number(order.totalPriceUSD || 0);
-    }, 0);
+    const totalRevenue = revenueAgg[0]?.total != null ? Math.round(revenueAgg[0].total * 100) / 100 : 0;
     const totalOrders = orders.length;
     const customersSet = new Set(
       orders.map((order) => (order.customerInfo?.email || "").toLowerCase()).filter(Boolean)
@@ -80,7 +97,7 @@ const getCustomersSummary = async (req, res, next) => {
   try {
     const [registeredCustomers, orders] = await Promise.all([
       Customer.find({}, "name email createdAt").sort({ createdAt: -1 }).lean(),
-      Order.find({}, "customerInfo totalPriceUSD createdAt status paymentStatus").lean(),
+      Order.find({}, "customerInfo totalPriceUSD createdAt status paymentStatus timeline").lean(),
     ]);
 
     // Build order stats keyed by email
