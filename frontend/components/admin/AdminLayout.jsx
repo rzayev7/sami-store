@@ -16,6 +16,7 @@ import {
   LogOut,
   Menu,
   X,
+  MessageCircle,
 } from "lucide-react";
 import { checkAdminAuth, clearAdminAuth } from "../../lib/adminAuth";
 import { t } from "../../lib/admin-i18n";
@@ -23,6 +24,7 @@ import { t } from "../../lib/admin-i18n";
 const navLinks = [
   { href: "/admin/dashboard", label: t.dashboard, icon: LayoutDashboard },
   { href: "/admin/orders", label: t.orders, icon: ShoppingBag },
+  { href: "/admin/manual-order", label: t.manualOrder, icon: MessageCircle },
   { href: "/admin/products", label: t.products, icon: Package },
   { href: "/admin/categories", label: t.categories, icon: Grid3x3 },
   { href: "/admin/customers", label: t.customers, icon: Users },
@@ -33,9 +35,9 @@ const navLinks = [
 ];
 
 function getPageTitle(pathname) {
-  const match = navLinks.find((l) => pathname?.startsWith(l.href));
   if (pathname?.includes("/products/new")) return t.addProduct;
   if (pathname?.includes("/products/edit")) return t.editProduct;
+  const match = navLinks.find((l) => pathname?.startsWith(l.href));
   return match?.label || t.admin;
 }
 

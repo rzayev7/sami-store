@@ -10,6 +10,7 @@ export const t = {
   // ── Sidebar nav ──
   dashboard: "Главная",
   orders: "Заказы",
+  manualOrder: "Ручной заказ",
   products: "Товары",
   categories: "Категории",
   customers: "Клиенты",
