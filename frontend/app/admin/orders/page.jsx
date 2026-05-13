@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useState, useCallback } from "react";
+import { Fragment, useEffect, useState, useCallback, useRef } from "react";
 import api from "../../../lib/api";
 import { getAdminAuthHeaders } from "../../../lib/adminAuth";
 import StatusBadge from "../../../components/admin/StatusBadge";
@@ -70,8 +70,72 @@ export default function AdminOrdersPage() {
   const [trackingInputs, setTrackingInputs] = useState({});
   const [trackingSaving, setTrackingSaving] = useState("");
   const [trackingSaved, setTrackingSaved] = useState("");
+  const [paymentLinkBusyId, setPaymentLinkBusyId] = useState("");
+  const [paymentLinkNoticeId, setPaymentLinkNoticeId] = useState("");
+  const [paymentLinkCopyId, setPaymentLinkCopyId] = useState("");
+  const paymentLinkCopyTimer = useRef(null);
 
   const closeLightbox = useCallback(() => setLightboxImg(null), []);
+
+  const canRegenerateEpointLink = (order) => {
+    if (!order?._id || order.paymentStatus === "paid") return false;
+    const method = String(order.paymentMethod || "").toLowerCase();
+    if (method === "card") return true;
+    return String(order.paymentGateway?.provider || "").toLowerCase() === "epoint";
+  };
+
+  const regenerateEpointPaymentLink = async (order) => {
+    try {
+      setPaymentLinkBusyId(order._id);
+      setPaymentLinkNoticeId("");
+      setErrorMessage("");
+      const { data } = await api.post(
+        `/api/payments/epoint/init/${encodeURIComponent(String(order._id))}`
+      );
+      const url = data?.paymentUrl;
+      if (!url) throw new Error("No payment URL");
+
+      setOrders((prev) =>
+        prev.map((o) =>
+          String(o._id) === String(order._id)
+            ? {
+                ...o,
+                paymentMethod: "card",
+                paymentGateway: {
+                  ...(o.paymentGateway || {}),
+                  provider: "epoint",
+                  paymentUrl: url,
+                  sessionId: data?.transaction ?? o.paymentGateway?.sessionId ?? "",
+                },
+              }
+            : o
+        )
+      );
+      setPaymentLinkNoticeId(order._id);
+      window.setTimeout(() => {
+        setPaymentLinkNoticeId((cur) => (cur === order._id ? "" : cur));
+      }, 5000);
+    } catch (err) {
+      setErrorMessage(
+        err?.response?.data?.message || err?.message || t.failedRegeneratePaymentLink
+      );
+    } finally {
+      setPaymentLinkBusyId("");
+    }
+  };
+
+  const copyEpointPaymentLink = async (order) => {
+    const url = order?.paymentGateway?.paymentUrl;
+    if (!url || typeof navigator?.clipboard?.writeText !== "function") return;
+    try {
+      await navigator.clipboard.writeText(url);
+      if (paymentLinkCopyTimer.current) window.clearTimeout(paymentLinkCopyTimer.current);
+      setPaymentLinkCopyId(order._id);
+      paymentLinkCopyTimer.current = window.setTimeout(() => setPaymentLinkCopyId(""), 2000);
+    } catch {
+      /* ignore */
+    }
+  };
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -429,6 +493,63 @@ export default function AdminOrdersPage() {
                                   </div>
                                 </div>
                               </div>
+
+                              {canRegenerateEpointLink(order) && (
+                                <div>
+                                  <h4 className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-black/50">
+                                    {t.epointPaymentLink}
+                                  </h4>
+                                  <div className="space-y-2 rounded-lg border border-[var(--color-line)] bg-[var(--color-sand)]/30 p-3">
+                                    {order.paymentGateway?.paymentUrl ? (
+                                      <p className="break-all font-mono text-[11px] leading-relaxed text-black/70">
+                                        {order.paymentGateway.paymentUrl}
+                                      </p>
+                                    ) : (
+                                      <p className="text-xs text-black/45">
+                                        {t.noPaymentLinkYet}
+                                      </p>
+                                    )}
+                                    <div className="flex flex-wrap gap-2">
+                                      <button
+                                        type="button"
+                                        disabled={paymentLinkBusyId === order._id}
+                                        onClick={() => regenerateEpointPaymentLink(order)}
+                                        className="sami-btn-dark px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-50"
+                                      >
+                                        {paymentLinkBusyId === order._id
+                                          ? t.regeneratingPaymentLink
+                                          : t.regeneratePaymentLink}
+                                      </button>
+                                      {order.paymentGateway?.paymentUrl && (
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={() => copyEpointPaymentLink(order)}
+                                            className="sami-btn-light px-3 py-1.5 text-xs"
+                                          >
+                                            {paymentLinkCopyId === order._id
+                                              ? t.paymentLinkCopied
+                                              : t.copyPaymentLink}
+                                          </button>
+                                          <a
+                                            href={order.paymentGateway.paymentUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="sami-btn-light inline-flex items-center px-3 py-1.5 text-xs"
+                                          >
+                                            {t.openPaymentLink}
+                                          </a>
+                                        </>
+                                      )}
+                                    </div>
+                                    {paymentLinkNoticeId === order._id && (
+                                      <p className="text-xs font-medium text-emerald-700">
+                                        {t.paymentLinkUpdated}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
 
                               <div>
                                 <h4 className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-black/50">
