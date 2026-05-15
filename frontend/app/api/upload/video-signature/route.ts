@@ -5,6 +5,7 @@ import cloudinary from "../../../../lib/cloudinary";
 export const runtime = "nodejs";
 
 const VIDEO_FOLDER = "products/videos";
+const MAX_VIDEO_BYTES = 30 * 1024 * 1024;
 
 /**
  * Returns a Cloudinary-signed upload payload so the browser can POST the video
@@ -38,6 +39,20 @@ export async function POST(request: NextRequest) {
       jwt.verify(token, secret);
     } catch {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    let bytes = 0;
+    try {
+      const body = await request.json();
+      bytes = Number(body?.bytes || 0);
+    } catch {
+      bytes = 0;
+    }
+    if (bytes > MAX_VIDEO_BYTES) {
+      return NextResponse.json(
+        { message: "Video must be at most 30 MB" },
+        { status: 400 },
+      );
     }
 
     const apiSecret = process.env.CLOUDINARY_API_SECRET;

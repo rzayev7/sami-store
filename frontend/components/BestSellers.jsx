@@ -7,12 +7,16 @@ import api from "../lib/api";
 import ProductCarousel from "./ProductCarousel";
 import { useCurrency } from "../context/CurrencyContext";
 import { useLanguage } from "../context/LanguageContext";
-import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
+import { cloudinaryOptimizedUrl, getCloudinaryVideoUrl, isCloudinaryUrl } from "../lib/image";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 
 function BestSellerCard({ item, formatPrice }) {
   const videoRef = useRef(null);
+  const videoLoadedRef = useRef(false);
   const hasVideo = Boolean(item.cardVideoUrl);
+  const cardVideoUrl = item?.cardVideoUrl
+    ? getCloudinaryVideoUrl(item.cardVideoUrl, { width: 720 })
+    : "";
   const rawImage = item.images?.[0] || "https://placehold.co/700x900?text=SAMI";
   const rawSecondaryImage = item.images?.[1] || rawImage;
   const imageSrc = cloudinaryOptimizedUrl(rawImage, { preset: "listing" });
@@ -20,12 +24,26 @@ function BestSellerCard({ item, formatPrice }) {
   const isCloudinary = isCloudinaryUrl(rawImage);
   const isSecondaryCloudinary = isCloudinaryUrl(rawSecondaryImage);
 
+  useEffect(() => {
+    videoLoadedRef.current = false;
+  }, [item?._id, item?.cardVideoUrl]);
+
+  const loadAndPlay = () => {
+    const v = videoRef.current;
+    if (!v || !cardVideoUrl) return;
+
+    if (!videoLoadedRef.current) {
+      videoLoadedRef.current = true;
+      v.src = cardVideoUrl;
+      v.load();
+    }
+
+    void v.play().catch(() => {});
+  };
+
   const hover = hasVideo
     ? {
-        onMouseEnter: () => {
-          const v = videoRef.current;
-          if (v) void v.play().catch(() => {});
-        },
+        onMouseEnter: loadAndPlay,
         onMouseLeave: () => {
           const v = videoRef.current;
           if (v) {
@@ -33,6 +51,7 @@ function BestSellerCard({ item, formatPrice }) {
             v.currentTime = 0;
           }
         },
+        onTouchStart: loadAndPlay,
       }
     : {};
 
@@ -61,7 +80,7 @@ function BestSellerCard({ item, formatPrice }) {
         {hasVideo ? (
           <PortraitCoverVideo
             ref={videoRef}
-            src={item.cardVideoUrl}
+            src={undefined}
             wrapperClassName="absolute inset-0 overflow-hidden"
             videoClassName="opacity-0 transition-opacity duration-500 group-hover:opacity-100"
             videoAdjustments={item?.cardVideoAdjustments}
@@ -69,7 +88,7 @@ function BestSellerCard({ item, formatPrice }) {
             muted
             loop
             playsInline
-            preload="metadata"
+            preload="none"
           />
         ) : (
           <Image

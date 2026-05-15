@@ -14,7 +14,7 @@ import api, { getApiBaseURL } from "../lib/api";
 import { useCart } from "../context/CartContext";
 import { useCurrency } from "../context/CurrencyContext";
 import { useLanguage } from "../context/LanguageContext";
-import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
+import { cloudinaryOptimizedUrl, getCloudinaryVideoUrl, isCloudinaryUrl } from "../lib/image";
 import { formatSizeLabel, normalizeSizeForFilter } from "../lib/sizeDisplay";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 import { productToItem, trackSelectItem, trackViewItemList, trackSearch, trackAddToCart } from "../lib/gtag";
@@ -93,7 +93,11 @@ function ProductCard({ product }) {
   const { formatPrice } = useCurrency();
   const { t } = useLanguage();
   const videoRef = useRef(null);
+  const videoLoadedRef = useRef(false);
   const hasVideo = Boolean(product.cardVideoUrl);
+  const cardVideoUrl = product?.cardVideoUrl
+    ? getCloudinaryVideoUrl(product.cardVideoUrl, { width: 720 })
+    : "";
   const isOutOfStock = Number(product.stock || 0) <= 0;
   const primaryImage = product.images?.[0] || "https://placehold.co/600x800?text=Sami";
   const secondaryImage = product.images?.[1] || "";
@@ -106,12 +110,26 @@ function ProductCard({ product }) {
       ? product.sizes[0]
       : "";
 
+  useEffect(() => {
+    videoLoadedRef.current = false;
+  }, [product?._id, product?.cardVideoUrl]);
+
+  const loadAndPlay = () => {
+    const v = videoRef.current;
+    if (!v || !cardVideoUrl) return;
+
+    if (!videoLoadedRef.current) {
+      videoLoadedRef.current = true;
+      v.src = cardVideoUrl;
+      v.load();
+    }
+
+    void v.play().catch(() => {});
+  };
+
   const cardHoverMedia = hasVideo
     ? {
-        onMouseEnter: () => {
-          const v = videoRef.current;
-          if (v) void v.play().catch(() => {});
-        },
+        onMouseEnter: loadAndPlay,
         onMouseLeave: () => {
           const v = videoRef.current;
           if (v) {
@@ -119,6 +137,7 @@ function ProductCard({ product }) {
             v.currentTime = 0;
           }
         },
+        onTouchStart: loadAndPlay,
       }
     : {};
 
@@ -150,7 +169,7 @@ function ProductCard({ product }) {
           {hasVideo ? (
             <PortraitCoverVideo
               ref={videoRef}
-              src={product.cardVideoUrl}
+              src={undefined}
               wrapperClassName="absolute inset-0 overflow-hidden"
               videoClassName="opacity-0 transition-opacity duration-500 group-hover:opacity-100"
               videoAdjustments={product?.cardVideoAdjustments}
@@ -158,7 +177,7 @@ function ProductCard({ product }) {
               muted
               loop
               playsInline
-              preload="metadata"
+              preload="none"
             />
           ) : (
             product.images?.[1] && (

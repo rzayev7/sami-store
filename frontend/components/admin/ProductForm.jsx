@@ -22,6 +22,7 @@ import {
   parseAdminPriceInput,
 } from "../../lib/money";
 import { normalizeVideoAdjustments } from "../../lib/videoAdjustments";
+import { getCloudinaryVideoUrl } from "../../lib/image";
 
 const SIZE_SUGGESTIONS = ["XS", "S", "M", "L", "XL", "XXL", t.freeSize];
 const PRODUCT_CATEGORIES = [
@@ -1197,8 +1198,10 @@ export default function ProductForm({
           const sigRes = await fetch("/api/upload/video-signature", {
             method: "POST",
             headers: {
+              "Content-Type": "application/json",
               ...getAdminAuthHeaders(),
             },
+            body: JSON.stringify({ bytes: file.size }),
           });
           const rawText = await sigRes.text();
           let sig;
@@ -1271,7 +1274,7 @@ export default function ProductForm({
   const handleCardVideoFile = async (fileList) => {
     const file = Array.from(fileList).find((f) => f.type.startsWith("video/"));
     if (!file) return;
-    const maxBytes = 80 * 1024 * 1024;
+    const maxBytes = 30 * 1024 * 1024;
     if (file.size > maxBytes) {
       setErrorMessage(`Video must be at most ${maxBytes / (1024 * 1024)} MB.`);
       return;
@@ -2102,7 +2105,7 @@ export default function ProductForm({
           {cardVideoUrl ? (
             <div className="mb-4 max-w-sm overflow-hidden rounded-lg border border-[var(--color-line)] bg-black">
               <video
-                src={cardVideoUrl}
+                src={getCloudinaryVideoUrl(cardVideoUrl, { width: 720 })}
                 className="max-h-56 w-full object-contain"
                 style={{
                   filter: `brightness(${videoBrightness}%) contrast(${videoContrast}%) saturate(${videoSaturation}%)`,
@@ -2111,7 +2114,7 @@ export default function ProductForm({
                 loop
                 playsInline
                 controls
-                preload="metadata"
+                preload="none"
               />
             </div>
           ) : null}

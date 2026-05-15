@@ -75,3 +75,38 @@ export function cloudinaryOptimizedUrl(url, options = {}) {
 }
 
 export const imagePresets = IMAGE_PRESETS;
+
+const VIDEO_DEFAULTS = {
+  width: 720,
+  quality: "auto:good",
+  fit: "limit",
+};
+
+/**
+ * Inject Cloudinary delivery transformations into a raw Cloudinary video URL.
+ *
+ * Typical Cloudinary video URL shape:
+ *   https://res.cloudinary.com/<cloud>/video/upload/<optional-transforms>/v<version>/<public_id>.<ext>
+ *
+ * We only inject transforms when the URL does not already have a transforms segment
+ * (i.e. the segment after `/upload/` starts with `v<digits>`).
+ */
+export function getCloudinaryVideoUrl(url, options = {}) {
+  if (!isCloudinaryUrl(url)) return url;
+
+  const marker = "/upload/";
+  if (!url.includes(marker)) return url;
+
+  const afterUpload = url.split(marker)[1] || "";
+  const firstSegment = afterUpload.split("/")[0] || "";
+  const alreadyHasTransforms = firstSegment && !/^v\d+$/i.test(firstSegment) && !/^v\d+/.test(firstSegment);
+  // If the first segment is a version (v123...), we treat it as "no transforms present".
+  if (alreadyHasTransforms) return url;
+
+  const width = Number(options.width ?? VIDEO_DEFAULTS.width);
+  const quality = String(options.quality ?? VIDEO_DEFAULTS.quality);
+  const fit = String(options.fit ?? VIDEO_DEFAULTS.fit);
+
+  const parts = [`w_${Math.round(width)}`, `c_${fit}`, `q_${quality}`, "f_auto"];
+  return url.replace(marker, `${marker}${parts.join(",")}/`);
+}

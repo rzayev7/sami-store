@@ -24,7 +24,7 @@ import SizeGuide from "../../../components/SizeGuide";
 import { useCart } from "../../../context/CartContext";
 import { useCurrency } from "../../../context/CurrencyContext";
 import { useLanguage, useLocalePath } from "../../../context/LanguageContext";
-import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../../../lib/image";
+import { cloudinaryOptimizedUrl, getCloudinaryVideoUrl, isCloudinaryUrl } from "../../../lib/image";
 import { formatSizeLabel } from "../../../lib/sizeDisplay";
 import PortraitCoverVideo from "../../../components/PortraitCoverVideo";
 import {
@@ -72,6 +72,7 @@ export default function ProductDetailClient({
   const thumbnailContainerRef = useRef(null);
   const carouselRef = useRef(null);
   const videoRefs = useRef({});
+  const videoLoadedRef = useRef({});
   const carouselScrollRaf = useRef(null);
   const [playingVideoIndex, setPlayingVideoIndex] = useState(null);
   const [descriptionOpen, setDescriptionOpen] = useState(true);
@@ -172,7 +173,9 @@ export default function ProductDetailClient({
       Array.isArray(product?.images) && product.images.length > 0
         ? product.images
         : ["https://placehold.co/800x1000?text=Sami"];
-    const videoUrl = product?.cardVideoUrl;
+    const videoUrl = product?.cardVideoUrl
+      ? getCloudinaryVideoUrl(product.cardVideoUrl, { width: 720 })
+      : null;
     if (!videoUrl) {
       return imgs.map((url) => ({ type: "image", url }));
     }
@@ -191,6 +194,7 @@ export default function ProductDetailClient({
     setQuantity(1);
     setActiveMediaIndex(0);
     setPlayingVideoIndex(null);
+    videoLoadedRef.current = {};
     setDescriptionOpen(false);
     setFabricCareOpen(false);
     setSupportOpen(false);
@@ -302,6 +306,18 @@ export default function ProductDetailClient({
     activeThumb.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
   }, [activeMediaIndex]);
 
+  const ensureVideoSrc = (index) => {
+    const item = galleryItems[index];
+    const currentVideo = videoRefs.current[index];
+    if (!currentVideo || item?.type !== "video" || !item.url) return;
+
+    if (!videoLoadedRef.current[index]) {
+      videoLoadedRef.current[index] = true;
+      currentVideo.src = item.url;
+      currentVideo.load();
+    }
+  };
+
   const toggleVideoPlayback = (index) => {
     const currentVideo = videoRefs.current[index];
     if (!currentVideo) return;
@@ -310,6 +326,7 @@ export default function ProductDetailClient({
       setPlayingVideoIndex(null);
       return;
     }
+    ensureVideoSrc(index);
     Object.entries(videoRefs.current).forEach(([key, video]) => {
       if (Number(key) !== index && video && !video.paused) {
         video.pause();
@@ -642,16 +659,7 @@ export default function ProductDetailClient({
                         data-testid={isActive ? "image-thumbnail-active" : "image-thumbnail"}
                       >
                         {item.type === "video" ? (
-                          <div className="group relative h-full w-full bg-black">
-                            <PortraitCoverVideo
-                              src={item.url}
-                              wrapperClassName="absolute inset-0 overflow-hidden"
-                              videoAdjustments={product?.cardVideoAdjustments}
-                              disablePortraitFix={product?.cardVideoLandscape === true}
-                              muted
-                              playsInline
-                              preload="metadata"
-                            />
+                          <div className="relative h-full w-full bg-black">
                             <span className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/15 to-black/25 transition-opacity duration-200 group-hover:opacity-90" />
                             <span className="absolute inset-0 flex items-center justify-center">
                               <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/55 bg-black/45 shadow-lg shadow-black/40 backdrop-blur-sm transition-transform duration-200 group-hover:scale-105">
@@ -703,13 +711,13 @@ export default function ProductDetailClient({
                           if (el) videoRefs.current[index] = el;
                           else delete videoRefs.current[index];
                         }}
-                        src={item.url}
+                        src={undefined}
                         wrapperClassName="absolute inset-0 overflow-hidden"
                         videoAdjustments={product?.cardVideoAdjustments}
                         disablePortraitFix={product?.cardVideoLandscape === true}
                         muted
                         playsInline
-                        preload="metadata"
+                        preload="none"
                         onPlay={() => setPlayingVideoIndex(index)}
                         onPause={() =>
                           setPlayingVideoIndex((prev) => (prev === index ? null : prev))

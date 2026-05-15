@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "./LocaleLink";
-import { useRef } from "react";
 import { Heart } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useCurrency } from "../context/CurrencyContext";
@@ -12,6 +11,7 @@ import { trackAddToCart, productToItem } from "../lib/gtag";
 import { trackTikTokAddToCart } from "../lib/tiktok-pixel";
 import { trackMetaAddToCart } from "../lib/meta-pixel";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
+import { useLazyCloudinaryCardVideo } from "../hooks/useLazyCloudinaryCardVideo";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 
 export default function ProductCard({ product }) {
@@ -19,9 +19,12 @@ export default function ProductCard({ product }) {
   const { formatPrice } = useCurrency();
   const { t } = useLanguage();
   const { isWishlisted, toggle } = useWishlist();
-  const videoRef = useRef(null);
   const wishlisted = isWishlisted(product?._id);
   const hasVideo = Boolean(product?.cardVideoUrl);
+  const { videoRef, hoverHandlers } = useLazyCloudinaryCardVideo(
+    product?.cardVideoUrl,
+    [product?._id, product?.cardVideoUrl],
+  );
 
   const imagePrimary = product?.images?.[0] || "https://placehold.co/700x900?text=SAMI";
   const imageSecondary = product?.images?.[1] || imagePrimary;
@@ -39,22 +42,7 @@ export default function ProductCard({ product }) {
     addToCart(product, preferredSize);
   };
 
-  const cardHoverMedia =
-    hasVideo
-      ? {
-          onMouseEnter: () => {
-            const v = videoRef.current;
-            if (v) void v.play().catch(() => {});
-          },
-          onMouseLeave: () => {
-            const v = videoRef.current;
-            if (v) {
-              v.pause();
-              v.currentTime = 0;
-            }
-          },
-        }
-      : {};
+  const cardHoverMedia = hasVideo ? hoverHandlers : {};
 
   return (
     <article className="group">
@@ -75,7 +63,7 @@ export default function ProductCard({ product }) {
           {hasVideo ? (
             <PortraitCoverVideo
               ref={videoRef}
-              src={product.cardVideoUrl}
+              src={undefined}
               wrapperClassName="absolute inset-0 overflow-hidden"
               videoClassName="opacity-0 transition-opacity duration-500 group-hover:opacity-100"
               videoAdjustments={product?.cardVideoAdjustments}
@@ -83,7 +71,7 @@ export default function ProductCard({ product }) {
               muted
               loop
               playsInline
-              preload="metadata"
+              preload="none"
             />
           ) : (
             <Image
@@ -97,10 +85,12 @@ export default function ProductCard({ product }) {
             />
           )}
 
-          {/* Wishlist heart */}
           <button
             type="button"
-            onClick={(e) => { e.preventDefault(); toggle(product?._id); }}
+            onClick={(e) => {
+              e.preventDefault();
+              toggle(product?._id);
+            }}
             aria-label={wishlisted ? "Remove from wishlist" : "Save to wishlist"}
             className={`absolute end-2.5 top-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 shadow-sm backdrop-blur-[2px] transition-all duration-200 hover:scale-110 hover:bg-white ${
               wishlisted ? "opacity-100" : "opacity-0 group-hover:opacity-100"

@@ -97,7 +97,7 @@ export const t = {
   cardVideo: "Видео для карточки",
   cardVideoHint:
     "Короткое зацикленное видео при наведении на карточку в каталоге. Необязательно.",
-  cardVideoFormats: "MP4, WebM, MOV · до 80 МБ",
+  cardVideoFormats: "MP4, WebM, MOV · до 30 МБ",
   cardVideoUploading: "Загрузка видео…",
   removeCardVideo: "Удалить видео",
   cardVideoPreview: "Предпросмотр",

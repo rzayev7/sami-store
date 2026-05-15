@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
       const stream = cloudinary.uploader.upload_stream(
         {
           folder: "products",
+          format: "webp",
           // Cap source dimensions so over-sized originals are never stored.
           // Delivery transformations (f_auto, q_auto, w_*) still apply on top
           // of this base, but the raw asset won't exceed 2400px on any side.
