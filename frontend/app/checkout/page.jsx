@@ -386,13 +386,13 @@ export default function CheckoutPage() {
               </p>
               <p className="text-xs text-[var(--color-muted)]">
                 <a
-                  href="https://wa.me/994554737996"
+                  href="https://wa.me/994517570749"
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-1.5 underline underline-offset-2"
                 >
                   <MessageCircle size={14} />
-                  +994554737996
+                  +994517570749
                 </a>
               </p>
             </div>
