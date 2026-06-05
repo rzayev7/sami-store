@@ -13,6 +13,7 @@ import {
   Crop,
   Star,
   Video,
+  Sparkles,
 } from "lucide-react";
 import api from "../../lib/api";
 import { getAdminAuthHeaders } from "../../lib/adminAuth";
@@ -885,6 +886,9 @@ export default function ProductForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [aiFilledAt, setAiFilledAt] = useState(null);
+
   const isCreateMode = mode === "create";
 
   const [matchCandidates, setMatchCandidates] = useState([]);
@@ -895,6 +899,18 @@ export default function ProductForm({
   const submitLabel = mode === "edit" ? t.saveChanges : t.saveProduct;
 
   const hasHydrated = useRef(false);
+
+  /* refs for stale-closure-safe reads inside callbacks */
+  const nameRef = useRef(name);
+  nameRef.current = name;
+  const categoryRef = useRef(category);
+  categoryRef.current = category;
+  const descriptionRef = useRef(description);
+  descriptionRef.current = description;
+  const fabricCareRef = useRef(fabricCare);
+  fabricCareRef.current = fabricCare;
+  const colorsRef = useRef(colors);
+  colorsRef.current = colors;
 
   const selectedExisting = useMemo(() => {
     if (!selectedExistingId) return null;
@@ -1014,6 +1030,88 @@ export default function ProductForm({
     }
   }, [initialProduct, mode, hydrateForm]);
 
+  /* ---------- AI auto-fill ---------- */
+
+  const aiLastFileRef = useRef(null);
+
+  /** Downscale file to ≤600px for AI – reduces base64 payload ~4× */
+  const resizeForAI = useCallback(async (file) => {
+    const objectUrl = URL.createObjectURL(file);
+    try {
+      const img = await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = objectUrl;
+      });
+      const MAX = 600;
+      const scale = Math.min(1, MAX / Math.max(img.naturalWidth, img.naturalHeight));
+      const w = Math.round(img.naturalWidth * scale);
+      const h = Math.round(img.naturalHeight * scale);
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, w, h);
+      return await new Promise((resolve) =>
+        canvas.toBlob((blob) => resolve(blob || file), "image/jpeg", 0.82)
+      );
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  }, []);
+
+  const analyzeWithAI = useCallback(async (file) => {
+    if (!file) return;
+    aiLastFileRef.current = file;
+    setAiAnalyzing(true);
+    setAiFilledAt(null);
+    try {
+      const smallBlob = await resizeForAI(file);
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result || "");
+          resolve(result.includes(",") ? result.split(",")[1] : result);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(smallBlob);
+      });
+
+      const authHeaders = getAdminAuthHeaders();
+      const res = await fetch("/api/ai/analyze-product", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders },
+        body: JSON.stringify({ imageBase64: base64, mimeType: "image/jpeg" }),
+      });
+
+      if (!res.ok) {
+        let msg = `AI ошибка ${res.status}`;
+        try { const j = await res.json(); msg = j.message || msg; } catch { /* ignore */ }
+        setErrorMessage(`AI: ${msg}`);
+        return;
+      }
+
+      const data = await res.json();
+      let filled = false;
+      if (data.name && !nameRef.current.trim()) { setName(data.name); filled = true; }
+      if (data.category && !categoryRef.current) {
+        const valid = PRODUCT_CATEGORIES.find((c) => c.value === data.category);
+        if (valid) { setCategory(data.category); filled = true; }
+      }
+      if (data.description && !descriptionRef.current.trim()) { setDescription(data.description); filled = true; }
+      if (data.fabricCare && !fabricCareRef.current.trim()) { setFabricCare(data.fabricCare); filled = true; }
+      if (Array.isArray(data.colors) && data.colors.length > 0 && colorsRef.current.length === 0) {
+        setColors(data.colors); filled = true;
+      }
+      if (filled) setAiFilledAt(Date.now());
+      else setErrorMessage("AI не смог определить поля — попробуйте другое фото.");
+    } catch (err) {
+      setErrorMessage(`AI: ${err?.message || "Нет соединения"}`);
+    } finally {
+      setAiAnalyzing(false);
+    }
+  }, [resizeForAI]);
+
   /* ---------- Image handling ---------- */
 
   const addFiles = useCallback(async (fileList) => {
@@ -1054,8 +1152,15 @@ export default function ProductForm({
     }
 
     if (compressedItems.length === 0) return;
+
+    const wasEmpty = imageItemsRef.current.length === 0;
     setImageItems((prev) => [...prev, ...compressedItems]);
-  }, []);
+
+    // Trigger AI auto-fill on the first image in create mode, only when fields are blank.
+    if (wasEmpty && mode === "create" && compressedItems.length > 0) {
+      analyzeWithAI(compressedItems[0].file);
+    }
+  }, [analyzeWithAI, mode]);
 
   const removeImage = useCallback((id) => {
     setImageItems((prev) => {
@@ -1494,6 +1599,38 @@ export default function ProductForm({
         {/* ---- General Information ---- */}
         <SectionCard title={t.generalInfo}>
           <div className="space-y-4">
+            {/* AI status banner */}
+            {aiAnalyzing && (
+              <div className="flex items-center gap-2.5 rounded-lg border border-violet-200 bg-violet-50 px-3.5 py-2.5 text-[12px] text-violet-700">
+                <Loader2 size={13} strokeWidth={2} className="animate-spin shrink-0" />
+                <span>AI анализирует фото и заполняет поля…</span>
+              </div>
+            )}
+            {aiFilledAt && !aiAnalyzing && (
+              <div className="flex items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-[12px] text-emerald-700">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={13} strokeWidth={2} className="shrink-0" />
+                  <span>AI заполнил поля — проверьте и отредактируйте при необходимости</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => aiLastFileRef.current && analyzeWithAI(aiLastFileRef.current)}
+                    className="text-emerald-600 underline underline-offset-2 transition hover:text-emerald-800"
+                  >
+                    Повторить
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAiFilledAt(null)}
+                    className="text-emerald-500 transition hover:text-emerald-700"
+                    aria-label="Закрыть"
+                  >
+                    <X size={12} strokeWidth={2.5} />
+                  </button>
+                </div>
+              </div>
+            )}
             {isCreateMode && matchCandidates.length > 0 && !selectedExistingId && (
               <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
                 <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-amber-700">
@@ -1992,44 +2129,7 @@ export default function ProductForm({
               : ""
           }
         >
-          <p className="mb-4 text-[12px] leading-relaxed text-black/45">
-            {t.imageCompressHint}
-          </p>
-
-          {galleryItems.length > 0 && (
-            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {galleryItems.map((img, idx) => (
-                <ProductImageCard
-                  key={img.key}
-                  itemId={img.key}
-                  src={img.src}
-                  metaNew={
-                    img.kind === "new" &&
-                    img.width != null &&
-                    img.height != null &&
-                    img.bytes != null
-                      ? { w: img.width, h: img.height, bytes: img.bytes }
-                      : null
-                  }
-                  isCover={idx === 0}
-                  showCoverAction={idx !== 0}
-                  progress={
-                    img.kind === "new" && isSubmitting
-                      ? uploadProgress[img.key] ?? 0
-                      : undefined
-                  }
-                  onRemove={() => removeImage(img.key)}
-                  onCrop={() => setCropModal({ id: img.key, src: img.src })}
-                  onSetCover={() => setAsCover(img.key)}
-                  onDragStart={handleThumbDragStart}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => handleThumbDrop(e, img.key)}
-                  onPhotoClick={setLightboxSrc}
-                />
-              ))}
-            </div>
-          )}
-
+          {/* Drop zone */}
           <div
             ref={dropZoneRef}
             onDragOver={handleDragOver}
@@ -2044,45 +2144,44 @@ export default function ProductForm({
             }}
             role="button"
             tabIndex={0}
-            className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors sm:flex-row sm:justify-between sm:text-left ${
+            className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
               isDragging
                 ? "border-[#C8A96E] bg-[#C8A96E]/10"
-                : "border-black/[0.12] bg-neutral-50 hover:border-[#C8A96E]/60 hover:bg-[#C8A96E]/[0.04]"
+                : "border-black/[0.12] bg-[var(--color-cream)]/60 hover:border-[#C8A96E]/60 hover:bg-[#C8A96E]/[0.04]"
             }`}
           >
-            <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
-              <div
-                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-black/[0.06] bg-white shadow-sm"
-                style={{
-                  color: isDragging ? ACCENT_GOLD : "rgba(0,0,0,0.35)",
-                }}
-              >
-                {isDragging ? (
-                  <Upload size={26} strokeWidth={1.8} />
-                ) : (
-                  <ImageIcon size={26} strokeWidth={1.8} />
-                )}
-              </div>
-              <div>
-                <p className="text-[15px] font-semibold text-black/70">
-                  {isDragging ? t.dragImagesHere : t.bulkUploadHint}
-                </p>
-                <p className="mt-1 text-[12px] text-black/40">{t.dragOrClick}</p>
-                <p className="mt-0.5 text-[11px] text-black/35">{t.imageFormats}</p>
-              </div>
+            <div
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-black/[0.06] bg-white shadow-sm"
+              style={{ color: isDragging ? ACCENT_GOLD : "rgba(0,0,0,0.35)" }}
+            >
+              {isDragging ? (
+                <Upload size={26} strokeWidth={1.8} />
+              ) : (
+                <ImageIcon size={26} strokeWidth={1.8} />
+              )}
             </div>
-            <span
-              className="shrink-0 rounded-lg px-4 py-2 text-[12px] font-semibold uppercase tracking-wider text-white shadow-sm"
+            <div>
+              <p className="text-[15px] font-semibold text-black/70">
+                {isDragging ? t.dragImagesHere : "Перетащите фото сюда или нажмите"}
+              </p>
+              <p className="mt-1 text-[12px] text-black/40">
+                JPG, PNG, WEBP · до 10 МБ · несколько файлов
+              </p>
+            </div>
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-medium text-white shadow-sm"
               style={{ backgroundColor: ACCENT_GOLD }}
             >
-              {t.add}
-            </span>
+              <Sparkles size={13} strokeWidth={2} />
+              AI-анализ включён
+            </div>
           </div>
 
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
             multiple
             className="hidden"
             onChange={(e) => {
@@ -2092,6 +2191,85 @@ export default function ProductForm({
               e.target.value = "";
             }}
           />
+
+          {/* Compact photo grid */}
+          {galleryItems.length > 0 && (
+            <div className="mt-5 flex flex-wrap gap-3">
+              {galleryItems.map((img, idx) => (
+                <div
+                  key={img.key}
+                  className="group relative"
+                  draggable
+                  onDragStart={(e) => handleThumbDragStart(e, img.key)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => handleThumbDrop(e, img.key)}
+                >
+                  {/* thumbnail */}
+                  <button
+                    type="button"
+                    onClick={() => setLightboxSrc(img.src)}
+                    className="block h-[120px] w-[90px] overflow-hidden rounded-xl border border-black/[0.08] bg-neutral-100 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-gold)]"
+                    aria-label={t.photoPreviewHint}
+                  >
+                    <img
+                      src={img.src}
+                      alt=""
+                      className="h-full w-full object-cover"
+                      draggable={false}
+                    />
+                    {img.kind === "new" && isSubmitting && (
+                      <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/40">
+                        <Loader2 size={18} className="animate-spin text-white" />
+                      </div>
+                    )}
+                  </button>
+
+                  {/* cover badge */}
+                  {idx === 0 && (
+                    <span
+                      className="pointer-events-none absolute bottom-0 left-0 right-0 flex items-center justify-center rounded-b-xl py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-white"
+                      style={{ backgroundColor: "rgba(0,0,0,0.55)" }}
+                    >
+                      Главное
+                    </span>
+                  )}
+
+                  {/* × delete */}
+                  <button
+                    type="button"
+                    onClick={() => removeImage(img.key)}
+                    aria-label={t.delete}
+                    className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full border border-white bg-black/75 text-white opacity-0 shadow transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+                  >
+                    <X size={10} strokeWidth={3} />
+                  </button>
+
+                  {/* crop + set-cover toolbar (on hover) */}
+                  <div className="absolute inset-x-0 top-0 flex justify-center gap-0.5 pt-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <button
+                      type="button"
+                      onClick={() => setCropModal({ id: img.key, src: img.src })}
+                      aria-label={t.cropImage}
+                      className="flex h-6 w-6 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur transition hover:bg-black/80"
+                    >
+                      <Crop size={11} strokeWidth={2} />
+                    </button>
+                    {idx !== 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setAsCover(img.key)}
+                        aria-label={t.setAsCover}
+                        className="flex h-6 w-6 items-center justify-center rounded-md bg-black/60 backdrop-blur transition hover:bg-black/80"
+                        style={{ color: ACCENT_GOLD }}
+                      >
+                        <Star size={11} strokeWidth={2} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CollapsibleCard>
 
         <CollapsibleCard
