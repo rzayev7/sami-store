@@ -24,7 +24,7 @@ import SizeGuide from "../../../components/SizeGuide";
 import { useCart } from "../../../context/CartContext";
 import { useCurrency } from "../../../context/CurrencyContext";
 import { useLanguage, useLocalePath } from "../../../context/LanguageContext";
-import { cloudinaryOptimizedUrl, getCloudinaryVideoUrl, isCloudinaryUrl } from "../../../lib/image";
+import { cloudinaryLoader, getCloudinaryPoster, getCloudinaryVideoUrl, isCloudinaryUrl } from "../../../lib/image";
 import { formatSizeLabel } from "../../../lib/sizeDisplay";
 import PortraitCoverVideo from "../../../components/PortraitCoverVideo";
 import {
@@ -179,11 +179,12 @@ export default function ProductDetailClient({
     if (!videoUrl) {
       return imgs.map((url) => ({ type: "image", url }));
     }
+    const videoPoster = getCloudinaryPoster(product.cardVideoUrl, { width: 720 });
     const out = [];
     for (let i = 0; i < imgs.length; i++) {
       out.push({ type: "image", url: imgs[i] });
       if (i === 0) {
-        out.push({ type: "video", url: videoUrl });
+        out.push({ type: "video", url: videoUrl, poster: videoPoster });
       }
     }
     return out;
@@ -673,13 +674,13 @@ export default function ProductDetailClient({
                           </div>
                         ) : (
                           <Image
-                            src={cloudinaryOptimizedUrl(item.url, { preset: "thumb" })}
+                            src={item.url}
                             alt={`${product.name} ${index + 1}`}
                             fill
-                            sizes="(max-width: 1024px) 86px, 86px"
+                            sizes="86px"
                             className="object-cover"
-                            unoptimized={isCloudinaryUrl(item.url)}
-                            quality={90}
+                            loader={isCloudinaryUrl(item.url) ? cloudinaryLoader : undefined}
+                            unoptimized={!isCloudinaryUrl(item.url)}
                           />
                         )}
                       </button>
@@ -715,6 +716,7 @@ export default function ProductDetailClient({
                         wrapperClassName="absolute inset-0 overflow-hidden"
                         videoAdjustments={product?.cardVideoAdjustments}
                         disablePortraitFix={product?.cardVideoLandscape === true}
+                        poster={item.poster}
                         muted
                         playsInline
                         preload="none"
@@ -748,13 +750,13 @@ export default function ProductDetailClient({
                     </div>
                   ) : (
                     <Image
-                      src={cloudinaryOptimizedUrl(item.url, { preset: "product" })}
+                      src={item.url}
                       alt={`${product.name || "Product image"} ${index + 1}`}
                       fill
                       priority={index === 0}
                       sizes="(max-width: 1024px) 100vw, 500px"
-                      unoptimized={isCloudinaryUrl(item.url)}
-                      quality={95}
+                      loader={isCloudinaryUrl(item.url) ? cloudinaryLoader : undefined}
+                      unoptimized={!isCloudinaryUrl(item.url)}
                       className="object-cover object-center"
                     />
                   )}
@@ -1425,12 +1427,13 @@ export default function ProductDetailClient({
                     >
                       <div className="relative aspect-[3/4] w-full overflow-hidden rounded-md bg-[var(--color-sand)]/30">
                         <Image
-                          src={cloudinaryOptimizedUrl(img, { preset: "listing" })}
+                          src={img}
                           alt={p.name || "Product"}
                           fill
                           sizes="(max-width: 640px) 42vw, 28vw"
                           className="object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]"
-                          unoptimized={isCloudinaryUrl(img)}
+                          loader={isCloudinaryUrl(img) ? cloudinaryLoader : undefined}
+                          unoptimized={!isCloudinaryUrl(img)}
                         />
                       </div>
                       <p className="mt-2 text-[11px] font-medium leading-snug tracking-[0.02em] text-[var(--color-black)] line-clamp-2 group-hover:opacity-80 sm:text-[12px]">

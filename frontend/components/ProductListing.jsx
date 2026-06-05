@@ -14,7 +14,7 @@ import api, { getApiBaseURL } from "../lib/api";
 import { useCart } from "../context/CartContext";
 import { useCurrency } from "../context/CurrencyContext";
 import { useLanguage } from "../context/LanguageContext";
-import { cloudinaryOptimizedUrl, getCloudinaryVideoUrl, isCloudinaryUrl } from "../lib/image";
+import { cloudinaryLoader, getCloudinaryVideoUrl, isCloudinaryUrl } from "../lib/image";
 import { formatSizeLabel, normalizeSizeForFilter } from "../lib/sizeDisplay";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 import { productToItem, trackSelectItem, trackViewItemList, trackSearch, trackAddToCart } from "../lib/gtag";
@@ -96,13 +96,11 @@ function ProductCard({ product }) {
   const videoLoadedRef = useRef(false);
   const hasVideo = Boolean(product.cardVideoUrl);
   const cardVideoUrl = product?.cardVideoUrl
-    ? getCloudinaryVideoUrl(product.cardVideoUrl, { width: 720 })
+    ? getCloudinaryVideoUrl(product.cardVideoUrl, { width: 640 })
     : "";
   const isOutOfStock = Number(product.stock || 0) <= 0;
   const primaryImage = product.images?.[0] || "https://placehold.co/600x800?text=Sami";
   const secondaryImage = product.images?.[1] || "";
-  const primarySrc = cloudinaryOptimizedUrl(primaryImage, { preset: "listing" });
-  const secondarySrc = cloudinaryOptimizedUrl(secondaryImage, { preset: "listing" });
   const primaryIsCloudinary = isCloudinaryUrl(primaryImage);
   const secondaryIsCloudinary = isCloudinaryUrl(secondaryImage);
   const preferredSize =
@@ -153,7 +151,7 @@ function ProductCard({ product }) {
           {...cardHoverMedia}
         >
           <Image
-            src={primarySrc}
+            src={primaryImage}
             alt={product.name || "Product"}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -162,8 +160,8 @@ function ProductCard({ product }) {
                 ? "object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04] group-hover:opacity-0"
                 : "object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
             }
-            unoptimized={primaryIsCloudinary}
-            quality={92}
+            loader={primaryIsCloudinary ? cloudinaryLoader : undefined}
+            unoptimized={!primaryIsCloudinary}
           />
 
           {hasVideo ? (
@@ -182,13 +180,13 @@ function ProductCard({ product }) {
           ) : (
             product.images?.[1] && (
               <Image
-                src={secondarySrc}
+                src={secondaryImage}
                 alt={`${product.name} alternate`}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                unoptimized={secondaryIsCloudinary}
-                quality={92}
+                loader={secondaryIsCloudinary ? cloudinaryLoader : undefined}
+                unoptimized={!secondaryIsCloudinary}
               />
             )
           )}

@@ -3,15 +3,7 @@
 import Image from "next/image";
 import Link from "./LocaleLink";
 import { useLanguage } from "../context/LanguageContext";
-import { cloudinaryOptimizedUrl } from "../lib/image";
-
-/**
- * Width budget for the collection tiles:
- *   4-col desktop (max-screen-2xl ~1536px, px-12 = 48px, gap-4 = 3×16px) → ~364px per tile
- *   2-col mobile  (375px, px-4, gap-2.5) → ~184px per tile
- * At 2× retina the largest case is ~730px → w_760 covers it comfortably.
- */
-const TILE_WIDTH = 760;
+import { cloudinaryLoader, isCloudinaryUrl } from "../lib/image";
 
 const COLLECTIONS = [
   {
@@ -58,7 +50,7 @@ export default function CollectionsStrip() {
         {/* 4-tile grid */}
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-4">
           {COLLECTIONS.map((col, idx) => {
-            const optimizedSrc = cloudinaryOptimizedUrl(col.image, { width: TILE_WIDTH });
+            const colIsCloudinary = isCloudinaryUrl(col.image);
 
             return (
               <Link
@@ -67,13 +59,15 @@ export default function CollectionsStrip() {
                 className="group relative block aspect-[3/4] overflow-hidden rounded-xl bg-[var(--color-sand)]"
               >
                 <Image
-                  src={optimizedSrc}
+                  src={col.image}
                   alt={t(col.labelKey)}
                   fill
                   sizes="(max-width: 640px) 50vw, 25vw"
                   className="object-cover transition-transform duration-700 ease-out will-change-transform group-hover:scale-[1.06]"
                   draggable={false}
                   priority={idx < 2}
+                  loader={colIsCloudinary ? cloudinaryLoader : undefined}
+                  unoptimized={!colIsCloudinary}
                 />
 
                 {/* Gradient overlay */}

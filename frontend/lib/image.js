@@ -76,8 +76,66 @@ export function cloudinaryOptimizedUrl(url, options = {}) {
 
 export const imagePresets = IMAGE_PRESETS;
 
+/**
+ * next/image-compatible loader for Cloudinary assets.
+ *
+ * Unlike baking a single fixed width into the URL (what `cloudinaryOptimizedUrl`
+ * does), this lets next/image request the asset at each candidate device width
+ * and emit a real `srcset`. Combined with a correct `sizes` attribute, mobile
+ * devices download a small file instead of the desktop-sized one.
+ *
+ * Non-Cloudinary `src` (placehold.co, local /public files) is returned unchanged.
+ * Existing transform segments (e.g. named presets like t_a) are preserved by
+ * chaining our transform in front of them.
+ *
+ * @param {{ src: string, width: number, quality?: number }} args
+ */
+export function cloudinaryLoader({ src, width, quality }) {
+  if (!isCloudinaryUrl(src)) return src;
+
+  const marker = "/upload/";
+  if (!src.includes(marker)) return src;
+
+  const q =
+    Number.isFinite(Number(quality)) && Number(quality) > 0
+      ? `q_${Math.round(Number(quality))}`
+      : "q_auto:good";
+
+  const parts = ["f_auto", q, `w_${Math.round(width)}`, "c_limit"];
+  return src.replace(marker, `${marker}${parts.join(",")}/`);
+}
+
+/**
+ * Build a Cloudinary still-frame poster (.jpg of the first frame) for a raw
+ * video URL, so a <video> can show an instant thumbnail without downloading
+ * any video bytes until the user presses play.
+ *
+ *   /video/upload/<id>.mp4 → /video/upload/so_0,f_auto,q_auto:good,w_<n>,c_limit/<id>.jpg
+ */
+export function getCloudinaryPoster(url, options = {}) {
+  if (!isCloudinaryUrl(url)) return undefined;
+
+  const marker = "/upload/";
+  if (!url.includes(marker)) return undefined;
+
+  const width = Number(options.width ?? 720);
+  const parts = ["so_0", "f_auto", "q_auto:good", `w_${Math.round(width)}`, "c_limit"];
+
+  let out = url.replace(marker, `${marker}${parts.join(",")}/`);
+  // Swap the video extension for .jpg (preserve any query string).
+  if (/\.(mp4|webm|mov|m4v|ogv|ogg)(\?.*)?$/i.test(out)) {
+    out = out.replace(/\.(mp4|webm|mov|m4v|ogv|ogg)(\?.*)?$/i, ".jpg$2");
+  } else if (!/\.jpe?g(\?|$)/i.test(out)) {
+    out = out.replace(/(\?.*)?$/, ".jpg$1");
+  }
+  return out;
+}
+
 const VIDEO_DEFAULTS = {
-  width: 720,
+  // Card hover clips render in small grid slots (≤~320px on desktop, where hover
+  // even exists); 640 covers 2× retina. The product-detail player passes its own
+  // larger width. Either way we never approach 1080p.
+  width: 640,
   quality: "auto:good",
   fit: "limit",
 };

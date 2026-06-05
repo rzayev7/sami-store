@@ -7,7 +7,7 @@ import api from "../lib/api";
 import ProductCarousel from "./ProductCarousel";
 import { useCurrency } from "../context/CurrencyContext";
 import { useLanguage } from "../context/LanguageContext";
-import { cloudinaryOptimizedUrl, getCloudinaryVideoUrl, isCloudinaryUrl } from "../lib/image";
+import { cloudinaryLoader, getCloudinaryVideoUrl, isCloudinaryUrl } from "../lib/image";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 
 function BestSellerCard({ item, formatPrice }) {
@@ -15,12 +15,10 @@ function BestSellerCard({ item, formatPrice }) {
   const videoLoadedRef = useRef(false);
   const hasVideo = Boolean(item.cardVideoUrl);
   const cardVideoUrl = item?.cardVideoUrl
-    ? getCloudinaryVideoUrl(item.cardVideoUrl, { width: 720 })
+    ? getCloudinaryVideoUrl(item.cardVideoUrl, { width: 640 })
     : "";
   const rawImage = item.images?.[0] || "https://placehold.co/700x900?text=SAMI";
   const rawSecondaryImage = item.images?.[1] || rawImage;
-  const imageSrc = cloudinaryOptimizedUrl(rawImage, { preset: "listing" });
-  const secondaryImageSrc = cloudinaryOptimizedUrl(rawSecondaryImage, { preset: "listing" });
   const isCloudinary = isCloudinaryUrl(rawImage);
   const isSecondaryCloudinary = isCloudinaryUrl(rawSecondaryImage);
 
@@ -65,7 +63,7 @@ function BestSellerCard({ item, formatPrice }) {
         {...hover}
       >
         <Image
-          src={imageSrc}
+          src={rawImage}
           alt={item.name}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -74,8 +72,8 @@ function BestSellerCard({ item, formatPrice }) {
               ? "object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03] group-hover:opacity-0"
               : "object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
           }
-          unoptimized={isCloudinary}
-          quality={92}
+          loader={isCloudinary ? cloudinaryLoader : undefined}
+          unoptimized={!isCloudinary}
         />
         {hasVideo ? (
           <PortraitCoverVideo
@@ -92,13 +90,13 @@ function BestSellerCard({ item, formatPrice }) {
           />
         ) : (
           <Image
-            src={secondaryImageSrc}
+            src={rawSecondaryImage}
             alt={`${item.name} alternate`}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-            unoptimized={isSecondaryCloudinary}
-            quality={92}
+            loader={isSecondaryCloudinary ? cloudinaryLoader : undefined}
+            unoptimized={!isSecondaryCloudinary}
           />
         )}
       </div>

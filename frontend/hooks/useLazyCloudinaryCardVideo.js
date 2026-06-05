@@ -10,7 +10,7 @@ export function useLazyCloudinaryCardVideo(rawUrl, deps = []) {
   const videoRef = useRef(null);
   const videoLoadedRef = useRef(false);
 
-  const deliveryUrl = rawUrl ? getCloudinaryVideoUrl(rawUrl, { width: 720 }) : "";
+  const deliveryUrl = rawUrl ? getCloudinaryVideoUrl(rawUrl, { width: 640 }) : "";
 
   useEffect(() => {
     videoLoadedRef.current = false;

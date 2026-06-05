@@ -10,7 +10,7 @@ import { useWishlist } from "../context/WishlistContext";
 import { trackAddToCart, productToItem } from "../lib/gtag";
 import { trackTikTokAddToCart } from "../lib/tiktok-pixel";
 import { trackMetaAddToCart } from "../lib/meta-pixel";
-import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
+import { cloudinaryLoader, isCloudinaryUrl } from "../lib/image";
 import { useLazyCloudinaryCardVideo } from "../hooks/useLazyCloudinaryCardVideo";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 
@@ -28,8 +28,6 @@ export default function ProductCard({ product }) {
 
   const imagePrimary = product?.images?.[0] || "https://placehold.co/700x900?text=SAMI";
   const imageSecondary = product?.images?.[1] || imagePrimary;
-  const primarySrc = cloudinaryOptimizedUrl(imagePrimary, { preset: "listing" });
-  const secondarySrc = cloudinaryOptimizedUrl(imageSecondary, { preset: "listing" });
   const primaryIsCloudinary = isCloudinaryUrl(imagePrimary);
   const secondaryIsCloudinary = isCloudinaryUrl(imageSecondary);
   const preferredSize = Array.isArray(product?.sizes) && product.sizes.length > 0 ? product.sizes[0] : "";
@@ -52,13 +50,13 @@ export default function ProductCard({ product }) {
           {...cardHoverMedia}
         >
           <Image
-            src={primarySrc}
+            src={imagePrimary}
             alt={product?.name || "SAMI product"}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover transition-opacity duration-500 group-hover:opacity-0"
-            unoptimized={primaryIsCloudinary}
-            quality={92}
+            loader={primaryIsCloudinary ? cloudinaryLoader : undefined}
+            unoptimized={!primaryIsCloudinary}
           />
           {hasVideo ? (
             <PortraitCoverVideo
@@ -75,13 +73,13 @@ export default function ProductCard({ product }) {
             />
           ) : (
             <Image
-              src={secondarySrc}
+              src={imageSecondary}
               alt={product?.name || "SAMI product alternate"}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-              unoptimized={secondaryIsCloudinary}
-              quality={92}
+              loader={secondaryIsCloudinary ? cloudinaryLoader : undefined}
+              unoptimized={!secondaryIsCloudinary}
             />
           )}
 
