@@ -67,6 +67,7 @@ function Select({ children, ...props }) {
 }
 
 export default function ManualOrderPage() {
+  const [mode, setMode]                   = useState("quick"); // "quick" | "full"
   const [products, setProducts]           = useState([]);
   const [productsLoading, setPL]          = useState(true);
   const [productSearch, setProductSearch] = useState("");
@@ -79,6 +80,12 @@ export default function ManualOrderPage() {
   const [createdOrder, setCreatedOrder]   = useState(null);
   const [paymentLink, setPaymentLink]     = useState("");
   const [copyState, setCopyState]         = useState("");
+
+  /* ── quick (amount-only) mode ── */
+  const [quickAmount, setQuickAmount]     = useState("");
+  const [quickName, setQuickName]         = useState("");
+  const [quickEmail, setQuickEmail]       = useState("");
+  const [quickNote, setQuickNote]         = useState("");
 
   useEffect(() => {
     api.get("/api/products")
@@ -119,6 +126,36 @@ export default function ManualOrderPage() {
       String(p?.name || "").toLowerCase().includes(q) ||
       String(p?.code || "").toLowerCase().includes(q);
   });
+
+  /* ── submit: quick amount-only link ── */
+  const handleQuickCreate = async () => {
+    setError("");
+    const amount = Number(String(quickAmount).replace(",", "."));
+    if (!Number.isFinite(amount) || amount < 0.5) {
+      setError("Введите сумму не меньше 0.50 ₼.");
+      return;
+    }
+
+    try {
+      setCreating(true);
+      const { data: order } = await api.post("/api/orders/admin/quick", {
+        amount,
+        ...(quickName.trim() ? { customerName: quickName.trim() } : {}),
+        ...(quickEmail.trim() ? { email: quickEmail.trim() } : {}),
+        ...(quickNote.trim() ? { orderNotes: quickNote.trim() } : {}),
+      }, { headers: getAdminAuthHeaders() });
+
+      if (!order?._id) throw new Error("No order ID");
+      const { data: init } = await api.post(`/api/payments/epoint/init/${encodeURIComponent(String(order._id))}`);
+      if (!init?.paymentUrl) throw new Error("No payment URL");
+      setCreatedOrder(order);
+      setPaymentLink(init.paymentUrl);
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Не удалось создать ссылку.");
+    } finally {
+      setCreating(false);
+    }
+  };
 
   /* ── submit ── */
   const handleCreate = async () => {
@@ -171,6 +208,7 @@ export default function ManualOrderPage() {
     setCreatedOrder(null); setPaymentLink(""); setCopyState(""); setError("");
     setCustomer(EMPTY_CUSTOMER); setItems([]); setShippingCost("0");
     setOrderNotes(""); setProductSearch("");
+    setQuickAmount(""); setQuickName(""); setQuickEmail(""); setQuickNote("");
   };
 
   /* ════════════════════════════════════════════════
@@ -268,12 +306,14 @@ export default function ManualOrderPage() {
             </div>
             <div className="rounded-xl bg-[var(--color-sand)]/40 p-3.5 text-sm">
               <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.1em] text-black/35">Сумма</p>
-              <div className="space-y-0.5 text-black/60">
-                <div className="flex justify-between"><span>Подытог</span><span>₼{subtotal.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span>Доставка</span><span>₼{shipping.toFixed(2)}</span></div>
-              </div>
+              {createdOrder.items?.length > 0 && (
+                <div className="space-y-0.5 text-black/60">
+                  <div className="flex justify-between"><span>Подытог</span><span>₼{subtotal.toFixed(2)}</span></div>
+                  <div className="flex justify-between"><span>Доставка</span><span>₼{shipping.toFixed(2)}</span></div>
+                </div>
+              )}
               <div className="mt-2 flex justify-between border-t border-[var(--color-line)] pt-2 font-semibold text-black">
-                <span>Итого</span><span>₼{total.toFixed(2)}</span>
+                <span>Итого</span><span>₼{Number(createdOrder.totalPriceUSD || total).toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -309,6 +349,112 @@ export default function ManualOrderPage() {
         </p>
       </div>
 
+      {/* mode tabs */}
+      <div className="inline-flex rounded-xl border border-[var(--color-line)] bg-white p-1">
+        <button
+          type="button"
+          onClick={() => { setMode("quick"); setError(""); }}
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            mode === "quick" ? "bg-black text-white" : "text-black/55 hover:text-black"
+          }`}
+        >
+          Быстрая ссылка
+        </button>
+        <button
+          type="button"
+          onClick={() => { setMode("full"); setError(""); }}
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            mode === "full" ? "bg-black text-white" : "text-black/55 hover:text-black"
+          }`}
+        >
+          Полный заказ
+        </button>
+      </div>
+
+      {/* ════════ QUICK MODE: amount only ════════ */}
+      {mode === "quick" && (
+        <div className="max-w-xl rounded-2xl border border-[var(--color-line)] bg-white shadow-sm">
+          <div className="border-b border-[var(--color-line)] px-6 py-4">
+            <p className="text-sm font-semibold text-black/80">Ссылка оплаты по сумме</p>
+            <p className="mt-0.5 text-xs text-black/45">
+              Введите сумму — получите ссылку. Данные клиента вводить не нужно.
+            </p>
+          </div>
+          <div className="px-6 py-5 space-y-4">
+            <div>
+              <Label required>Сумма (₼)</Label>
+              <input
+                type="number"
+                min="0.5"
+                step="0.01"
+                inputMode="decimal"
+                placeholder="0.00"
+                value={quickAmount}
+                onChange={(e) => setQuickAmount(e.target.value)}
+                className="sami-input text-lg font-semibold"
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label>Имя клиента</Label>
+                <Input placeholder="для сообщения (необяз.)" value={quickName} onChange={(e) => setQuickName(e.target.value)} />
+              </div>
+              <div>
+                <Label>Email для чека</Label>
+                <Input type="email" placeholder="необязательно" value={quickEmail} onChange={(e) => setQuickEmail(e.target.value)} />
+              </div>
+            </div>
+
+            <div>
+              <Label>Комментарий</Label>
+              <textarea
+                rows={2}
+                className="sami-input resize-none"
+                placeholder="за что оплата (необязательно)"
+                value={quickNote}
+                onChange={(e) => setQuickNote(e.target.value)}
+                maxLength={2000}
+              />
+            </div>
+
+            {error && (
+              <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700">
+                <span className="mt-px text-red-400">⚠</span>
+                {error}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={handleQuickCreate}
+              disabled={creating}
+              className="sami-btn-dark flex w-full items-center justify-center gap-2 py-3.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {creating ? (
+                <>
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                  </svg>
+                  Создание ссылки…
+                </>
+              ) : (
+                <>
+                  <CreditCard size={15} strokeWidth={2}/>
+                  Создать ссылку оплаты
+                </>
+              )}
+            </button>
+
+            <p className="text-center text-[11px] text-black/30">
+              Epoint · Банковская карта · Статус обновится автоматически
+            </p>
+          </div>
+        </div>
+      )}
+
+      {mode === "full" && (
       <div className="grid gap-6 lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_440px]">
 
         {/* ── LEFT: single unified customer form ── */}
@@ -573,6 +719,7 @@ export default function ManualOrderPage() {
           </div>
         </div>
       </div>
+      )}
     </section>
   );
 }

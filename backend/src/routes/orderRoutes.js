@@ -2,6 +2,7 @@ const express = require("express");
 const {
   createOrder,
   createAdminManualOrder,
+  createAdminQuickOrder,
   getOrders,
   getOrderById,
   updateOrder,
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.post("/", createOrder);
 router.post("/admin/manual", protectAdmin, createAdminManualOrder);
+router.post("/admin/quick", protectAdmin, createAdminQuickOrder);
 router.get("/", protectAdmin, getOrders);
 router.get("/customer-stats/:email", protectAdmin, getCustomerStats);
 // Public/role-aware access; controller sanitizes response for guests.

@@ -133,9 +133,9 @@ const createOrder = async (req, res, next) => {
 
     console.log(`[createOrder] orderId=${order._id} paymentMethod="${order.paymentMethod}"`);
 
-    // Fail-safe: do not send confirmation notifications at order creation time.
-    // Payment-linked notifications are sent from gateway/status flows after confirmation.
-    const shouldNotifyOnCreate = false;
+    // Send confirmation notifications immediately for orders that do not require
+    // external gateway confirmation (bank transfer / cash on delivery / manual payments).
+    const shouldNotifyOnCreate = order.paymentMethod !== "card";
     if (shouldNotifyOnCreate) {
       const whatsappResult = await sendWhatsAppOrderNotification(order);
       if (!whatsappResult.sent) {
@@ -179,6 +179,43 @@ const createAdminManualOrder = async (req, res, next) => {
     }
 
     const order = await Order.create(payload);
+    return res.status(201).json(order);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const createAdminQuickOrder = async (req, res, next) => {
+  try {
+    const amount = Math.round(Number(req.body?.amount || 0) * 100) / 100;
+    if (!Number.isFinite(amount) || amount < 0.5) {
+      return res.status(400).json({ message: "Amount must be at least 0.50 AZN" });
+    }
+
+    const customerName = String(req.body?.customerName || "").trim() || "Quick payment";
+    const email = String(req.body?.email || "").trim() || "manual@sami.store";
+    const phone = String(req.body?.phone || "").trim() || "-";
+    const note = String(req.body?.orderNotes || "").trim();
+
+    const order = await Order.create({
+      customerInfo: {
+        name: customerName,
+        email,
+        phone,
+        country: "-",
+        address: "-",
+        city: "-",
+        postalCode: "-",
+      },
+      items: [],
+      totalPriceUSD: amount,
+      shippingCost: 0,
+      paymentStatus: "pending",
+      paymentMethod: "card",
+      ...(note && { orderNotes: note }),
+      timeline: [{ event: "quick_payment_link_created_by_admin", timestamp: new Date() }],
+    });
+
     return res.status(201).json(order);
   } catch (error) {
     return next(error);
@@ -394,6 +431,7 @@ const getCustomerStats = async (req, res, next) => {
 module.exports = {
   createOrder,
   createAdminManualOrder,
+  createAdminQuickOrder,
   getOrders,
   getOrderById,
   updateOrder,
