@@ -911,6 +911,8 @@ export default function ProductForm({
   fabricCareRef.current = fabricCare;
   const colorsRef = useRef(colors);
   colorsRef.current = colors;
+  const sizesRef = useRef(sizes);
+  sizesRef.current = sizes;
 
   const selectedExisting = useMemo(() => {
     if (!selectedExistingId) return null;
@@ -1102,6 +1104,9 @@ export default function ProductForm({
       if (data.fabricCare && !fabricCareRef.current.trim()) { setFabricCare(data.fabricCare); filled = true; }
       if (Array.isArray(data.colors) && data.colors.length > 0 && colorsRef.current.length === 0) {
         setColors(data.colors); filled = true;
+      }
+      if (sizesRef.current.length === 0) {
+        setSizes([t.freeSize]); filled = true;
       }
       if (filled) setAiFilledAt(Date.now());
       else setErrorMessage("AI не смог определить поля — попробуйте другое фото.");

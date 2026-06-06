@@ -16,9 +16,17 @@ Fields:
   "name": "Short product name in English (e.g. Ivory Silk Blouse)",
   "category": "Exactly one of: Sets, Dresses, Shirts & Blouses, Pants & Skirts, Jumpsuits",
   "description": "2–3 sentences describing style, silhouette, and occasion in English",
-  "fabricCare": "Estimated fabric composition and care instructions in English (e.g. 100% Silk. Hand wash cold, do not tumble dry.)",
-  "colors": ["color1", "color2"]
-}`;
+  "fabricCare": "Fabric composition and care in English. This store uses ONLY: Linen, Cotton, or Corduroy — pick the most likely from the photo (never silk, satin, chiffon, polyester, etc.). Format: \"100% [Linen|Cotton|Corduroy]. [care instructions]\"",
+  "colors": ["color1", "color2"],
+  "sizes": ["free size"]
+}
+
+Important:
+- Always set "sizes" to exactly ["free size"] — one-size-fits-all only.
+- For fabricCare, choose ONLY Linen, Cotton, or Corduroy based on texture/appearance:
+  • Linen — matte, textured, breathable, often wrinkled look
+  • Cotton — smooth or soft natural weave, t-shirts, blouses
+  • Corduroy — visible vertical ribs/ridges on fabric`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -126,6 +134,7 @@ export async function POST(request: NextRequest) {
       colors: Array.isArray(parsed.colors)
         ? (parsed.colors as unknown[]).map((c) => String(c)).filter(Boolean)
         : [],
+      sizes: ["free size"],
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Internal error";
