@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "./LocaleLink";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
   SlidersHorizontal,
