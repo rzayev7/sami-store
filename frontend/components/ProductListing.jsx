@@ -328,13 +328,13 @@ export default function ProductListing({
   const activeRequestIdRef = useRef(0);
 
   const fetchProductsPage = useCallback(
-    async (targetPage) => {
+    async (targetPage, { silent = false } = {}) => {
       const requestId = activeRequestIdRef.current + 1;
       activeRequestIdRef.current = requestId;
       const base = getApiBaseURL();
       try {
         if (targetPage === 1) {
-          setLoading(true);
+          if (!silent) setLoading(true);
         } else {
           setIsFetchingMore(true);
         }
@@ -382,6 +382,7 @@ export default function ProductListing({
         hasInitialData &&
         serializeQueryParams(buildProductsQuery(1)) === initialRequestKey
       ) {
+        fetchProductsPage(1, { silent: true });
         return;
       }
     }

@@ -13,7 +13,7 @@ async function fetchProductById(productId) {
   if (!productId) return null;
   try {
     const response = await fetch(`${getApiBaseURL()}/api/products/${productId}`, {
-      next: { revalidate: 120 },
+      cache: "no-store",
     });
     if (!response.ok) return null;
     const data = await response.json();
@@ -49,7 +49,7 @@ async function fetchRelatedProducts(product) {
     const categoryResponse = await fetch(
       `${getApiBaseURL()}/api/products?${categoryParams.toString()}`,
       {
-        next: { revalidate: 120 },
+        cache: "no-store",
       },
     );
     if (!categoryResponse.ok) return [];
@@ -72,7 +72,7 @@ async function fetchRelatedProducts(product) {
     const fallbackResponse = await fetch(
       `${getApiBaseURL()}/api/products?${fallbackParams.toString()}`,
       {
-        next: { revalidate: 120 },
+        cache: "no-store",
       },
     );
     if (!fallbackResponse.ok) return initialPick;

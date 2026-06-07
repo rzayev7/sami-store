@@ -41,7 +41,7 @@ async function fetchInitialProducts(initialType) {
     });
 
     const response = await fetch(`${getApiBaseURL()}/api/products?${query.toString()}`, {
-      next: { revalidate: 60 },
+      cache: "no-store",
     });
     if (!response.ok) {
       return { initialData: null, initialRequestParams: params };

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import api from "../../../lib/api";
 import { getAdminAuthHeaders } from "../../../lib/adminAuth";
+import { revalidateStoreAfterProductChange } from "../../../lib/revalidateStore";
 import { t } from "../../../lib/admin-i18n";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../../../lib/image";
 
@@ -35,12 +36,19 @@ export default function AdminProductsPage() {
   }, []);
 
   const handleDelete = async (productId) => {
+    const normalizedId = String(productId || "");
+    if (!normalizedId) return;
+
     try {
-      setDeletingId(productId);
-      await api.delete(`/api/products/${productId}`, {
+      setDeletingId(normalizedId);
+      setErrorMessage("");
+      await api.delete(`/api/products/${normalizedId}`, {
         headers: getAdminAuthHeaders(),
       });
-      setProducts((prev) => prev.filter((product) => product._id !== productId));
+      setProducts((prev) =>
+        prev.filter((product) => String(product._id) !== normalizedId)
+      );
+      await revalidateStoreAfterProductChange(normalizedId);
     } catch {
       setErrorMessage(t.failedDeleteProduct);
     } finally {
