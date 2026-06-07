@@ -43,6 +43,7 @@ export default function LeadCapture() {
   const [dismissed, setDismissed] = useState(false);
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const [status, setStatus] = useState("idle"); // idle | submitting | success | error
   const [errorMsg, setErrorMsg] = useState("");
   const [copied, setCopied] = useState(false);
@@ -118,6 +119,7 @@ export default function LeadCapture() {
       await api.post("/api/leads", {
         email: trimmedEmail,
         whatsapp: trimmedWa,
+        website: honeypot,
         source: "popup",
         language,
         page: cleanPath,
@@ -233,6 +235,18 @@ export default function LeadCapture() {
                 </p>
 
                 <form onSubmit={handleSubmit} noValidate className="mt-5 space-y-3">
+                  {/* Honeypot — hidden from users, bots often fill this */}
+                  <input
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    className="pointer-events-none absolute h-0 w-0 opacity-0"
+                  />
+
                   <input
                     type="email"
                     name="email"

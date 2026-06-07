@@ -115,10 +115,11 @@ export default function LeadsPage() {
                   <td className="px-4 py-2.5 font-mono text-[11.5px]">
                     {lead.whatsapp ? (
                       <a
-                        href={`https://wa.me/${lead.whatsapp.replace(/\D/g, "")}`}
+                        href={`https://wa.me/${lead.whatsappNormalized || lead.whatsapp.replace(/\D/g, "")}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-emerald-600 underline underline-offset-2"
+                        title={lead.whatsapp}
                       >
                         {lead.whatsapp}
                       </a>

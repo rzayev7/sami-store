@@ -638,7 +638,7 @@
     "headline": "Enjoy 10% off your first order",
     "body": "Enter your email or WhatsApp to receive your exclusive discount code.",
     "emailPlaceholder": "Email address",
-    "whatsappPlaceholder": "WhatsApp (e.g. +1 555 000 0000)",
+    "whatsappPlaceholder": "WhatsApp with country code (e.g. +994 55 123 45 67)",
     "orDivider": "or",
     "submitButton": "Claim discount",
     "submitting": "Sending…",

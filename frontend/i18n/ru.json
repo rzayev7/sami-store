@@ -639,7 +639,7 @@
     "headline": "Скидка 10% на первый заказ",
     "body": "Укажите e-mail или WhatsApp — отправим ваш персональный промокод.",
     "emailPlaceholder": "Электронная почта",
-    "whatsappPlaceholder": "WhatsApp (например, +7 900 000 00 00)",
+    "whatsappPlaceholder": "WhatsApp с кодом страны (напр. +994 55 123 45 67)",
     "orDivider": "или",
     "submitButton": "Получить скидку",
     "submitting": "Отправка…",

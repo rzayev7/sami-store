@@ -1,27 +1,42 @@
 const Lead = require("../models/Lead");
+const {
+  normalizeLeadPhone,
+  countryFromRequest,
+  resolveLeadCountry,
+} = require("../utils/leadPhone");
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const WHATSAPP_RE = /^\+?[0-9\s\-().]{7,20}$/;
 
 const createLead = async (req, res, next) => {
   try {
+    // Honeypot — bots fill hidden fields; humans leave empty.
+    const honeypot = String(req.body?.website || req.body?._hp || "").trim();
+    if (honeypot) {
+      return res.status(200).json({ ok: true });
+    }
+
     const email = String(req.body?.email || "").trim().toLowerCase();
-    const whatsapp = String(req.body?.whatsapp || "").trim();
+    const rawWhatsapp = String(req.body?.whatsapp || "").trim();
     const source = String(req.body?.source || "popup").trim().slice(0, 40);
     const language = String(req.body?.language || "en").trim().toLowerCase().slice(0, 5);
-    const country = String(req.body?.country || "").trim().slice(0, 60);
     const page = String(req.body?.page || "").trim().slice(0, 200);
 
     const hasEmail = email && EMAIL_RE.test(email);
-    const hasWhatsApp = whatsapp && WHATSAPP_RE.test(whatsapp);
+    const phone = normalizeLeadPhone(rawWhatsapp);
+    const hasWhatsApp = phone.valid;
 
     if (!hasEmail && !hasWhatsApp) {
       return res.status(400).json({
-        message: "Please provide a valid email or WhatsApp number.",
+        message: "Please provide a valid email or WhatsApp number with country code (e.g. +994…).",
       });
     }
 
-    // Avoid duplicate email leads (silently succeed so UI can show thank-you).
+    const reqCountry = countryFromRequest(req);
+    const country = resolveLeadCountry({
+      phoneCountry: phone.countryFromPhone,
+      reqCountry,
+    });
+
     if (hasEmail) {
       const existing = await Lead.findOne({ email });
       if (existing) {
@@ -29,9 +44,17 @@ const createLead = async (req, res, next) => {
       }
     }
 
+    if (hasWhatsApp) {
+      const existingWa = await Lead.findOne({ whatsappNormalized: phone.digits });
+      if (existingWa) {
+        return res.status(200).json({ ok: true, duplicate: true });
+      }
+    }
+
     const lead = await Lead.create({
       email: hasEmail ? email : "",
-      whatsapp: hasWhatsApp ? whatsapp : "",
+      whatsapp: hasWhatsApp ? phone.e164 : "",
+      whatsappNormalized: hasWhatsApp ? phone.digits : "",
       source,
       language,
       country,

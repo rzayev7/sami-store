@@ -308,7 +308,7 @@ export const t = {
 
   // ── Leads page ──
   leads: "Подписчики",
-  leadsSubtitle: "Email и WhatsApp адреса, собранные через форму подписки.",
+  leadsSubtitle: "Email и WhatsApp из popup. Новые номера сохраняются в формате +994…, страна определяется автоматически.",
   exportCsv: "Экспорт CSV",
   noLeadsYet: "Подписчиков пока нет.",
   failedLoadLeads: "Не удалось загрузить подписчиков",

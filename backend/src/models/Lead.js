@@ -13,6 +13,11 @@ const leadSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    whatsappNormalized: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     source: {
       type: String,
       trim: true,
@@ -45,5 +50,6 @@ const leadSchema = new mongoose.Schema(
 // At least one contact method is required (validated at controller level).
 leadSchema.index({ email: 1 }, { sparse: true });
 leadSchema.index({ whatsapp: 1 }, { sparse: true });
+leadSchema.index({ whatsappNormalized: 1 }, { sparse: true });
 
 module.exports = mongoose.model("Lead", leadSchema);
