@@ -2,56 +2,27 @@
 
 import Image from "next/image";
 import Link from "./LocaleLink";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../lib/api";
 import ProductCarousel from "./ProductCarousel";
 import { useCurrency } from "../context/CurrencyContext";
 import { useLanguage } from "../context/LanguageContext";
-import { cloudinaryLoader, getCloudinaryVideoUrl, isCloudinaryUrl } from "../lib/image";
+import { cloudinaryLoader, isCloudinaryUrl } from "../lib/image";
 import PortraitCoverVideo from "./PortraitCoverVideo";
+import { useLazyCloudinaryCardVideo } from "../hooks/useLazyCloudinaryCardVideo";
 
 function BestSellerCard({ item, formatPrice }) {
-  const videoRef = useRef(null);
-  const videoLoadedRef = useRef(false);
   const hasVideo = Boolean(item.cardVideoUrl);
-  const cardVideoUrl = item?.cardVideoUrl
-    ? getCloudinaryVideoUrl(item.cardVideoUrl, { width: 640 })
-    : "";
+  const { videoRef, containerRef, posterUrl, hoverHandlers } = useLazyCloudinaryCardVideo(
+    item.cardVideoUrl,
+    [item?._id, item?.cardVideoUrl],
+  );
   const rawImage = item.images?.[0] || "https://placehold.co/700x900?text=SAMI";
   const rawSecondaryImage = item.images?.[1] || rawImage;
   const isCloudinary = isCloudinaryUrl(rawImage);
   const isSecondaryCloudinary = isCloudinaryUrl(rawSecondaryImage);
 
-  useEffect(() => {
-    videoLoadedRef.current = false;
-  }, [item?._id, item?.cardVideoUrl]);
-
-  const loadAndPlay = () => {
-    const v = videoRef.current;
-    if (!v || !cardVideoUrl) return;
-
-    if (!videoLoadedRef.current) {
-      videoLoadedRef.current = true;
-      v.src = cardVideoUrl;
-      v.load();
-    }
-
-    void v.play().catch(() => {});
-  };
-
-  const hover = hasVideo
-    ? {
-        onMouseEnter: loadAndPlay,
-        onMouseLeave: () => {
-          const v = videoRef.current;
-          if (v) {
-            v.pause();
-            v.currentTime = 0;
-          }
-        },
-        onTouchStart: loadAndPlay,
-      }
-    : {};
+  const hover = hasVideo ? hoverHandlers : {};
 
   return (
     <Link
@@ -59,6 +30,7 @@ function BestSellerCard({ item, formatPrice }) {
       className="group block w-full min-w-0"
     >
       <div
+        ref={hasVideo ? containerRef : undefined}
         className="relative aspect-[2/3] overflow-hidden bg-[var(--color-sand)]/40"
         {...hover}
       >
@@ -79,6 +51,7 @@ function BestSellerCard({ item, formatPrice }) {
           <PortraitCoverVideo
             ref={videoRef}
             src={undefined}
+            poster={posterUrl || undefined}
             wrapperClassName="absolute inset-0 overflow-hidden"
             videoClassName="opacity-0 transition-opacity duration-500 group-hover:opacity-100"
             videoAdjustments={item?.cardVideoAdjustments}

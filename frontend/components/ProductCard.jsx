@@ -21,7 +21,7 @@ export default function ProductCard({ product }) {
   const { isWishlisted, toggle } = useWishlist();
   const wishlisted = isWishlisted(product?._id);
   const hasVideo = Boolean(product?.cardVideoUrl);
-  const { videoRef, hoverHandlers } = useLazyCloudinaryCardVideo(
+  const { videoRef, containerRef, posterUrl, hoverHandlers } = useLazyCloudinaryCardVideo(
     product?.cardVideoUrl,
     [product?._id, product?.cardVideoUrl],
   );
@@ -46,6 +46,7 @@ export default function ProductCard({ product }) {
     <article className="group">
       <Link href={`/products/${product?._id}`} className="block">
         <div
+          ref={hasVideo ? containerRef : undefined}
           className="relative aspect-[4/5] overflow-hidden bg-[var(--color-sand)]"
           {...cardHoverMedia}
         >
@@ -62,6 +63,7 @@ export default function ProductCard({ product }) {
             <PortraitCoverVideo
               ref={videoRef}
               src={undefined}
+              poster={posterUrl || undefined}
               wrapperClassName="absolute inset-0 overflow-hidden"
               videoClassName="opacity-0 transition-opacity duration-500 group-hover:opacity-100"
               videoAdjustments={product?.cardVideoAdjustments}

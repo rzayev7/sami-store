@@ -73,6 +73,7 @@ export default function ProductDetailClient({
   const carouselRef = useRef(null);
   const videoRefs = useRef({});
   const videoLoadedRef = useRef({});
+  const videoInViewRef = useRef({});
   const carouselScrollRaf = useRef(null);
   const [playingVideoIndex, setPlayingVideoIndex] = useState(null);
   const [descriptionOpen, setDescriptionOpen] = useState(true);
@@ -196,6 +197,7 @@ export default function ProductDetailClient({
     setActiveMediaIndex(0);
     setPlayingVideoIndex(null);
     videoLoadedRef.current = {};
+    videoInViewRef.current = {};
     setDescriptionOpen(false);
     setFabricCareOpen(false);
     setSupportOpen(false);
@@ -336,6 +338,27 @@ export default function ProductDetailClient({
     currentVideo.play().catch(() => {});
     setPlayingVideoIndex(index);
   };
+
+  // Observe each video wrapper; only allow src injection when item is in viewport.
+  const observeVideoContainer = useCallback((el, index) => {
+    if (!el || typeof IntersectionObserver === "undefined") {
+      videoInViewRef.current[index] = true;
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        videoInViewRef.current[index] = entry.isIntersecting;
+        if (!entry.isIntersecting) {
+          const v = videoRefs.current[index];
+          if (v && !v.paused) { v.pause(); setPlayingVideoIndex(null); }
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(el);
+    // Store cleanup on the element so we can disconnect when ref changes.
+    el._videoObserver = observer;
+  }, []);
 
   useEffect(() => {
     if (!product) return;
@@ -706,7 +729,15 @@ export default function ProductDetailClient({
                   data-testid={index === 0 ? "main-product-image" : "product-gallery-item"}
                 >
                   {item.type === "video" ? (
-                    <div className="group absolute inset-0">
+                    <div
+                      className="group absolute inset-0"
+                      ref={(el) => {
+                        if (el) observeVideoContainer(el, index);
+                        else if (videoInViewRef.current[index] !== undefined) {
+                          delete videoInViewRef.current[index];
+                        }
+                      }}
+                    >
                       <PortraitCoverVideo
                         ref={(el) => {
                           if (el) videoRefs.current[index] = el;

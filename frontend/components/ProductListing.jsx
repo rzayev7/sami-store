@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "./LocaleLink";
-import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Search,
   SlidersHorizontal,
@@ -14,9 +14,10 @@ import api, { getApiBaseURL } from "../lib/api";
 import { useCart } from "../context/CartContext";
 import { useCurrency } from "../context/CurrencyContext";
 import { useLanguage } from "../context/LanguageContext";
-import { cloudinaryLoader, getCloudinaryVideoUrl, isCloudinaryUrl } from "../lib/image";
+import { cloudinaryLoader, isCloudinaryUrl } from "../lib/image";
 import { formatSizeLabel, normalizeSizeForFilter } from "../lib/sizeDisplay";
 import PortraitCoverVideo from "./PortraitCoverVideo";
+import { useLazyCloudinaryCardVideo } from "../hooks/useLazyCloudinaryCardVideo";
 import { productToItem, trackSelectItem, trackViewItemList, trackSearch, trackAddToCart } from "../lib/gtag";
 import { trackTikTokAddToCart, trackTikTokSearch } from "../lib/tiktok-pixel";
 import { trackMetaAddToCart, trackMetaSearch } from "../lib/meta-pixel";
@@ -92,12 +93,11 @@ function ProductCard({ product }) {
   const { addToCart } = useCart();
   const { formatPrice } = useCurrency();
   const { t } = useLanguage();
-  const videoRef = useRef(null);
-  const videoLoadedRef = useRef(false);
   const hasVideo = Boolean(product.cardVideoUrl);
-  const cardVideoUrl = product?.cardVideoUrl
-    ? getCloudinaryVideoUrl(product.cardVideoUrl, { width: 640 })
-    : "";
+  const { videoRef, containerRef, posterUrl, hoverHandlers } = useLazyCloudinaryCardVideo(
+    product.cardVideoUrl,
+    [product?._id, product?.cardVideoUrl],
+  );
   const isOutOfStock = Number(product.stock || 0) <= 0;
   const primaryImage = product.images?.[0] || "https://placehold.co/600x800?text=Sami";
   const secondaryImage = product.images?.[1] || "";
@@ -108,36 +108,7 @@ function ProductCard({ product }) {
       ? product.sizes[0]
       : "";
 
-  useEffect(() => {
-    videoLoadedRef.current = false;
-  }, [product?._id, product?.cardVideoUrl]);
-
-  const loadAndPlay = () => {
-    const v = videoRef.current;
-    if (!v || !cardVideoUrl) return;
-
-    if (!videoLoadedRef.current) {
-      videoLoadedRef.current = true;
-      v.src = cardVideoUrl;
-      v.load();
-    }
-
-    void v.play().catch(() => {});
-  };
-
-  const cardHoverMedia = hasVideo
-    ? {
-        onMouseEnter: loadAndPlay,
-        onMouseLeave: () => {
-          const v = videoRef.current;
-          if (v) {
-            v.pause();
-            v.currentTime = 0;
-          }
-        },
-        onTouchStart: loadAndPlay,
-      }
-    : {};
+  const cardHoverMedia = hasVideo ? hoverHandlers : {};
 
   return (
     <article className="group">
@@ -147,6 +118,7 @@ function ProductCard({ product }) {
         onClick={() => trackSelectItem(productToItem(product))}
       >
         <div
+          ref={hasVideo ? containerRef : undefined}
           className="relative aspect-[3/4] w-full overflow-hidden rounded-lg bg-[var(--color-sand)]/40"
           {...cardHoverMedia}
         >
@@ -168,6 +140,7 @@ function ProductCard({ product }) {
             <PortraitCoverVideo
               ref={videoRef}
               src={undefined}
+              poster={posterUrl || undefined}
               wrapperClassName="absolute inset-0 overflow-hidden"
               videoClassName="opacity-0 transition-opacity duration-500 group-hover:opacity-100"
               videoAdjustments={product?.cardVideoAdjustments}

@@ -133,9 +133,9 @@ export function getCloudinaryPoster(url, options = {}) {
 
 const VIDEO_DEFAULTS = {
   // Card hover clips render in small grid slots (≤~320px on desktop, where hover
-  // even exists); 640 covers 2× retina. The product-detail player passes its own
-  // larger width. Either way we never approach 1080p.
-  width: 640,
+  // even exists); 400 covers 2× retina for a 200px slot. The product-detail
+  // player passes its own larger width. Either way we never approach 1080p.
+  width: 400,
   quality: "auto:good",
   fit: "limit",
 };
@@ -165,6 +165,8 @@ export function getCloudinaryVideoUrl(url, options = {}) {
   const quality = String(options.quality ?? VIDEO_DEFAULTS.quality);
   const fit = String(options.fit ?? VIDEO_DEFAULTS.fit);
 
-  const parts = [`w_${Math.round(width)}`, `c_${fit}`, `q_${quality}`, "f_auto"];
+  // vc_auto → H.265/HEVC on Safari, VP9 on Chrome/Firefox, H.264 fallback.
+  // Reduces video file size by ~30–40% at equal perceptual quality.
+  const parts = [`w_${Math.round(width)}`, `c_${fit}`, `q_${quality}`, "f_auto", "vc_auto"];
   return url.replace(marker, `${marker}${parts.join(",")}/`);
 }
