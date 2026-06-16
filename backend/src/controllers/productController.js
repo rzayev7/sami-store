@@ -1,5 +1,6 @@
 const Product = require("../models/Product");
 const crypto = require("crypto");
+const { canAccessProductsPublicly } = require("../lib/productVisibility");
 
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -100,6 +101,19 @@ const generateUniqueShortProductCode = async () => {
 
 const getProducts = async (req, res, next) => {
   try {
+    if (!(await canAccessProductsPublicly(req))) {
+      const hasPage = req.query?.page != null && req.query?.page !== "";
+      if (!hasPage) {
+        return res.status(200).json([]);
+      }
+      return res.status(200).json({
+        products: [],
+        page: 1,
+        totalPages: 0,
+        totalProducts: 0,
+      });
+    }
+
     const hasPage = req.query?.page != null && req.query?.page !== "";
     if (!hasPage) {
       const products = await Product.find();
@@ -205,6 +219,10 @@ const getProducts = async (req, res, next) => {
 
 const getProductById = async (req, res, next) => {
   try {
+    if (!(await canAccessProductsPublicly(req))) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
     const product = await Product.findById(req.params.id);
 
     if (!product) {

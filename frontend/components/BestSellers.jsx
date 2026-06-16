@@ -10,6 +10,7 @@ import { useLanguage } from "../context/LanguageContext";
 import { cloudinaryLoader, isCloudinaryUrl } from "../lib/image";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 import { useLazyCloudinaryCardVideo } from "../hooks/useLazyCloudinaryCardVideo";
+import { isProductsPublicEnabled } from "../lib/productsEnabled";
 
 function BestSellerCard({ item, formatPrice }) {
   const hasVideo = Boolean(item.cardVideoUrl);
@@ -100,12 +101,15 @@ function BestSellerCard({ item, formatPrice }) {
 }
 
 export default function BestSellers() {
+  const productsEnabled = isProductsPublicEnabled();
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(productsEnabled);
   const { formatPrice } = useCurrency();
   const { t } = useLanguage();
 
   useEffect(() => {
+    if (!productsEnabled) return;
+
     const fetchBestSellers = async () => {
       try {
         const { data } = await api.get("/api/products", {
@@ -131,9 +135,9 @@ export default function BestSellers() {
     };
 
     fetchBestSellers();
-  }, []);
+  }, [productsEnabled]);
 
-  if (!loading && items.length === 0) return null;
+  if (!productsEnabled || (!loading && items.length === 0)) return null;
 
   return (
     <section className="pt-10 pb-20 sm:pt-14 sm:pb-28">

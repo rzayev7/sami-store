@@ -21,6 +21,7 @@ import { useLazyCloudinaryCardVideo } from "../hooks/useLazyCloudinaryCardVideo"
 import { productToItem, trackSelectItem, trackViewItemList, trackSearch, trackAddToCart } from "../lib/gtag";
 import { trackTikTokAddToCart, trackTikTokSearch } from "../lib/tiktok-pixel";
 import { trackMetaAddToCart, trackMetaSearch } from "../lib/meta-pixel";
+import { isProductsPublicEnabled } from "../lib/productsEnabled";
 
 const PAGE_SIZE = 20;
 const serializeQueryParams = (params = {}) => {
@@ -331,6 +332,17 @@ export default function ProductListing({
     async (targetPage, { silent = false } = {}) => {
       const requestId = activeRequestIdRef.current + 1;
       activeRequestIdRef.current = requestId;
+
+      if (!isProductsPublicEnabled()) {
+        setProducts([]);
+        setPage(1);
+        setTotalProducts(0);
+        setHasMore(false);
+        setLoading(false);
+        setIsFetchingMore(false);
+        return;
+      }
+
       const base = getApiBaseURL();
       try {
         if (targetPage === 1) {

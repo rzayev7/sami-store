@@ -1,4 +1,5 @@
 import ProductsPageClient from "./ProductsPageClient";
+import { EMPTY_PRODUCTS_PAGE, isProductsPublicEnabled } from "../../lib/productsEnabled";
 
 export const metadata = {
   title: "Shop All",
@@ -62,6 +63,17 @@ async function fetchInitialProducts(initialType) {
 export default async function ProductsPage({ searchParams }) {
   const resolvedSearchParams = await searchParams;
   const initialType = normalizeSearchParam(resolvedSearchParams?.category);
+
+  if (!isProductsPublicEnabled()) {
+    return (
+      <ProductsPageClient
+        initialType={initialType}
+        initialData={EMPTY_PRODUCTS_PAGE}
+        initialRequestParams={{ page: 1, limit: PAGE_SIZE, sortBy: "featured", type: initialType || "all" }}
+      />
+    );
+  }
+
   const { initialData, initialRequestParams } = await fetchInitialProducts(initialType);
 
   return (

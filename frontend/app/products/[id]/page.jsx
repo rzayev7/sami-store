@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import ProductDetailClient from "./ProductDetailClient";
+import { isProductsPublicEnabled } from "../../../lib/productsEnabled";
 
 const getApiBaseURL = () => {
   const fromEnv = process.env.NEXT_PUBLIC_API_URL;
@@ -90,6 +91,14 @@ async function fetchRelatedProducts(product) {
 }
 
 export async function generateMetadata({ params }) {
+  if (!isProductsPublicEnabled()) {
+    return {
+      title: { absolute: "Product not found | SAMÍ" },
+      description: "Browse our latest womenswear collection.",
+      robots: { index: false, follow: true },
+    };
+  }
+
   const resolvedParams = await params;
   const productId = Array.isArray(resolvedParams?.id)
     ? resolvedParams.id[0]
@@ -140,6 +149,10 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function ProductDetailPage({ params }) {
+  if (!isProductsPublicEnabled()) {
+    notFound();
+  }
+
   const resolvedParams = await params;
   const productId = Array.isArray(resolvedParams?.id)
     ? resolvedParams.id[0]
