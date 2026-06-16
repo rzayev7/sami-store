@@ -7,6 +7,7 @@ const DEFAULT_AZN_PER_USD = 1.7;
 
 /** @type {CurrencyDef[]} */
 export const CURRENCIES = [
+  { code: "AZN", symbol: "₼", name: "Azerbaijan", flag: "🇦🇿", decimals: 2 },
   { code: "USD", symbol: "$", name: "United States", flag: "🇺🇸", decimals: 2 },
   { code: "AED", symbol: "AED", name: "United Arab Emirates", flag: "🇦🇪", decimals: 2 },
   { code: "SAR", symbol: "SAR", name: "Saudi Arabia", flag: "🇸🇦", decimals: 2 },
@@ -63,6 +64,8 @@ export function formatPrice(amountAZN, currencyCode = "USD", rates = {}, aznPerU
 }
 
 const LOCALE_TO_CURRENCY = {
+  "az-AZ": "AZN",
+  az: "AZN",
   "ru-RU": "RUB",
   ru: "RUB",
   "kk-KZ": "RUB",

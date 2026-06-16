@@ -5,16 +5,18 @@ import ar from "./ar.json";
 import ru from "./ru.json";
 import uz from "./uz.json";
 import fr from "./fr.json";
+import az from "./az.json";
 
 export const LANGUAGES = [
   { code: "en", label: "English", dir: "ltr" },
+  { code: "az", label: "Azərbaycan", dir: "ltr" },
   { code: "ar", label: "العربية", dir: "rtl" },
   { code: "ru", label: "Русский", dir: "ltr" },
   { code: "uz", label: "Oʻzbekcha", dir: "ltr" },
   { code: "fr", label: "Français", dir: "ltr" },
 ];
 
-const dictionaries = { en, ar, ru, uz, fr };
+const dictionaries = { en, az, ar, ru, uz, fr };
 
 function resolve(obj, path) {
   return path.split(".").reduce((acc, key) => acc?.[key], obj);

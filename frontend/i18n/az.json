@@ -38,6 +38,25 @@
     "socialProof3": "Bakıdan qadın geyimi",
     "shopBestSellers": "Ən çox satılanlar"
   },
+  "promoHero": {
+    "label": "Məhdud müddətli təklif",
+    "title": "Yeni mövsüm gələnləri",
+    "discount": "20% endirim",
+    "subtitle": "İmza stilinizi kəşf edin",
+    "cta": "Endirimə bax",
+    "daysShort": "Gün",
+    "hoursShort": "Saat",
+    "minutesShort": "Dəq",
+    "secondsShort": "San"
+  },
+  "promoStrip": {
+    "autoApplied": "Ödənişdə avtomatik tətbiq olunur",
+    "endingSoon": "Tezliklə bitir",
+    "daysShort": "Gün",
+    "hoursShort": "Saat",
+    "minutesShort": "Dəq",
+    "secondsShort": "San"
+  },
   "nav": {
     "openMenu": "Menyunu aç",
     "closeMenu": "Menyunu bağla",
@@ -60,7 +79,12 @@
     "help": "Kömək",
     "trackOrder": "Sifarişi izlə",
     "worldwideShipping": "Dünya üzrə çatdırılma",
-    "language": "Dil"
+    "language": "Dil",
+    "collections": "Kolleksiyalar",
+    "newIn": "Yeniliklər",
+    "bestSellersNav": "Ən çox satılanlar",
+    "theSetEdit": "Dəst seçimi",
+    "eveningLooks": "Donlar"
   },
   "footer": {
     "tagline": "Bakıdan qadın geyimi. Hər yerdə geyinilir.",
@@ -85,6 +109,7 @@
     "privacy": "Məxfilik siyasəti",
     "social": "Sosial şəbəkələr",
     "instagram": "Instagram",
+    "paymentsAccepted": "Qəbul edilən ödənişlər",
     "copyright": "© {year} SAMÍ. Bütün hüquqlar qorunur."
   },
   "auth": {
@@ -200,7 +225,11 @@
     "fabricCareDefault1": "Diqqətlə seçilmiş təbii və qarışıq parçalardan hazırlanıb. Hər parça rahatlıq və davamlılıq üçün dizayn edilib.",
     "fabricCareDefault2": "Əl ilə soyuq yuyun və ya həssas rejimdə maşında yuyun. Düzəldərək qurudun. Lazım olsa, zəif istilikdə ütüləyin.",
     "supportResponse": "8 iş saatı ərzində cavab gözləyin.",
-    "supportOrDMs": "və ya birbaşa mesajda"
+    "supportOrDMs": "və ya birbaşa mesajda",
+    "customerReviews": "Müştəri rəyləri",
+    "verifiedPurchase": "Təsdiqlənmiş",
+    "customerSource": "Müştəri",
+    "noReviewsYet": "Hələ rəy yoxdur. Yalnız real müştəri rəylərini dərc edirik."
   },
   "checkout": {
     "title": "Ödəniş",
@@ -386,7 +415,8 @@
     "elevatedPieces": "Hər an üçün yüksək keyfiyyətli parçalar.",
     "followUs": "Səyahətimizi izləyin",
     "followUsDesc": "Yeni gələnləri, stil ideyalarını və Bakı studiyamızın pərdəarxasını izləyin.",
-    "followOnInstagram": "Instagram-da izləyin"
+    "followOnInstagram": "Instagram-da izləyin",
+    "shopByStyle": "Stilə görə alış-veriş"
   },
   "products": {
     "curatedSelection": "Seçilmiş kolleksiya",
@@ -592,7 +622,7 @@
   "stores": {
     "title": "Mağazalarımız",
     "may28": "28 May filialı",
-    "may28Address": "Şamil Əzizbəyov 205, Baku, Azerbaijan"
+    "may28Address": "Sarayevo 113b, Bakı, Azərbaycan"
   },
   "notFound": {
     "title": "Səhifə tapılmadı",
@@ -601,5 +631,20 @@
   "whatsapp": {
     "prefilledMessage": "Salam SAMÍ, sifarişlə bağlı sualım var.",
     "ariaLabel": "WhatsApp-da yazış"
+  },
+  "leadCapture": {
+    "headline": "İlk sifarişinizə 10% endirim",
+    "body": "Eksklüziv endirim kodunuzu almaq üçün e-poçt və ya WhatsApp daxil edin.",
+    "emailPlaceholder": "E-poçt ünvanı",
+    "whatsappPlaceholder": "Ölkə kodu ilə WhatsApp (məs. +994 55 123 45 67)",
+    "orDivider": "və ya",
+    "submitButton": "Endirimi əldə et",
+    "submitting": "Göndərilir…",
+    "successTitle": "Kodunuz hazırdır!",
+    "successBody": "Bu kodu ödənişdə istifadə edin. Yalnız ilk sifarişiniz üçün keçərlidir.",
+    "successCopy": "Kodu kopyala",
+    "successCopied": "Kopyalandı!",
+    "successCta": "İndi al",
+    "dismiss": "Xeyr, tam qiymət ödəyəcəyəm"
   }
 }

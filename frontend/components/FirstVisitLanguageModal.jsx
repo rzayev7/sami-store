@@ -81,11 +81,28 @@ const TEXT_BY_LANG = {
     keep: "Joriy sozlamani qoldirish",
     apply: "Qo'llash",
   },
+  fr: {
+    title: "Préférences détectées",
+    detectedIn: "Nous avons détecté que vous êtes en",
+    switchTo: "Passer à",
+    keep: "Garder l'actuel",
+    apply: "Appliquer",
+  },
+  az: {
+    title: "Region üzrə seçimlər aşkar edildi",
+    detectedIn: "Sizin ölkəniz aşkar edildi:",
+    switchTo: "Keçid et:",
+    keep: "Cari saxla",
+    apply: "Tətbiq et",
+  },
 };
 
 function mapCountryToPreference(countryCode) {
   const cc = String(countryCode || "").toUpperCase();
 
+  if (cc === "AZ") {
+    return { language: "az", currency: "AZN" };
+  }
   if (cc === "UZ") {
     return { language: "uz", currency: "UZS" };
   }
