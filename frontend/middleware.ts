@@ -89,7 +89,12 @@ function getCountryFromTrustedHeaders(
   return { countryCode: "", source: "none" };
 }
 
+function isCountryBlockEnabled(): boolean {
+  return String(process.env.COUNTRY_BLOCK_ENABLED || "").toLowerCase() === "true";
+}
+
 function shouldBlockRequest(countryCode: string): boolean {
+  if (!isCountryBlockEnabled()) return false;
   return BLOCKED_COUNTRY_CODES.has(countryCode);
 }
 
