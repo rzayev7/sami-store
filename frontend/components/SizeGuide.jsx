@@ -41,6 +41,15 @@ const ROWS = [
     waist: "76-82",
     hip: "102-108",
   },
+  {
+    size: "XXL",
+    international: "44",
+    russian: "50",
+    turkish: "44",
+    bust: "102-108",
+    waist: "82-88",
+    hip: "108-114",
+  },
 ];
 
 export default function SizeGuide({ className = "" }) {
