@@ -16,6 +16,7 @@ import { useCurrency } from "../context/CurrencyContext";
 import { useLanguage } from "../context/LanguageContext";
 import { cloudinaryLoader, isCloudinaryUrl } from "../lib/image";
 import { formatSizeLabel, normalizeSizeForFilter } from "../lib/sizeDisplay";
+import { productHasCardVideo } from "../lib/storefrontFlags";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 import { useLazyCloudinaryCardVideo } from "../hooks/useLazyCloudinaryCardVideo";
 import { productToItem, trackSelectItem, trackViewItemList, trackSearch, trackAddToCart } from "../lib/gtag";
@@ -94,10 +95,10 @@ function ProductCard({ product }) {
   const { addToCart } = useCart();
   const { formatPrice } = useCurrency();
   const { t } = useLanguage();
-  const hasVideo = Boolean(product.cardVideoUrl);
+  const hasVideo = productHasCardVideo(product);
   const { videoRef, containerRef, posterUrl, hoverHandlers } = useLazyCloudinaryCardVideo(
-    product.cardVideoUrl,
-    [product?._id, product?.cardVideoUrl],
+    hasVideo ? product.cardVideoUrl : null,
+    [product?._id, product?.cardVideoUrl, hasVideo],
   );
   const isOutOfStock = Number(product.stock || 0) <= 0;
   const primaryImage = product.images?.[0] || "https://placehold.co/600x800?text=Sami";

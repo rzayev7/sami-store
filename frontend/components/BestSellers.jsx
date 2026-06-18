@@ -8,15 +8,16 @@ import ProductCarousel from "./ProductCarousel";
 import { useCurrency } from "../context/CurrencyContext";
 import { useLanguage } from "../context/LanguageContext";
 import { cloudinaryLoader, isCloudinaryUrl } from "../lib/image";
+import { productHasCardVideo } from "../lib/storefrontFlags";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 import { useLazyCloudinaryCardVideo } from "../hooks/useLazyCloudinaryCardVideo";
 import { isProductsPublicEnabled } from "../lib/productsEnabled";
 
 function BestSellerCard({ item, formatPrice }) {
-  const hasVideo = Boolean(item.cardVideoUrl);
+  const hasVideo = productHasCardVideo(item);
   const { videoRef, containerRef, posterUrl, hoverHandlers } = useLazyCloudinaryCardVideo(
-    item.cardVideoUrl,
-    [item?._id, item?.cardVideoUrl],
+    hasVideo ? item.cardVideoUrl : null,
+    [item?._id, item?.cardVideoUrl, hasVideo],
   );
   const rawImage = item.images?.[0] || "https://placehold.co/700x900?text=SAMI";
   const rawSecondaryImage = item.images?.[1] || rawImage;

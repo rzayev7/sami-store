@@ -11,6 +11,7 @@ import { trackAddToCart, productToItem } from "../lib/gtag";
 import { trackTikTokAddToCart } from "../lib/tiktok-pixel";
 import { trackMetaAddToCart } from "../lib/meta-pixel";
 import { cloudinaryLoader, isCloudinaryUrl } from "../lib/image";
+import { productHasCardVideo } from "../lib/storefrontFlags";
 import { useLazyCloudinaryCardVideo } from "../hooks/useLazyCloudinaryCardVideo";
 import PortraitCoverVideo from "./PortraitCoverVideo";
 
@@ -20,10 +21,10 @@ export default function ProductCard({ product }) {
   const { t } = useLanguage();
   const { isWishlisted, toggle } = useWishlist();
   const wishlisted = isWishlisted(product?._id);
-  const hasVideo = Boolean(product?.cardVideoUrl);
+  const hasVideo = productHasCardVideo(product);
   const { videoRef, containerRef, posterUrl, hoverHandlers } = useLazyCloudinaryCardVideo(
-    product?.cardVideoUrl,
-    [product?._id, product?.cardVideoUrl],
+    hasVideo ? product?.cardVideoUrl : null,
+    [product?._id, product?.cardVideoUrl, hasVideo],
   );
 
   const imagePrimary = product?.images?.[0] || "https://placehold.co/700x900?text=SAMI";

@@ -25,6 +25,7 @@ import { useCart } from "../../../context/CartContext";
 import { useCurrency } from "../../../context/CurrencyContext";
 import { useLanguage, useLocalePath } from "../../../context/LanguageContext";
 import { cloudinaryLoader, getCloudinaryPoster, getCloudinaryVideoUrl, isCloudinaryUrl } from "../../../lib/image";
+import { PRODUCT_VIDEOS_ENABLED } from "../../../lib/storefrontFlags";
 import { formatSizeLabel } from "../../../lib/sizeDisplay";
 import PortraitCoverVideo from "../../../components/PortraitCoverVideo";
 import {
@@ -174,9 +175,10 @@ export default function ProductDetailClient({
       Array.isArray(product?.images) && product.images.length > 0
         ? product.images
         : ["https://placehold.co/800x1000?text=Sami"];
-    const videoUrl = product?.cardVideoUrl
-      ? getCloudinaryVideoUrl(product.cardVideoUrl, { width: 720 })
-      : null;
+    const videoUrl =
+      PRODUCT_VIDEOS_ENABLED && product?.cardVideoUrl
+        ? getCloudinaryVideoUrl(product.cardVideoUrl, { width: 720 })
+        : null;
     if (!videoUrl) {
       return imgs.map((url) => ({ type: "image", url }));
     }
