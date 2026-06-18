@@ -8,6 +8,9 @@ const DEFAULT_LOCALE = "en";
 const BLOCKED_COUNTRY_CODES = new Set(["AZ"]);
 /** Internal route: generic fake 404 (no branding). Only used via rewrite. */
 const REGION_BLOCK_GHOST_PATH = "/__region-404";
+const REGION_BYPASS_COOKIE = "sami_region_bypass";
+const REGION_UNLOCK_PARAM = "region_unlock";
+const REGION_BYPASS_COOKIE_MAX_AGE = 60 * 60 * 24 * 360; // 360 days
 
 type CountryHeaderSource =
   | "cf-ipcountry"
@@ -53,6 +56,36 @@ function isBypassIp(request: NextRequest): boolean {
   const clientIp = getClientIp(request);
   if (!clientIp) return false;
   return getBypassIpAllowlist().has(clientIp);
+}
+
+function getBypassToken(): string {
+  return String(process.env.COUNTRY_BLOCK_BYPASS_TOKEN || "").trim();
+}
+
+function isBypassedByCookie(request: NextRequest): boolean {
+  const token = getBypassToken();
+  if (!token) return false;
+  return request.cookies.get(REGION_BYPASS_COOKIE)?.value === token;
+}
+
+function handleRegionUnlock(request: NextRequest): NextResponse | null {
+  const token = getBypassToken();
+  if (!token) return null;
+
+  const unlockParam = request.nextUrl.searchParams.get(REGION_UNLOCK_PARAM);
+  if (!unlockParam || unlockParam !== token) return null;
+
+  const url = request.nextUrl.clone();
+  url.searchParams.delete(REGION_UNLOCK_PARAM);
+  const response = NextResponse.redirect(url);
+  response.cookies.set(REGION_BYPASS_COOKIE, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: REGION_BYPASS_COOKIE_MAX_AGE,
+  });
+  return response;
 }
 
 function isRegionBlockGhostPath(pathname: string): boolean {
@@ -129,15 +162,20 @@ function buildBlockedResponse(request: NextRequest) {
 }
 
 export function middleware(request: NextRequest) {
+  const unlockResponse = handleRegionUnlock(request);
+  if (unlockResponse) return unlockResponse;
+
   const { pathname } = request.nextUrl;
   const firstSegment = pathname.split("/")[1];
   const { countryCode, source } = getCountryFromTrustedHeaders(request);
   const clientIp = getClientIp(request);
   const bypassedByIp = isBypassIp(request);
+  const bypassedByCookie = isBypassedByCookie(request);
+  const regionBypassed = bypassedByIp || bypassedByCookie;
 
   // Country block check is done before locale/admin logic for full-site protection.
   // Ghost 404 route is allowlisted to avoid looping rewrites.
-  if (!isRegionBlockGhostPath(pathname) && shouldBlockRequest(countryCode) && !bypassedByIp) {
+  if (!isRegionBlockGhostPath(pathname) && shouldBlockRequest(countryCode) && !regionBypassed) {
     console.warn(
       JSON.stringify({
         event: "country_access_blocked",
@@ -153,10 +191,10 @@ export function middleware(request: NextRequest) {
     return buildBlockedResponse(request);
   }
 
-  if (shouldBlockRequest(countryCode) && bypassedByIp) {
+  if (shouldBlockRequest(countryCode) && regionBypassed) {
     console.info(
       JSON.stringify({
-        event: "country_access_bypassed_by_ip_allowlist",
+        event: bypassedByCookie ? "country_access_bypassed_by_cookie" : "country_access_bypassed_by_ip_allowlist",
         countryCode,
         source,
         method: request.method,
