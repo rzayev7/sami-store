@@ -47,7 +47,7 @@ const COUNTRIES = [
 ];
 
 const DEFAULT_WORLDWIDE_SHIPPING_FEE_USD = 18;
-const FREE_SHIPPING_THRESHOLD_USD = 150;
+const FREE_SHIPPING_THRESHOLD_USD = 200;
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -370,8 +370,8 @@ export default function CheckoutPage() {
               <p className="font-semibold">Delivery: {shippingCost === 0 ? "Free" : shippingFeeLabel} worldwide</p>
               <p className="mt-0.5 text-xs text-[var(--color-muted)]">
                 {shippingCost === 0
-                  ? "Free shipping applied — order over $150"
-                  : "Free shipping on orders over $150 · Spend " + formatPrice(amountToFreeShipping) + " more to qualify"}
+                  ? "Free shipping applied — order over $200"
+                  : "Free shipping on orders over $200 · Spend " + formatPrice(amountToFreeShipping) + " more to qualify"}
               </p>
             </div>
 

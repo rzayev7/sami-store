@@ -34,8 +34,8 @@
 
   "announcement": {
     "freeShipping": "Worldwide Shipping",
-    "socialProof1": "Shipped to 30+ countries",
-    "socialProof2": "Free worldwide shipping over $150",
+    "socialProof1": "100+ countries worldwide",
+    "socialProof2": "Free worldwide shipping on orders over $200",
     "socialProof3": "Womenswear from Baku",
     "shopBestSellers": "Shop Best Sellers"
   },
@@ -498,7 +498,7 @@
   "shipping": {
     "title": "Shipping",
     "worldwideDelivery": "Worldwide Delivery",
-    "worldwideBody": "We ship to most countries worldwide. Orders over $150 qualify for free worldwide shipping. A flat shipping fee applies to orders below this threshold.",
+    "worldwideBody": "We ship to most countries worldwide. Orders over $200 qualify for free worldwide shipping. A flat shipping fee applies to orders below this threshold.",
     "deliveryTimes": "Delivery Times",
     "deliveryBody1": "Standard delivery usually takes 7–14 business days depending on your location. Express delivery (3–5 business days) is available in selected regions.",
     "deliveryBody2": "Please note that delivery times are estimates. International orders may be subject to customs processing, which can add additional time beyond our control.",

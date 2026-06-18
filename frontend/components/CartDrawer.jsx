@@ -12,7 +12,7 @@ import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../lib/image";
 import { formatSizeLabel } from "../lib/sizeDisplay";
 import { productToItem, trackRemoveFromCart, trackViewCart } from "../lib/gtag";
 
-const FREE_SHIPPING_THRESHOLD_USD = 150;
+const FREE_SHIPPING_THRESHOLD_USD = 200;
 
 function QuantityStepper({ quantity, onDecrement, onIncrement, t }) {
   return (

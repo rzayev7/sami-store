@@ -33,8 +33,8 @@
   },
   "announcement": {
     "freeShipping": "Livraison dans le monde entier",
-    "socialProof1": "Livré dans plus de 30 pays",
-    "socialProof2": "Livraison gratuite dans le monde entier pour les commandes de plus de 150 $",
+    "socialProof1": "Plus de 100 pays dans le monde",
+    "socialProof2": "Livraison gratuite dans le monde entier pour les commandes de plus de 200 $",
     "socialProof3": "Prêt-à-porter féminin de Bakou",
     "shopBestSellers": "Voir les meilleures ventes"
   },
@@ -482,7 +482,7 @@
   "shipping": {
     "title": "Livraison",
     "worldwideDelivery": "Livraison internationale",
-    "worldwideBody": "Nous livrons dans la plupart des pays du monde. Les commandes de plus de 150 $ bénéficient de la livraison gratuite. Des frais forfaitaires s'appliquent aux commandes inférieures à ce seuil.",
+    "worldwideBody": "Nous livrons dans la plupart des pays du monde. Les commandes de plus de 200 $ bénéficient de la livraison gratuite. Des frais forfaitaires s'appliquent aux commandes inférieures à ce seuil.",
     "deliveryTimes": "Délais de livraison",
     "deliveryBody1": "La livraison standard prend généralement 7 à 14 jours ouvrés selon votre localisation. La livraison express (3 à 5 jours ouvrés) est disponible dans certaines régions.",
     "deliveryBody2": "Veuillez noter que les délais de livraison sont des estimations. Les commandes internationales peuvent être soumises à un traitement douanier, ce qui peut ajouter des délais supplémentaires indépendants de notre volonté.",

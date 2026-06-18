@@ -32,7 +32,10 @@
     "errorOccurred": "Kutilmagan xato yuz berdi. Qayta urinib ko‘ring yoki muammo davom etsa bosh sahifaga qayting."
   },
   "announcement": {
-    "freeShipping": "Butun dunyo bo‘ylab yetkazib berish"
+    "freeShipping": "Butun dunyo bo‘ylab yetkazib berish",
+    "socialProof1": "100+ mamlakatga dunyo bo‘ylab yetkazib berish",
+    "socialProof2": "$200 dan yuqori buyurtmalarga bepul dunyo bo‘ylab yetkazib berish",
+    "socialProof3": "Bakudan ayollar kiyimi"
   },
 
   "promoHero": {
@@ -480,7 +483,7 @@
     "categoryJumpsuits": "Kombinezonlar",
     "categorySale": "Chegirma",
     "trustShipping": "Butun dunyo bo'ylab kuzatuvli yetkazib berish",
-    "trustFreeShip": "$150 dan yuqori — bepul yetkazib berish",
+    "trustFreeShip": "$200 dan yuqori — bepul yetkazib berish",
     "trustWhatsApp": "WhatsApp qo'llab-quvvatlash",
     "trustMadeInBaku": "Bokuda dizayn qilingan",
     "selectSize": "O'lcham tanlang",
@@ -497,7 +500,7 @@
   "shipping": {
     "title": "Yetkazib berish",
     "worldwideDelivery": "Butun dunyo bo‘ylab yetkazib berish",
-    "worldwideBody": "Dunyoning ko‘pchilik mamlakatlariga jo‘natamiz. Barcha buyurtmalarga bepul yetkazib berish kiritilgan.",
+    "worldwideBody": "Dunyoning ko‘pchilik mamlakatlariga jo‘natamiz. $200 dan yuqori buyurtmalarga bepul dunyo bo‘ylab yetkazib berish. Bu chegaradan past buyurtmalarga belgilangan yetkazib berish haqi qo‘llaniladi.",
     "deliveryTimes": "Yetkazib berish muddati",
     "deliveryBody1": "Standart yetkazib berish odatda joylashuvingizga qarab 7–14 ish kunini oladi. Tanlangan hududlarda tezkor yetkazib berish (3–5 ish kuni) mavjud.",
     "deliveryBody2": "Yetkazib berish muddatlari taxminiydir. Xalqaro buyurtmalar bojxona rasmiylashtiruviga duch kelishi mumkin; bu qo‘shimcha vaqt bizning nazoratimizdan tashqarida.",

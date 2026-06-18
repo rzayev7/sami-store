@@ -1240,7 +1240,7 @@ export default function ProductDetailClient({
 
               <p className="text-center text-[11px] leading-relaxed tracking-[0.04em] text-black/32 lg:text-start">
                 {t("product.taxIncluded", {
-                  amount: formatPrice(150 * Number(aznPerUsd || 1.7)),
+                  amount: formatPrice(200 * Number(aznPerUsd || 1.7)),
                 })}
               </p>
 
