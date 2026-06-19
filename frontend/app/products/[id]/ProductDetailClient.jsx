@@ -83,12 +83,31 @@ const COLOR_HEX = {
   "sage": "#8faa74", "emerald": "#2a7a50", "cobalt": "#1840a0",
   "dark brown": "#3a2010", "mauve": "#c09090", "dusty pink": "#dca09a",
   "forest green": "#2a5030", "midnight": "#101830", "dark navy": "#0c1428",
+  "navy blue": "#102060", "dark blue": "#102060", "royal blue": "#2050c0",
+  "baby blue": "#a0c8e8", "sky blue": "#6ab4dc", "light pink": "#f8c8d4",
+  "hot pink": "#e04880", "pastel pink": "#f5c0c8", "rose": "#e08090",
+  "dark red": "#8a1020", "dark green": "#1a4828", "light green": "#80c890",
+  "pale yellow": "#f5e898", "dark grey": "#585858", "dark gray": "#585858",
+  "light grey": "#d0d0d0", "light gray": "#d0d0d0", "off white": "#f5f0e8",
+  "warm white": "#f8f4ec", "pure white": "#ffffff", "snow white": "#f8f8f8",
+  "тёмно синий": "#102060", "темно синий": "#102060",
+  "светло бежевый": "#f0e8d8", "светло розовый": "#f8c8d4",
 };
 
 function resolveColorHex(name) {
   if (!name) return null;
   const key = name.trim().toLowerCase();
-  return COLOR_HEX[key] || null;
+  // 1. Exact match
+  if (COLOR_HEX[key]) return COLOR_HEX[key];
+  // 2. Starts-with match (e.g. "dark brown linen" → "dark brown")
+  for (const mapKey of Object.keys(COLOR_HEX)) {
+    if (key.startsWith(mapKey)) return COLOR_HEX[mapKey];
+  }
+  // 3. Contains match (e.g. "navy blue" contains "navy")
+  for (const mapKey of Object.keys(COLOR_HEX)) {
+    if (key.includes(mapKey)) return COLOR_HEX[mapKey];
+  }
+  return null;
 }
 import PortraitCoverVideo from "../../../components/PortraitCoverVideo";
 import {

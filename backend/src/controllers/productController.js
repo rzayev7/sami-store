@@ -287,6 +287,40 @@ const createProduct = async (req, res, next) => {
   }
 };
 
+/**
+ * Sync bidirectional colorVariant links.
+ * After saving product `selfId` with `newVariantIds`, ensure every linked product
+ * also has `selfId` in its colorVariants, and every previously-linked product that
+ * was removed no longer points back.
+ */
+async function syncColorVariantLinks(selfId, selfName, newVariantIds, oldVariantIds) {
+  const selfIdStr = String(selfId);
+
+  // Add backlink to newly added variants
+  const added = newVariantIds.filter((id) => !oldVariantIds.includes(String(id)));
+  for (const variantId of added) {
+    const variantIdStr = String(variantId);
+    const peer = await Product.findById(variantIdStr);
+    if (!peer) continue;
+    const alreadyLinked = (peer.colorVariants || []).some(
+      (cv) => String(cv.productId) === selfIdStr
+    );
+    if (!alreadyLinked) {
+      peer.colorVariants = peer.colorVariants || [];
+      peer.colorVariants.push({ label: selfName, productId: selfId });
+      await peer.save();
+    }
+  }
+
+  // Remove backlink from removed variants
+  const removed = oldVariantIds.filter((id) => !newVariantIds.map(String).includes(String(id)));
+  for (const variantId of removed) {
+    await Product.findByIdAndUpdate(variantId, {
+      $pull: { colorVariants: { productId: selfId } },
+    });
+  }
+}
+
 const updateProduct = async (req, res, next) => {
   try {
     const payload = { ...req.body };
@@ -296,13 +330,16 @@ const updateProduct = async (req, res, next) => {
     normalizeMoneyFields(payload);
     normalizeProductReviews(payload);
 
+    // Capture old colorVariants before overwriting
+    const before = await Product.findById(req.params.id).select("colorVariants name").lean();
+    const oldVariantIds = (before?.colorVariants || []).map((cv) => String(cv.productId));
+
     let product = await Product.findByIdAndUpdate(req.params.id, payload, {
       new: true,
       runValidators: true,
     });
 
     // Defensive: ensure stock is set exactly to requested value (admin edit).
-    // Prevents subtle double-writes / concurrent increments from leaving stock off-by-one.
     if (
       product &&
       payload.stock !== undefined &&
@@ -313,6 +350,12 @@ const updateProduct = async (req, res, next) => {
         { $set: { stock: payload.stock } },
         { new: true, runValidators: true }
       );
+    }
+
+    // Sync bidirectional links if colorVariants were included in the update
+    if (product && Array.isArray(payload.colorVariants)) {
+      const newVariantIds = payload.colorVariants.map((cv) => String(cv.productId));
+      await syncColorVariantLinks(product._id, product.name, newVariantIds, oldVariantIds);
     }
 
     res.status(200).json(product);
@@ -329,6 +372,12 @@ const deleteProduct = async (req, res, next) => {
       res.status(404);
       throw new Error("Product not found");
     }
+
+    // Remove this product from any other product's colorVariants
+    await Product.updateMany(
+      { "colorVariants.productId": product._id },
+      { $pull: { colorVariants: { productId: product._id } } }
+    );
 
     await product.deleteOne();
     res.status(200).json({ message: "Product deleted successfully" });
