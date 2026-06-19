@@ -33,6 +33,7 @@ import { cloudinaryLoader, getCloudinaryPoster, getCloudinaryVideoUrl, isCloudin
 import { PRODUCT_VIDEOS_ENABLED } from "../../../lib/storefrontFlags";
 import { formatSizeLabel } from "../../../lib/sizeDisplay";
 import { resolveColorHex, resolveProductSwatchHex } from "../../../lib/colorHex";
+import { enrichProductColorVariants } from "../../../lib/enrichColorVariants";
 import PortraitCoverVideo from "../../../components/PortraitCoverVideo";
 import {
   productToItem,
@@ -103,7 +104,11 @@ export default function ProductDetailClient({
       const base = getApiBaseURL();
       try {
         const { data } = await api.get(`/api/products/${resolvedProductId}`);
-        setProduct(data);
+        const enriched = await enrichProductColorVariants(data, async (id) => {
+          const res = await api.get(`/api/products/${id}`);
+          return res.data;
+        });
+        setProduct(enriched);
         setSelectedSize("");
         setSelectedTopSize("");
         setSelectedBottomSize("");

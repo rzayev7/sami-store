@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import ProductDetailClient from "./ProductDetailClient";
 import { isProductsPublicEnabled } from "../../../lib/productsEnabled";
+import { enrichProductColorVariants } from "../../../lib/enrichColorVariants";
 
 const getApiBaseURL = () => {
   const fromEnv = process.env.NEXT_PUBLIC_API_URL;
@@ -163,12 +164,14 @@ export default async function ProductDetailPage({ params }) {
     notFound();
   }
 
-  const relatedProducts = await fetchRelatedProducts(product);
+  const productWithVariants = await enrichProductColorVariants(product, fetchProductById);
+
+  const relatedProducts = await fetchRelatedProducts(productWithVariants);
 
   return (
     <ProductDetailClient
       productId={productId}
-      initialProduct={product}
+      initialProduct={productWithVariants}
       initialRelatedProducts={relatedProducts}
     />
   );
