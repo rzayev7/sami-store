@@ -295,29 +295,30 @@ const createProduct = async (req, res, next) => {
  */
 async function syncColorVariantLinks(selfId, selfName, newVariantIds, oldVariantIds) {
   const selfIdStr = String(selfId);
+  const newSet = new Set(newVariantIds.map(String));
+  const oldSet = new Set(oldVariantIds.map(String));
 
-  // Add backlink to newly added variants
-  const added = newVariantIds.filter((id) => !oldVariantIds.includes(String(id)));
-  for (const variantId of added) {
-    const variantIdStr = String(variantId);
-    const peer = await Product.findById(variantIdStr);
+  // Ensure backlink exists on ALL current variants (handles re-saves too)
+  for (const variantId of newSet) {
+    const peer = await Product.findById(variantId);
     if (!peer) continue;
     const alreadyLinked = (peer.colorVariants || []).some(
       (cv) => String(cv.productId) === selfIdStr
     );
     if (!alreadyLinked) {
-      peer.colorVariants = peer.colorVariants || [];
-      peer.colorVariants.push({ label: selfName, productId: selfId });
-      await peer.save();
+      await Product.findByIdAndUpdate(variantId, {
+        $push: { colorVariants: { label: selfName, productId: selfId } },
+      });
     }
   }
 
-  // Remove backlink from removed variants
-  const removed = oldVariantIds.filter((id) => !newVariantIds.map(String).includes(String(id)));
-  for (const variantId of removed) {
-    await Product.findByIdAndUpdate(variantId, {
-      $pull: { colorVariants: { productId: selfId } },
-    });
+  // Remove backlink from variants that were removed
+  for (const variantId of oldSet) {
+    if (!newSet.has(variantId)) {
+      await Product.findByIdAndUpdate(variantId, {
+        $pull: { colorVariants: { productId: selfId } },
+      });
+    }
   }
 }
 
