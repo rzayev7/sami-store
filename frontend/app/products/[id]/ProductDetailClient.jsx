@@ -1063,38 +1063,73 @@ export default function ProductDetailClient({
                   </p>
                   <div className="flex flex-wrap justify-center gap-2 lg:justify-start">
 
-                    {/* Current product's own colours */}
-                    {Array.isArray(product.colors) && product.colors.map((color) => {
-                      const isSelected = selectedColor === color;
-                      const hex = resolveColorHex(color);
-                      const isLight = hex && /^#f[5-9a-f]|^#e[c-f]|^#ff/i.test(hex);
-                      return (
-                        <button
-                          key={color}
-                          type="button"
-                          onClick={() => setSelectedColor(color)}
-                          title={color}
-                          aria-label={`${t("product.colour")}: ${color}`}
-                          data-testid="color-option"
-                          className={`relative h-7 w-7 rounded-full transition-all duration-150 ${
-                            isSelected
-                              ? "ring-2 ring-offset-2 ring-black/70"
-                              : "ring-1 ring-black/20 hover:ring-black/40"
-                          }`}
-                          style={{ backgroundColor: hex || "#d4cfc8" }}
-                        >
-                          {isSelected && (
-                            <span className="absolute inset-0 flex items-center justify-center">
-                              <Check
-                                size={11}
-                                strokeWidth={2.8}
-                                className={isLight ? "text-black/60" : "text-white/90"}
-                              />
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
+                    {/* Current product's own colours.
+                        When colorVariants exist and the product has no colors set,
+                        still show a swatch for the current product (active/selected). */}
+                    {(() => {
+                      const ownColors = Array.isArray(product.colors) && product.colors.length > 0
+                        ? product.colors
+                        : null;
+                      const hasVariants = Array.isArray(product.colorVariants) && product.colorVariants.length > 0;
+
+                      if (ownColors) {
+                        // Product has explicit colors — render each as a selectable swatch
+                        return ownColors.map((color) => {
+                          const isSelected = selectedColor === color;
+                          const hex = resolveColorHex(color);
+                          const isLight = hex && /^#f[5-9a-f]|^#e[c-f]|^#ff/i.test(hex);
+                          return (
+                            <button
+                              key={color}
+                              type="button"
+                              onClick={() => setSelectedColor(color)}
+                              title={color}
+                              aria-label={`${t("product.colour")}: ${color}`}
+                              data-testid="color-option"
+                              className={`relative h-7 w-7 rounded-full transition-all duration-150 ${
+                                isSelected
+                                  ? "ring-2 ring-offset-2 ring-black/70"
+                                  : "ring-1 ring-black/20 hover:ring-black/40"
+                              }`}
+                              style={{ backgroundColor: hex || "#d4cfc8" }}
+                            >
+                              {isSelected && (
+                                <span className="absolute inset-0 flex items-center justify-center">
+                                  <Check
+                                    size={11}
+                                    strokeWidth={2.8}
+                                    className={isLight ? "text-black/60" : "text-white/90"}
+                                  />
+                                </span>
+                              )}
+                            </button>
+                          );
+                        });
+                      }
+
+                      if (hasVariants) {
+                        // No colors set but variants exist — show current product as active swatch
+                        // infer color from product name
+                        const hex = resolveColorHex(product.name);
+                        const isLight = hex && /^#f[5-9a-f]|^#e[c-f]|^#ff/i.test(hex);
+                        return (
+                          <span
+                            key="self"
+                            title={product.name}
+                            className="relative flex h-7 w-7 items-center justify-center rounded-full ring-2 ring-offset-2 ring-black/70"
+                            style={{ backgroundColor: hex || "#d4cfc8" }}
+                          >
+                            <Check
+                              size={11}
+                              strokeWidth={2.8}
+                              className={isLight ? "text-black/60" : "text-white/90"}
+                            />
+                          </span>
+                        );
+                      }
+
+                      return null;
+                    })()}
 
                     {/* Colour variants — each is a different product, click navigates */}
                     {Array.isArray(product.colorVariants) && product.colorVariants.map((cv) => {
