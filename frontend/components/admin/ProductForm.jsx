@@ -916,7 +916,7 @@ export default function ProductForm({
       setCvSearching(true);
       try {
         const res = await api.get(
-          `/api/products?search=${encodeURIComponent(query)}&lite=true&limit=10`,
+          `/api/products?page=1&search=${encodeURIComponent(query)}&lite=true&limit=10`,
           { headers: getAdminAuthHeaders() }
         );
         const products = res.data?.products || [];
