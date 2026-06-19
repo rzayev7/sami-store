@@ -15,6 +15,11 @@ import {
   Pause,
   Heart,
   Star,
+  Truck,
+  Globe,
+  ShieldCheck,
+  RotateCcw,
+  PackageCheck,
 } from "lucide-react";
 import api, { getApiBaseURL } from "../../../lib/api";
 import { SUPPORT_EMAIL } from "../../../lib/sitePublic";
@@ -634,7 +639,7 @@ export default function ProductDetailClient({
   }
 
   return (
-    <section className="pb-20 pt-2 sm:pt-6">
+    <section className="pb-12 pt-2 sm:pt-6 lg:pb-20">
       {/* Breadcrumb */}
       <nav className="mb-6 sm:mb-10">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -719,7 +724,7 @@ export default function ProductDetailClient({
               <div
                 ref={carouselRef}
                 onScroll={onCarouselScroll}
-                className="no-scrollbar flex flex-row gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain scroll-smooth px-[7.5vw] [-webkit-overflow-scrolling:touch] snap-x snap-mandatory lg:flex-col lg:gap-4 lg:overflow-visible lg:overscroll-auto lg:px-0 lg:snap-none"
+                className="no-scrollbar flex flex-row gap-0 overflow-x-auto overflow-y-hidden overscroll-x-contain scroll-smooth [-webkit-overflow-scrolling:touch] snap-x snap-mandatory lg:flex-col lg:gap-4 lg:overflow-visible lg:overscroll-auto lg:snap-none"
                 data-testid="product-media-carousel"
               >
               {galleryItems.map((item, index) => (
@@ -727,7 +732,7 @@ export default function ProductDetailClient({
                   id={`media-item-${index}`}
                   key={`${item.type}-${item.url}-${index}`}
                   data-media-slide
-                  className="relative aspect-[3/4] w-[85vw] max-w-[500px] shrink-0 snap-center overflow-hidden bg-[var(--color-sand)]/20 lg:w-full lg:max-w-[500px] lg:snap-none lg:mx-0 mx-auto"
+                  className="relative aspect-[3/4] w-full min-w-full flex-[0_0_100%] shrink-0 snap-center snap-always overflow-hidden bg-[var(--color-sand)]/20 lg:min-w-0 lg:w-full lg:max-w-[500px] lg:flex-none lg:snap-none lg:mx-0"
                   data-testid={index === 0 ? "main-product-image" : "product-gallery-item"}
                 >
                   {item.type === "video" ? (
@@ -893,6 +898,17 @@ export default function ProductDetailClient({
                   )}
                 </div>
 
+                {/* Delivery badge — high-visibility, sits in the first viewport */}
+                <div className="mt-3 flex justify-center lg:justify-start">
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[#f4ede0] px-3 py-1.5 font-sans text-[11px] font-medium tracking-[0.02em] text-[#7a5a2e]"
+                    data-testid="delivery-badge"
+                  >
+                    <Truck size={13} strokeWidth={1.9} className="shrink-0" />
+                    {t("product.deliveryBadge")}
+                  </span>
+                </div>
+
                 {typeof product.stock === "number" && (
                   <div
                     className="mt-3 space-y-1.5 text-center lg:text-start"
@@ -912,10 +928,26 @@ export default function ProductDetailClient({
                           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#C8A96E] opacity-60" />
                           <span className="relative inline-flex h-2 w-2 rounded-full bg-[#C8A96E]" />
                         </span>
-                        Only {remainingStock} left in stock
+                        {t("product.onlyLeftInStock", { count: remainingStock })}
                         {totalInCart > 0 && (
                           <span className="text-black/35">
-                            ({totalInCart} in bag)
+                            {" "}
+                            {t("product.countInBag", { count: totalInCart })}
+                          </span>
+                        )}
+                      </p>
+                    ) : remainingStock > 3 && remainingStock <= 22 ? (
+                      <p className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 font-sans text-[12px] font-medium text-[#9a6a2a] lg:justify-start">
+                        <span className="inline-flex items-center gap-1.5">
+                          <span
+                            className="inline-block h-[5px] w-[5px] shrink-0 rounded-full"
+                            style={{ backgroundColor: "#C8A96E" }}
+                          />
+                          {t("product.sellingFastLeft", { count: remainingStock })}
+                        </span>
+                        {totalInCart > 0 && (
+                          <span className="font-normal text-black/38">
+                            {t("product.countInBag", { count: totalInCart })}
                           </span>
                         )}
                       </p>
@@ -933,18 +965,6 @@ export default function ProductDetailClient({
                         )}
                       </p>
                     )}
-                    {!isOutOfStock &&
-                      !isAtCartLimit &&
-                      remainingStock > 3 &&
-                      remainingStock <= 22 && (
-                        <p className="inline-flex items-center gap-1.5 font-sans text-[11.5px] font-medium text-[#9a6a2a]">
-                          <span
-                            className="inline-block h-[5px] w-[5px] rounded-full"
-                            style={{ backgroundColor: "#C8A96E" }}
-                          />
-                          {t("product.sellingFast")} — only {remainingStock} left
-                        </p>
-                      )}
                   </div>
                 )}
               </div>
@@ -1188,14 +1208,34 @@ export default function ProductDetailClient({
                 </div>
               </div>
 
-              {/* Delivery estimate */}
-              <p className="text-center font-sans text-[11.5px] leading-snug text-black/45 sm:text-[12px] lg:text-start">
-                <span className="text-black/48">{t("product.estDelivery")} </span>
-                <span className="border-b border-black/20 font-medium text-black/[0.62]">
-                  {deliveryEstimateLabel}
-                </span>
-                <span className="text-black/40"> {t("product.businessDays")}</span>
-              </p>
+              {/* Delivery & shipping — impossible to miss, directly above the CTA */}
+              <div
+                className="rounded-lg border border-[#e7dcc8] bg-[#faf6ef] px-3 py-2.5 text-start sm:px-3.5 sm:py-3"
+                data-testid="delivery-info"
+              >
+                <p className="mb-1.5 flex items-center gap-1.5 font-sans text-[9.5px] font-semibold uppercase tracking-[0.16em] text-[#7a5a2e] sm:text-[10px]">
+                  <Truck size={12} strokeWidth={2} className="shrink-0" />
+                  {t("product.deliveryTitle")}
+                </p>
+                <ul className="space-y-1">
+                  <li className="flex items-start gap-1.5 font-sans text-[11px] leading-snug text-black/[0.62] sm:gap-2 sm:text-[12px]">
+                    <PackageCheck size={13} strokeWidth={1.8} className="mt-0.5 shrink-0 text-[#9a7c52]" />
+                    <span>
+                      <span className="text-black/45">{t("product.deliveryArrives")} </span>
+                      <span className="font-semibold text-black/[0.78]">{deliveryEstimateLabel}</span>
+                      <span className="text-black/45"> · {t("product.deliveryEstimate")}</span>
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-1.5 font-sans text-[11px] leading-snug text-black/[0.62] sm:gap-2 sm:text-[12px]">
+                    <Globe size={13} strokeWidth={1.8} className="mt-0.5 shrink-0 text-[#9a7c52]" />
+                    <span>{t("product.deliveryWorldwide")}</span>
+                  </li>
+                  <li className="flex items-start gap-1.5 font-sans text-[11px] leading-snug text-black/[0.62] sm:gap-2 sm:text-[12px]">
+                    <Truck size={13} strokeWidth={1.8} className="mt-0.5 shrink-0 text-[#9a7c52]" />
+                    <span>{t("product.deliveryCost")}</span>
+                  </li>
+                </ul>
+              </div>
 
               {/* Add to bag + Buy now */}
               <div className="flex flex-col gap-2.5">
@@ -1247,18 +1287,22 @@ export default function ProductDetailClient({
               </p>
 
               {/* Trust strip */}
-              <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-b border-black/[0.07] py-3 lg:justify-start">
-                <span className="flex items-center gap-1.5 text-[10.5px] tracking-[0.04em] text-black/48">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  Secure checkout
+              <div className="flex flex-wrap items-center justify-center gap-x-3.5 gap-y-2 border-t border-b border-black/[0.07] py-3 sm:gap-x-5 sm:py-3.5 lg:justify-start">
+                <span className="flex items-center gap-1 text-[10px] tracking-[0.03em] text-black/48 sm:gap-1.5 sm:text-[10.5px]">
+                  <ShieldCheck size={13} strokeWidth={1.7} className="shrink-0 text-[#9a7c52]" />
+                  {t("product.trustSecure")}
                 </span>
-                <span className="flex items-center gap-1.5 text-[10.5px] tracking-[0.04em] text-black/48">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                  Free returns
+                <span className="flex items-center gap-1 text-[10px] tracking-[0.03em] text-black/48 sm:gap-1.5 sm:text-[10.5px]">
+                  <Truck size={13} strokeWidth={1.7} className="shrink-0 text-[#9a7c52]" />
+                  {t("product.trustTracked")}
                 </span>
-                <span className="flex items-center gap-1.5 text-[10.5px] tracking-[0.04em] text-black/48">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                  Worldwide shipping
+                <span className="flex items-center gap-1 text-[10px] tracking-[0.03em] text-black/48 sm:gap-1.5 sm:text-[10.5px]">
+                  <Globe size={13} strokeWidth={1.7} className="shrink-0 text-[#9a7c52]" />
+                  {t("product.trustWorldwide")}
+                </span>
+                <span className="flex items-center gap-1 text-[10px] tracking-[0.03em] text-black/48 sm:gap-1.5 sm:text-[10.5px]">
+                  <RotateCcw size={13} strokeWidth={1.7} className="shrink-0 text-[#9a7c52]" />
+                  {t("product.trustReturns")}
                 </span>
               </div>
 

@@ -125,8 +125,56 @@ export default function SizeGuide({ className = "" }) {
                 </div>
                 <p className="mt-2 text-[12px] italic text-black/55">{t("product.oneSizeNote")}</p>
               </div>
-              <div className="mt-4 overflow-x-auto rounded-xl border border-[var(--color-line)] bg-white">
-                <table className="w-full min-w-[760px] text-[13px]">
+              {/* Mobile: stacked cards (no horizontal scrolling) */}
+              <div className="mt-4 space-y-2.5 sm:hidden">
+                {ROWS.map((row) => (
+                  <div
+                    key={row.size}
+                    className="overflow-hidden rounded-xl border border-[var(--color-line)] bg-white"
+                  >
+                    <div className="flex items-center gap-2 border-b border-[var(--color-line)] bg-[var(--color-sand)]/40 px-3.5 py-2">
+                      <span className="font-serif text-[17px] font-medium leading-none text-[var(--color-black)]">
+                        {row.size}
+                      </span>
+                      <span className="text-[9px] font-semibold uppercase tracking-[0.14em] text-black/45">
+                        {t("product.thSize")}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 divide-x divide-[var(--color-line)] border-b border-[var(--color-line)]">
+                      {[
+                        [t("product.thInternational"), row.international],
+                        [t("product.thRussian"), row.russian],
+                        [t("product.thTurkish"), row.turkish],
+                      ].map(([label, value]) => (
+                        <div key={label} className="px-2 py-2 text-center">
+                          <p className="text-[8.5px] font-semibold uppercase leading-tight tracking-[0.06em] text-black/45">
+                            {label}
+                          </p>
+                          <p className="mt-0.5 text-[13px] tabular-nums text-black/80">{value}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-3 divide-x divide-[var(--color-line)]">
+                      {[
+                        [t("product.thBust"), row.bust],
+                        [t("product.thWaist"), row.waist],
+                        [t("product.thHip"), row.hip],
+                      ].map(([label, value]) => (
+                        <div key={label} className="px-2 py-2 text-center">
+                          <p className="text-[8.5px] font-semibold uppercase leading-tight tracking-[0.06em] text-black/45">
+                            {label}
+                          </p>
+                          <p className="mt-0.5 text-[12px] tabular-nums text-black/75">{value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Tablet / desktop: full table */}
+              <div className="mt-4 hidden overflow-x-auto rounded-xl border border-[var(--color-line)] bg-white sm:block">
+                <table className="w-full min-w-[640px] text-[13px]">
                   <thead>
                     <tr className="border-b border-[var(--color-line)] bg-[var(--color-sand)]/40 text-[10px] font-semibold uppercase tracking-[0.12em] text-black/55">
                       <th className="px-3 py-3 text-center">{t("product.thSize")}</th>

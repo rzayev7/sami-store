@@ -16,8 +16,8 @@ export default function AnnouncementBars() {
 
   return (
     <div className="w-full border-y border-black/10 bg-[var(--color-green)]">
-      <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-center px-4 py-2.5 sm:px-6 lg:px-12">
-        <div className="flex min-w-0 flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[12px] font-medium tracking-[0.01em] text-[var(--color-gold-soft)] sm:text-[13px]">
+      <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-center px-4 py-2 sm:px-6 sm:py-2.5 lg:px-12">
+        <div className="flex min-w-0 flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 text-center text-[10.5px] font-medium tracking-[0.01em] text-[var(--color-gold-soft)] sm:gap-x-3 sm:text-[13px]">
           <span className="whitespace-nowrap">{t("announcement.socialProof1")}</span>
           <span className="text-[var(--color-gold-soft)]/40">•</span>
           <span className="whitespace-nowrap">{t("announcement.socialProof2")}</span>
