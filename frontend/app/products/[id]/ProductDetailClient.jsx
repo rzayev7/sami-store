@@ -32,7 +32,7 @@ import { useLanguage, useLocalePath } from "../../../context/LanguageContext";
 import { cloudinaryLoader, getCloudinaryPoster, getCloudinaryVideoUrl, isCloudinaryUrl } from "../../../lib/image";
 import { PRODUCT_VIDEOS_ENABLED } from "../../../lib/storefrontFlags";
 import { formatSizeLabel } from "../../../lib/sizeDisplay";
-import { resolveColorHex } from "../../../lib/colorHex";
+import { resolveColorHex, resolveProductSwatchHex } from "../../../lib/colorHex";
 import PortraitCoverVideo from "../../../components/PortraitCoverVideo";
 import {
   productToItem,
@@ -1032,9 +1032,10 @@ export default function ProductDetailClient({
                       }
 
                       if (hasVariants) {
-                        // No colors set but variants exist — show current product as active swatch
-                        // infer color from product name
-                        const hex = resolveColorHex(product.name);
+                        const hex = resolveProductSwatchHex({
+                          name: product.name,
+                          colors: product.colors,
+                        });
                         const isLight = hex && /^#f[5-9a-f]|^#e[c-f]|^#ff/i.test(hex);
                         return (
                           <span
@@ -1060,11 +1061,13 @@ export default function ProductDetailClient({
                       const variantId = cv.productId?._id || cv.productId;
                       const variantName = cv.productId?.name || cv.label || "";
                       const variantColors = Array.isArray(cv.productId?.colors) ? cv.productId.colors : [];
-                      const hex =
-                        resolveColorHex(variantName) ||
-                        variantColors.reduce((found, c) => found || resolveColorHex(c), null) ||
-                        resolveColorHex(cv.label);
-                      const tooltip = variantName || variantColors.join(", ") || cv.label || "";
+                      const hex = resolveProductSwatchHex({
+                        name: variantName,
+                        colors: variantColors,
+                        label: cv.label,
+                      });
+                      const tooltip =
+                        variantColors.join(", ") || variantName || cv.label || "";
                       return (
                         <Link
                           key={variantId}

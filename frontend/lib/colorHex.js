@@ -92,3 +92,13 @@ export function resolveColorHex(name) {
 
   return null;
 }
+
+/** Best-effort swatch colour: explicit tags first, then product title. */
+export function resolveProductSwatchHex({ name, colors, label } = {}) {
+  const tags = Array.isArray(colors) ? colors : [];
+  for (const tag of tags) {
+    const hex = resolveColorHex(tag);
+    if (hex) return hex;
+  }
+  return resolveColorHex(name) || resolveColorHex(label) || null;
+}
