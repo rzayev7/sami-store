@@ -1030,8 +1030,9 @@ export default function ProductDetailClient({
               {/* Promo countdown — shown right after price for maximum visibility */}
               <PromoCountdownStrip />
 
-              {/* Color selector */}
-              {Array.isArray(product.colors) && product.colors.length > 0 && (
+              {/* Unified colour row — own colours + variant product links */}
+              {((Array.isArray(product.colors) && product.colors.length > 0) ||
+                (Array.isArray(product.colorVariants) && product.colorVariants.length > 0)) && (
                 <div data-testid="color-selector">
                   <p className="mb-2.5 font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38 lg:text-start">
                     {t("product.colour")}
@@ -1042,7 +1043,9 @@ export default function ProductDetailClient({
                     )}
                   </p>
                   <div className="flex flex-wrap justify-center gap-2 lg:justify-start">
-                    {product.colors.map((color) => {
+
+                    {/* Current product's own colours */}
+                    {Array.isArray(product.colors) && product.colors.map((color) => {
                       const isSelected = selectedColor === color;
                       const hex = resolveColorHex(color);
                       const isLight = hex && /^#f[5-9a-f]|^#e[c-f]|^#ff/i.test(hex);
@@ -1054,11 +1057,11 @@ export default function ProductDetailClient({
                           title={color}
                           aria-label={`${t("product.colour")}: ${color}`}
                           data-testid="color-option"
-                          className={`group relative h-7 w-7 rounded-full transition-all duration-150 ${
+                          className={`relative h-7 w-7 rounded-full transition-all duration-150 ${
                             isSelected
                               ? "ring-2 ring-offset-2 ring-black/70"
                               : "ring-1 ring-black/20 hover:ring-black/40"
-                          } ${!hex ? "border border-black/20" : ""}`}
+                          }`}
                           style={{ backgroundColor: hex || "#d4cfc8" }}
                         >
                           {isSelected && (
@@ -1073,53 +1076,28 @@ export default function ProductDetailClient({
                         </button>
                       );
                     })}
-                  </div>
-                </div>
-              )}
 
-              {/* Color variant swatches — links to sibling products */}
-              {Array.isArray(product.colorVariants) && product.colorVariants.length > 0 && (
-                <div data-testid="color-variants">
-                  <p className="mb-2.5 font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38 lg:text-start">
-                    {t("product.colourVariants")}
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-2 lg:justify-start">
-                    {/* Current product — active state */}
-                    <span
-                      className="relative block h-[52px] w-[40px] overflow-hidden rounded-[4px] border border-black/70 bg-[#f0ebe3]"
-                      title={t("product.thisVariant")}
-                    >
-                      {Array.isArray(product.images) && product.images[0] && (
-                        <img
-                          src={product.images[0]}
-                          alt={product.name}
-                          className="h-full w-full object-cover"
-                        />
-                      )}
-                      {/* active indicator bar */}
-                      <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-black" />
-                    </span>
-
-                    {product.colorVariants.map((cv) => {
+                    {/* Colour variants — each is a different product, click navigates */}
+                    {Array.isArray(product.colorVariants) && product.colorVariants.map((cv) => {
                       const variantId = cv.productId?._id || cv.productId;
-                      const variantColors = cv.productId?.colors;
-                      const tooltip = Array.isArray(variantColors) && variantColors.length > 0
-                        ? variantColors.join(", ")
-                        : (cv.label || "");
+                      const variantColors = Array.isArray(cv.productId?.colors) ? cv.productId.colors : [];
+                      const firstColor = variantColors[0] || cv.label || "";
+                      const hex = resolveColorHex(firstColor);
+                      const isLight = hex && /^#f[5-9a-f]|^#e[c-f]|^#ff/i.test(hex);
+                      const tooltip = variantColors.length > 0 ? variantColors.join(", ") : (cv.label || "");
                       return (
                         <Link
                           key={variantId}
                           href={`/products/${variantId}`}
                           title={tooltip}
                           aria-label={tooltip}
-                          className="relative block h-[52px] w-[40px] overflow-hidden rounded-[4px] border border-black/15 bg-[#f0ebe3] transition-all hover:border-black/50"
+                          className={`relative flex h-7 w-7 items-center justify-center rounded-full transition-all duration-150 ring-1 ring-black/20 hover:ring-2 hover:ring-offset-2 hover:ring-black/50`}
+                          style={{ backgroundColor: hex || "#d4cfc8" }}
                         >
-                          {cv.productId?.images?.[0] && (
-                            <img
-                              src={cv.productId.images[0]}
-                              alt={tooltip}
-                              className="h-full w-full object-cover"
-                            />
+                          {!hex && (
+                            <span className="text-[8px] font-bold text-black/40 leading-none select-none">
+                              {firstColor.charAt(0).toUpperCase()}
+                            </span>
                           )}
                         </Link>
                       );
