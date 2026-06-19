@@ -93,6 +93,31 @@ function isRegionBlockGhostPath(pathname: string): boolean {
   return LOCALES.some((locale) => pathname === `/${locale}${REGION_BLOCK_GHOST_PATH}`);
 }
 
+/** Post-payment pages must stay reachable even in geo-blocked regions. */
+function isOrderSuccessPath(pathname: string): boolean {
+  if (pathname === "/order-success" || pathname.startsWith("/order-success/")) {
+    return true;
+  }
+  return LOCALES.some(
+    (locale) =>
+      pathname === `/${locale}/order-success` ||
+      pathname.startsWith(`/${locale}/order-success/`),
+  );
+}
+
+/** Checkout return after Epoint redirect (paid / failed). */
+function isPaymentReturnPath(pathname: string, searchParams: URLSearchParams): boolean {
+  if (isOrderSuccessPath(pathname)) return true;
+  const isCheckout =
+    pathname === "/checkout" ||
+    pathname.startsWith("/checkout/") ||
+    LOCALES.some(
+      (locale) =>
+        pathname === `/${locale}/checkout` || pathname.startsWith(`/${locale}/checkout/`),
+    );
+  return isCheckout && searchParams.has("orderId");
+}
+
 function getCountryFromTrustedHeaders(
   request: NextRequest,
 ): { countryCode: string; source: CountryHeaderSource | "none" } {
@@ -175,7 +200,13 @@ export function middleware(request: NextRequest) {
 
   // Country block check is done before locale/admin logic for full-site protection.
   // Ghost 404 route is allowlisted to avoid looping rewrites.
-  if (!isRegionBlockGhostPath(pathname) && shouldBlockRequest(countryCode) && !regionBypassed) {
+  // Post-payment return URLs are allowlisted so customers see confirmation after paying.
+  if (
+    !isRegionBlockGhostPath(pathname) &&
+    !isPaymentReturnPath(pathname, request.nextUrl.searchParams) &&
+    shouldBlockRequest(countryCode) &&
+    !regionBypassed
+  ) {
     console.warn(
       JSON.stringify({
         event: "country_access_blocked",
