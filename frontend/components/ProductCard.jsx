@@ -124,7 +124,7 @@ export default function ProductCard({ product }) {
         <button
           type="button"
           onClick={handleQuickAdd}
-          className="mt-1 inline-flex border border-[#1e1b17] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1e1b17] transition hover:bg-[#1e1b17] hover:text-[#f2e7d1]"
+          className="mt-1 inline-flex border border-[#1e1b17] px-3 py-1.5 text-[10px] font-medium tracking-[0.03em] text-[#1e1b17] transition hover:bg-[#1e1b17] hover:text-[#f2e7d1]"
         >
           {t("product.quickAdd")}
         </button>

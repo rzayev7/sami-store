@@ -1060,7 +1060,6 @@ export default function ProductDetailClient({
                       const variantId = cv.productId?._id || cv.productId;
                       const variantName = cv.productId?.name || cv.label || "";
                       const variantColors = Array.isArray(cv.productId?.colors) ? cv.productId.colors : [];
-                      const variantThumb = cv.productId?.images?.[0] || "";
                       const hex =
                         resolveColorHex(variantName) ||
                         variantColors.reduce((found, c) => found || resolveColorHex(c), null) ||
@@ -1072,20 +1071,14 @@ export default function ProductDetailClient({
                           href={`/products/${variantId}`}
                           title={tooltip}
                           aria-label={tooltip}
-                          className="relative block h-7 w-7 overflow-hidden rounded-full transition-all duration-150 ring-1 ring-black/20 hover:ring-2 hover:ring-offset-2 hover:ring-black/50"
-                          style={!variantThumb ? { backgroundColor: hex || "#d4cfc8" } : undefined}
+                          className="relative block h-7 w-7 rounded-full transition-all duration-150 ring-1 ring-black/20 hover:ring-2 hover:ring-offset-2 hover:ring-black/50"
+                          style={{ backgroundColor: hex || "#d4cfc8" }}
                         >
-                          {variantThumb ? (
-                            <img
-                              src={variantThumb}
-                              alt={tooltip}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : !hex ? (
+                          {!hex && (
                             <span className="flex h-full w-full items-center justify-center text-[8px] font-bold text-black/40 leading-none select-none">
                               {tooltip.charAt(0).toUpperCase()}
                             </span>
-                          ) : null}
+                          )}
                         </Link>
                       );
                     })}

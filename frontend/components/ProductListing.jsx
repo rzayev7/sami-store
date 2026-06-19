@@ -185,7 +185,7 @@ function ProductCard({ product }) {
                   trackMetaAddToCart(line);
                   addToCart(product, preferredSize);
                 }}
-                className="max-w-[min(10.5rem,calc(100%-0.5rem))] rounded-full bg-white/95 px-3 py-1.5 text-center text-[9px] font-semibold uppercase leading-tight tracking-[0.1em] text-black shadow-md backdrop-blur-sm transition-all hover:bg-black hover:text-white"
+                className="whitespace-nowrap rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-medium tracking-[0.03em] text-black shadow-sm backdrop-blur-sm transition-all hover:bg-black hover:text-white"
               >
                 {t("product.quickAdd")}
               </button>
