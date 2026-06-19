@@ -11,6 +11,11 @@ import api from "../../lib/api";
 import { getCustomerAuthHeaders } from "../../lib/customerAuth";
 import WesternUnionDetails from "../../components/WesternUnionDetails";
 import ZolotayaKoronaDetails from "../../components/ZolotayaKoronaDetails";
+import {
+  getWhatsappDigits,
+  getWhatsappDisplay,
+  SUPPORT_EMAIL,
+} from "../../lib/sitePublic";
 import { formatSizeLabel } from "../../lib/sizeDisplay";
 import { cloudinaryOptimizedUrl, isCloudinaryUrl } from "../../lib/image";
 import { MastercardMark, VisaMark, WesternUnionMark, ZolotayaKoronaMark } from "../../components/CardBrandLogos";
@@ -167,24 +172,21 @@ export default function CheckoutPage() {
     const fd = new FormData(event.currentTarget);
     const val = (key) => String(fd.get(key) || "").trim();
 
-    const firstName = val("firstName");
-    const lastName = val("lastName");
+    const fullName = val("fullName");
     const country = val("country");
-    const city = val("city");
     const fullAddress = val("address");
     const mobile = val("mobile");
     const email = val("email");
     const postalCode = val("postalCode");
-    const orderNotesRaw = (fd.get("orderNotes") ?? "").toString();
     const normalizedPaymentMethod = String(selectedPaymentMethod || "card");
 
     const orderPayload = {
       customerInfo: {
-        name: `${firstName} ${lastName}`.trim(),
+        name: fullName,
         email,
         phone: mobile,
         country,
-        city,
+        city: "",
         address: fullAddress,
         postalCode,
       },
@@ -201,7 +203,6 @@ export default function CheckoutPage() {
       totalPriceUSD: Number(totalPrice.toFixed(2)),
       shippingCost,
       paymentMethod: normalizedPaymentMethod,
-      ...(orderNotesRaw.trim() && { orderNotes: orderNotesRaw.trim() }),
       ...(appliedCoupon && { couponCode: appliedCoupon.code }),
       customerLocale: {
         language,
@@ -321,17 +322,18 @@ export default function CheckoutPage() {
               </select>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <input name="firstName" type="text" required autoComplete="given-name" placeholder={t("checkout.firstNamePlaceholder")} className="sami-input" />
-              <input name="lastName" type="text" required autoComplete="family-name" placeholder={t("checkout.lastNamePlaceholder")} className="sami-input" />
-            </div>
+            <input
+              name="fullName"
+              type="text"
+              required
+              autoComplete="name"
+              placeholder={t("checkout.fullNamePlaceholder")}
+              className="sami-input"
+            />
 
             <input name="address" type="text" required autoComplete="street-address" placeholder={t("checkout.addressPlaceholder")} className="sami-input" />
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <input name="city" type="text" required autoComplete="address-level2" placeholder={t("checkout.cityPlaceholder")} className="sami-input" />
-              <input name="postalCode" type="text" required autoComplete="postal-code" placeholder={t("checkout.postalCodePlaceholder")} className="sami-input" />
-            </div>
+            <input name="postalCode" type="text" required autoComplete="postal-code" placeholder={t("checkout.postalCodePlaceholder")} className="sami-input" />
 
             <input
               name="mobile"
@@ -345,20 +347,6 @@ export default function CheckoutPage() {
             <p id="checkout-phone-hint" className="text-xs text-[var(--color-muted)]">
               {t("checkout.phoneHint")}
             </p>
-          </fieldset>
-
-          {/* Order notes */}
-          <fieldset className="space-y-3 rounded-xl border border-[var(--color-line)] bg-white p-5">
-            <legend className="px-2 text-sm font-semibold uppercase tracking-[0.12em]">
-              {t("checkout.orderNotes")}
-            </legend>
-            <textarea
-              name="orderNotes"
-              rows={3}
-              className="sami-input min-h-[80px] resize-y text-sm"
-              placeholder={t("checkout.orderNotesPlaceholder")}
-              maxLength={2000}
-            />
           </fieldset>
 
           {/* Payment */}
@@ -380,19 +368,19 @@ export default function CheckoutPage() {
                 If you have problems regarding payment, please reach out:
               </p>
               <p className="mt-1 text-xs text-[var(--color-muted)]">
-                <a href="mailto:samistore.support@gmail.com" className="underline underline-offset-2">
-                  samistore.support@gmail.com
+                <a href={`mailto:${SUPPORT_EMAIL}`} className="underline underline-offset-2">
+                  {SUPPORT_EMAIL}
                 </a>
               </p>
               <p className="text-xs text-[var(--color-muted)]">
                 <a
-                  href="https://wa.me/994517570749"
+                  href={`https://wa.me/${getWhatsappDigits()}`}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-1.5 underline underline-offset-2"
                 >
                   <MessageCircle size={14} />
-                  +994517570749
+                  {getWhatsappDisplay()}
                 </a>
               </p>
             </div>

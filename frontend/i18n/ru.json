@@ -278,6 +278,7 @@
     "calculatedAtDelivery": "Рассчитывается при доставке",
     "placeOrder": "Оформить заказ",
     "orderError": "Не удалось оформить заказ. Пожалуйста, попробуйте снова.",
+    "fullNamePlaceholder": "Имя Фамилия",
     "emailPlaceholder": "Электронная почта",
     "countryPlaceholder": "Страна / Регион",
     "firstNamePlaceholder": "Имя",

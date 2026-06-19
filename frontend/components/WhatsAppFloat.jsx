@@ -1,13 +1,13 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { getWhatsappDigits } from "../lib/sitePublic";
 import { useLanguage, stripLocale } from "../context/LanguageContext";
 
 export default function WhatsAppFloat() {
   const pathname = usePathname();
   const { t } = useLanguage();
-  const raw = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "";
-  const digits = String(raw).replace(/\D/g, "");
+  const digits = getWhatsappDigits();
   const cleanPath = stripLocale(pathname);
 
   if (cleanPath?.startsWith("/admin")) return null;

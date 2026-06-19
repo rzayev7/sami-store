@@ -32,7 +32,7 @@ const orderSchema = new mongoose.Schema({
     },
     city: {
       type: String,
-      required: true,
+      default: "",
     },
     state: {
       type: String,

@@ -284,6 +284,7 @@
     "calculatedAtDelivery": "Calculated at delivery",
     "placeOrder": "Place Order",
     "orderError": "Could not place your order. Please try again.",
+    "fullNamePlaceholder": "Full name",
     "emailPlaceholder": "Email address",
     "countryPlaceholder": "Country / Region",
     "firstNamePlaceholder": "First name",

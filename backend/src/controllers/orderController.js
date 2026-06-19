@@ -34,7 +34,7 @@ const buildValidatedOrderPayload = async ({ body = {}, customerId = null, timeli
     return { error: { status: 400, message: "Cart is empty" } };
   }
 
-  const requiredCustomerFields = ["name", "email", "phone", "country", "address", "city", "postalCode"];
+  const requiredCustomerFields = ["name", "email", "phone", "country", "address", "postalCode"];
   const missingField = requiredCustomerFields.find((field) => !String(customerInfo?.[field] || "").trim());
   if (missingField) {
     return { error: { status: 400, message: `Missing required field: ${missingField}` } };
