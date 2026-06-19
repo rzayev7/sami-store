@@ -24,7 +24,9 @@ export default function AdminProductsPage() {
           headers: getAdminAuthHeaders(),
           params: { _t: Date.now() },
         });
-        setProducts(Array.isArray(data) ? data : []);
+        const list = Array.isArray(data) ? data : [];
+        list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setProducts(list);
       } catch {
         setErrorMessage(t.failedLoadProducts);
       } finally {
