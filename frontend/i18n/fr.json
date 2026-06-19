@@ -170,6 +170,8 @@
     "onlyLeftInStock": "Plus que {count} en stock",
     "countInBag": "({count} dans le panier)",
     "colour": "Couleur",
+    "colourVariants": "Aussi disponible en",
+    "thisVariant": "Vous êtes ici",
     "configuration": "Configuration",
     "fullSet": "Ensemble complet",
     "topOnly": "Haut uniquement",

@@ -865,6 +865,11 @@ export default function ProductForm({
   const [stock, setStock] = useState("0");
   const [sizes, setSizes] = useState([]);
   const [colors, setColors] = useState([]);
+  const [colorVariants, setColorVariants] = useState([]); // [{ productId, name, thumb }]
+  const [cvSearch, setCvSearch] = useState("");
+  const [cvSearchResults, setCvSearchResults] = useState([]);
+  const [cvSearching, setCvSearching] = useState(false);
+  const [cvSelected, setCvSelected] = useState(null); // full product object once chosen
   const [featured, setFeatured] = useState(false);
   const [isBestSeller, setIsBestSeller] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(false);
@@ -897,6 +902,58 @@ export default function ProductForm({
   const [addQuantity, setAddQuantity] = useState("1");
 
   const submitLabel = mode === "edit" ? t.saveChanges : t.saveProduct;
+
+  /* ── Color-variant search ── */
+  useEffect(() => {
+    // Don't search again once a product has been selected
+    if (cvSelected) return;
+    const query = cvSearch.trim();
+    if (query.length < 2) {
+      setCvSearchResults([]);
+      return;
+    }
+    const timeout = setTimeout(async () => {
+      setCvSearching(true);
+      try {
+        const res = await api.get(
+          `/api/products?search=${encodeURIComponent(query)}&lite=true&limit=10`,
+          { headers: getAdminAuthHeaders() }
+        );
+        const products = res.data?.products || [];
+        const excluded = new Set([
+          ...colorVariants.map((cv) => cv.productId),
+          initialProduct?._id,
+        ].filter(Boolean));
+        setCvSearchResults(products.filter((p) => !excluded.has(p._id)));
+      } catch {
+        setCvSearchResults([]);
+      } finally {
+        setCvSearching(false);
+      }
+    }, 300);
+    return () => clearTimeout(timeout);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cvSearch, cvSelected]);
+
+  const addColorVariant = () => {
+    if (!cvSelected) return;
+    setColorVariants((prev) => [
+      ...prev,
+      {
+        label: cvSelected.name, // use the product name as the label (backend stores it)
+        productId: cvSelected._id,
+        name: cvSelected.name,
+        thumb: Array.isArray(cvSelected.images) ? cvSelected.images[0] || "" : "",
+      },
+    ]);
+    setCvSearch("");
+    setCvSelected(null);
+    setCvSearchResults([]);
+  };
+
+  const removeColorVariant = (productId) => {
+    setColorVariants((prev) => prev.filter((cv) => cv.productId !== productId));
+  };
 
   const hasHydrated = useRef(false);
 
@@ -985,6 +1042,16 @@ export default function ProductForm({
     setStock(String(product.stock ?? 0));
     setSizes(Array.isArray(product.sizes) ? product.sizes : []);
     setColors(Array.isArray(product.colors) ? product.colors : []);
+    setColorVariants(
+      Array.isArray(product.colorVariants)
+        ? product.colorVariants.map((cv) => ({
+            label: cv.label || "",
+            productId: String(cv.productId?._id || cv.productId || ""),
+            name: cv.productId?.name || "",
+            thumb: Array.isArray(cv.productId?.images) ? cv.productId.images[0] || "" : "",
+          }))
+        : []
+    );
     setFeatured(Boolean(product.featured));
     setIsBestSeller(Boolean(product.isBestSeller));
     setIsNewArrival(Boolean(product.isNewArrival));
@@ -1544,6 +1611,10 @@ export default function ProductForm({
         category: category.trim(),
         sizes,
         colors,
+        colorVariants: colorVariants.map((cv) => ({
+          label: cv.name || cv.label || "",
+          productId: cv.productId,
+        })),
         stock: parsedStock,
         featured,
         isBestSeller,
@@ -1981,6 +2052,101 @@ export default function ProductForm({
             <div>
               <FieldLabel>{t.colors}</FieldLabel>
               <TagInput tags={colors} setTags={setColors} placeholder={t.placeholderColor} />
+            </div>
+          </div>
+
+          {/* ── Color variant links ── */}
+          <div className="mt-6 border-t border-[var(--color-line)] pt-5">
+            <p className="mb-1 text-[12px] font-semibold uppercase tracking-[0.12em] text-black/55">
+              {t.colorVariantsTitle}
+            </p>
+            <p className="mb-4 text-[12px] leading-relaxed text-black/40">{t.colorVariantsHint}</p>
+
+            {/* Existing variants */}
+            {colorVariants.length > 0 && (
+              <div className="mb-4 space-y-2">
+                {colorVariants.map((cv) => (
+                  <div
+                    key={cv.productId}
+                    className="flex items-center gap-3 rounded-lg border border-[var(--color-line)] bg-white px-3 py-2"
+                  >
+                    {cv.thumb && (
+                      <img
+                        src={cv.thumb}
+                        alt={cv.label}
+                        className="h-9 w-9 rounded object-cover"
+                      />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[12px] font-semibold text-black/80">{cv.label}</p>
+                      <p className="truncate text-[11px] text-black/40">{cv.name}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeColorVariant(cv.productId)}
+                      className="shrink-0 text-black/30 transition hover:text-red-600"
+                      aria-label="Remove variant"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add new variant row */}
+            <div className="flex gap-3">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  value={cvSearch}
+                  onChange={(e) => { setCvSearch(e.target.value); setCvSelected(null); }}
+                  placeholder={t.colorVariantSearch}
+                  className="sami-input w-full rounded-lg"
+                />
+                {/* Dropdown */}
+                {(cvSearchResults.length > 0 || cvSearching) && !cvSelected && (
+                  <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-52 overflow-y-auto rounded-lg border border-[var(--color-line)] bg-white shadow-md">
+                    {cvSearching && (
+                      <p className="px-3 py-2.5 text-[12px] text-black/40">{t.colorVariantSearching}</p>
+                    )}
+                    {!cvSearching && cvSearchResults.length === 0 && (
+                      <p className="px-3 py-2.5 text-[12px] text-black/40">{t.colorVariantNoResults}</p>
+                    )}
+                    {cvSearchResults.map((p) => (
+                      <button
+                        key={p._id}
+                        type="button"
+                        onClick={() => {
+                          setCvSelected(p);
+                          setCvSearch(p.name);
+                          setCvSearchResults([]);
+                        }}
+                        className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[12px] transition hover:bg-black/[0.04]"
+                      >
+                        {Array.isArray(p.images) && p.images[0] && (
+                          <img src={p.images[0]} alt={p.name} className="h-8 w-8 rounded object-cover" />
+                        )}
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-black/80">{p.name}</p>
+                          {Array.isArray(p.colors) && p.colors.length > 0 && (
+                            <p className="truncate text-[10px] text-black/38">{p.colors.join(", ")}</p>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={addColorVariant}
+                disabled={!cvSelected}
+                className="flex shrink-0 items-center gap-1.5 rounded-lg bg-black px-4 py-2 text-[12px] font-medium text-white transition hover:bg-black/80 disabled:cursor-not-allowed disabled:opacity-35"
+              >
+                <Plus size={13} />
+                {t.colorVariantAdd}
+              </button>
             </div>
           </div>
         </CollapsibleCard>

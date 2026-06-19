@@ -124,6 +124,15 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  colorVariants: {
+    type: [
+      {
+        label: { type: String, required: true, trim: true, maxlength: 60 },
+        productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+      },
+    ],
+    default: [],
+  },
   stock: {
     type: Number,
     default: 0,

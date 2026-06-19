@@ -171,6 +171,8 @@
     "onlyLeftInStock": "متبقي {count} فقط في المخزون",
     "countInBag": "({count} في الحقيبة)",
     "colour": "اللون",
+    "colourVariants": "متوفر أيضاً بـ",
+    "thisVariant": "أنت هنا",
     "configuration": "التكوين",
     "fullSet": "طقم كامل",
     "topOnly": "قطعة علوية فقط",

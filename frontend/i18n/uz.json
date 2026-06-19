@@ -170,6 +170,8 @@
     "onlyLeftInStock": "Omborda faqat {count} ta qoldi",
     "countInBag": "({count} savatda)",
     "colour": "Rang",
+    "colourVariants": "Shuningdek mavjud",
+    "thisVariant": "Siz shu yerdasiz",
     "configuration": "Konfiguratsiya",
     "fullSet": "To‘liq to‘plam",
     "topOnly": "Faqat yuqori",

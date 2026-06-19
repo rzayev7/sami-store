@@ -201,7 +201,7 @@ const getProducts = async (req, res, next) => {
     const query = Product.find(filter).sort(sort).skip(skip).limit(limit);
     if (lite) {
       query.select(
-        "_id name priceUSD discountPriceUSD category sizes images stock featured cardVideoUrl cardVideoAdjustments cardVideoLandscape isBestSeller isNewArrival createdAt"
+        "_id name priceUSD discountPriceUSD category sizes images stock featured cardVideoUrl cardVideoAdjustments cardVideoLandscape isBestSeller isNewArrival createdAt colorVariants"
       );
     }
     const products = await query.lean();
@@ -223,7 +223,10 @@ const getProductById = async (req, res, next) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).populate(
+      "colorVariants.productId",
+      "_id name images colors"
+    );
 
     if (!product) {
       res.status(404);

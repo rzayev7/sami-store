@@ -1014,6 +1014,57 @@ export default function ProductDetailClient({
                 </div>
               )}
 
+              {/* Color variant swatches — links to sibling products */}
+              {Array.isArray(product.colorVariants) && product.colorVariants.length > 0 && (
+                <div data-testid="color-variants">
+                  <p className="mb-2 font-sans text-[10px] font-medium uppercase tracking-[0.2em] text-black/38 lg:text-start">
+                    {t("product.colourVariants")}
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2 lg:justify-start">
+                    {/* "This" product swatch — always shown as active */}
+                    <div className="flex flex-col items-center gap-1">
+                      <span
+                        className="h-10 w-10 rounded-full border-2 border-black/70 ring-2 ring-[#C8A96E]/40 overflow-hidden bg-[#f5f0ea]"
+                        title={t("product.thisVariant")}
+                      >
+                        {Array.isArray(product.images) && product.images[0] && (
+                          <img
+                            src={product.images[0]}
+                            alt={product.name}
+                            className="h-full w-full object-cover"
+                          />
+                        )}
+                      </span>
+                    </div>
+                    {product.colorVariants.map((cv) => {
+                      const variantId = cv.productId?._id || cv.productId;
+                      const variantColors = cv.productId?.colors;
+                      const tooltip = Array.isArray(variantColors) && variantColors.length > 0
+                        ? variantColors.join(", ")
+                        : (cv.label || "");
+                      return (
+                        <Link
+                          key={variantId}
+                          href={`/products/${variantId}`}
+                          title={tooltip}
+                          aria-label={tooltip}
+                        >
+                          <span className="block h-10 w-10 rounded-full border-2 border-black/18 overflow-hidden bg-[#f5f0ea] transition-all hover:border-black/45 hover:ring-2 hover:ring-[#C8A96E]/30">
+                            {cv.productId?.images?.[0] && (
+                              <img
+                                src={cv.productId.images[0]}
+                                alt={tooltip}
+                                className="h-full w-full object-cover"
+                              />
+                            )}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Bundle selector */}
               {isBundleProduct && (
                 <div data-testid="bundle-selector">

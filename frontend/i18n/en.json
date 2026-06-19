@@ -177,6 +177,8 @@
     "onlyLeftInStock": "Only {count} left in stock",
     "countInBag": "({count} in bag)",
     "colour": "Colour",
+    "colourVariants": "Also available in",
+    "thisVariant": "You are here",
     "configuration": "Configuration",
     "fullSet": "Full set",
     "topOnly": "Top only",

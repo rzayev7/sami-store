@@ -172,6 +172,8 @@
     "onlyLeftInStock": "Осталось только {count} на складе",
     "countInBag": "({count} в корзине)",
     "colour": "Цвет",
+    "colourVariants": "Также доступно в",
+    "thisVariant": "Вы здесь",
     "configuration": "Комплектация",
     "fullSet": "Полный комплект",
     "topOnly": "Только верх",
