@@ -88,6 +88,13 @@ const TEXT_BY_LANG = {
     keep: "Garder l'actuel",
     apply: "Appliquer",
   },
+  kk: {
+    title: "Аймақтық баптаулар анықталды",
+    detectedIn: "Сіздің еліңіз анықталды:",
+    switchTo: "Ауыстыру:",
+    keep: "Қазіргісін қалдыру",
+    apply: "Қолдану",
+  },
 };
 
 function mapCountryToPreference(countryCode) {
@@ -96,7 +103,10 @@ function mapCountryToPreference(countryCode) {
   if (cc === "UZ") {
     return { language: "uz", currency: "UZS" };
   }
-  if (cc === "RU" || cc === "KZ") {
+  if (cc === "KZ") {
+    return { language: "kk", currency: "KZT" };
+  }
+  if (cc === "RU" || cc === "BY") {
     return { language: "ru", currency: "RUB" };
   }
   if (ARAB_COUNTRIES.has(cc)) {

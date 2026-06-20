@@ -5,6 +5,7 @@ import ar from "./ar.json";
 import ru from "./ru.json";
 import uz from "./uz.json";
 import fr from "./fr.json";
+import kk from "./kk.json";
 
 export const LANGUAGES = [
   { code: "en", label: "English", dir: "ltr" },
@@ -12,9 +13,10 @@ export const LANGUAGES = [
   { code: "ru", label: "Русский", dir: "ltr" },
   { code: "uz", label: "Oʻzbekcha", dir: "ltr" },
   { code: "fr", label: "Français", dir: "ltr" },
+  { code: "kk", label: "Қазақша", dir: "ltr" },
 ];
 
-const dictionaries = { en, ar, ru, uz, fr };
+const dictionaries = { en, ar, ru, uz, fr, kk };
 
 function resolve(obj, path) {
   return path.split(".").reduce((acc, key) => acc?.[key], obj);

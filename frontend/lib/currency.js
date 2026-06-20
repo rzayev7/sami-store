@@ -13,6 +13,7 @@ export const CURRENCIES = [
   { code: "EUR", symbol: "€", name: "Eurozone", flag: "🇪🇺", decimals: 2 },
   { code: "RUB", symbol: "₽", name: "Russia", flag: "🇷🇺", decimals: 2 },
   { code: "UZS", symbol: "soʻm", name: "Uzbekistan", flag: "🇺🇿", decimals: 2 },
+  { code: "KZT", symbol: "₸", name: "Kazakhstan", flag: "🇰🇿", decimals: 0 },
 ];
 
 const CURRENCY_MAP = Object.fromEntries(CURRENCIES.map((c) => [c.code, c]));
@@ -61,8 +62,8 @@ export function formatPrice(amountAZN, currencyCode = "USD", rates = {}, aznPerU
 const LOCALE_TO_CURRENCY = {
   "ru-RU": "RUB",
   ru: "RUB",
-  "kk-KZ": "RUB",
-  kk: "RUB",
+  "kk-KZ": "KZT",
+  kk: "KZT",
   "uz-UZ": "UZS",
   uz: "UZS",
   "ar-SA": "SAR",

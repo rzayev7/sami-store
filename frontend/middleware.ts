@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { geolocation } from "@vercel/functions";
 import { inferDefaultLocaleFromSignals } from "./lib/localeInference";
 
-const LOCALES = ["en", "ar", "ru", "uz", "fr"];
-const LEGACY_LOCALES = ["tr", "kk", "az"];
+const LOCALES = ["en", "ar", "ru", "uz", "fr", "kk"];
+const LEGACY_LOCALES = ["tr", "az"];
 const DEFAULT_LOCALE = "en";
 const BLOCKED_COUNTRY_CODES = new Set(["AZ"]);
 /** Internal route: generic fake 404 (no branding). Only used via rewrite. */

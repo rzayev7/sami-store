@@ -3,7 +3,7 @@
  * Used by middleware (first redirect) and short-link landing pages.
  */
 
-export const SUPPORTED_LOCALES = ["en", "ar", "ru", "uz", "fr"] as const;
+export const SUPPORTED_LOCALES = ["en", "ar", "ru", "uz", "fr", "kk"] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 /** Arabic-speaking / MENA markets → default Arabic storefront. */
@@ -79,7 +79,8 @@ export function inferDefaultLocaleFromSignals(signals: {
 
   if (ARAB_COUNTRY_CODES.has(cc)) return "ar";
   if (cc === "UZ") return "uz";
-  if (cc === "RU" || cc === "KZ" || cc === "BY") return "ru";
+  if (cc === "KZ") return "kk";
+  if (cc === "RU" || cc === "BY") return "ru";
   if (cc === "FR" || cc === "MC" || cc === "LU") return "fr";
 
   const fromHeader = localeFromAcceptLanguage(signals.acceptLanguage);
